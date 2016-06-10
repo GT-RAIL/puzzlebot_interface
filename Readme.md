@@ -10,8 +10,8 @@ In the web view of RMS, go to `Admin>ROS Settings>Interfaces` and create a new E
 
 ###Copying these files into your RMS
 
-1. Copy `PuzzleBotInterfaceController.php` into the `app/Controllers` folder
-2. Copy `PuzzleBotInterfaceController` folder into the `app/Views` folder
+1. Copy `PuzzleBotInterfaceController.php` into the `app/Controller` folder
+2. Copy `PuzzleBotInterface` folder into the `app/View` folder
 3. Copy `mjpegcanvas2.js` to `app/webroot/js` folder
 
 
