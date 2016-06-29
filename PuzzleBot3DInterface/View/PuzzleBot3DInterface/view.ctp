@@ -111,7 +111,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 									<td style="text-align:center" width="160px"><button id='resetArm' class='button special' style="width:170px">reset arm</button></td>
 								</tr>
 								<tr>
-									<td style="text-align:center" width="160px"><button id='unused' class='button special' style="width:170px">unused</button></td>
+									<td style="text-align:center" width="160px"><button id='unused' class='button special' style="width:170px">&nbsp;</button></td>
 								</tr>
 							</table>
 						</td>
@@ -204,18 +204,26 @@ echo $this->Html->css('PuzzleBot3DInterface');
 		intensity: 0.660000
 	});
 
-//add IMs
-		<?php foreach ($environment['Im'] as $im): ?>
-			new ROS3D.InteractiveMarkerClient({
-				ros: _ROS,
-				tfClient: _TF,
-				camera: _VIEWER.camera,
-				rootObject: _VIEWER.selectableObjects,
-				<?php echo isset($im['Collada']['id']) ? __('loader:%d,', h($im['Collada']['id'])) : ''; ?>
-				<?php echo isset($im['Resource']['url']) ? __('path:"%s",', h($im['Resource']['url'])) : ''; ?>
-				topic: '<?php echo h($im['topic']); ?>'
-			});
-		<?php endforeach; ?>
+	_VIEWER.addObject(
+		new ROS3D.SceneNode({
+			object: new ROS3D.Grid({cellSize: 0.75, size: 20, color: '#2B0000'}),
+			tfClient: _TF,
+			frameID: '/table_base_link'
+		})
+	);
+
+	//add IMs
+	<?php foreach ($environment['Im'] as $im): ?>
+		new ROS3D.InteractiveMarkerClient({
+			ros: _ROS,
+			tfClient: _TF,
+			camera: _VIEWER.camera,
+			rootObject: _VIEWER.selectableObjects,
+			<?php echo isset($im['Collada']['id']) ? __('loader:%d,', h($im['Collada']['id'])) : ''; ?>
+			<?php echo isset($im['Resource']['url']) ? __('path:"%s",', h($im['Resource']['url'])) : ''; ?>
+			topic: '<?php echo h($im['topic']); ?>'
+		});
+	<?php endforeach; ?>
 </script>
 
 <?php
@@ -229,114 +237,266 @@ foreach ($environment['Urdf'] as $urdf) {
 }
 ?>
 
-	<script type="text/javascript">
+<script>
+	//Setup ROS action clients
+	var armClient = new ROSLIB.ActionClient({
+		ros: _ROS,
+		serverName: '/tablebot_moveit/common_actions/arm_action',
+		actionName: 'tablebot_moveit/ArmAction'
+	});
+	var gripperClient = new ROSLIB.ActionClient({
+		ros: _ROS,
+		serverName: '/gripper_actions/gripper_manipulation',
+		actionName: 'rail_manipulation_msgs/GripperAction'
+	});
+	var primitiveClient = new ROSLIB.ActionClient({
+		ros: _ROS,
+		serverName: '/tablebot_moveit/primitive_action',
+		actionName: 'rail_manipulation_msgs/PrimitiveAction'
+	});
 
-		//button callbacks
-		$('#resetArmMovementSliders').click(function () {
-			document.getElementById("x-slider").value = document.getElementById("x-slider").defaultValue;
-			document.getElementById("y-slider").value = document.getElementById("y-slider").defaultValue;
-			document.getElementById("z-slider").value = document.getElementById("z-slider").defaultValue;
-			showSliderValue("x-slider", document.getElementById("x-slider").value);
-			showSliderValue("y-slider", document.getElementById("y-slider").value);
-			showSliderValue("z-slider", document.getElementById("z-slider").value);
+</script>
+
+<script type="text/javascript">
+
+	//button callbacks
+	$('#resetArm').click(function (e) {
+		e.preventDefault();
+		var goal = new ROSLIB.Goal({
+			actionClient: armClient,
+			goalMessage: {
+				action: 1
+			}
 		});
+		goal.send();
+	});
 
-		$('#resetArmRotationSlider').click(function () {
-			document.getElementById("r-slider").value = document.getElementById("r-slider").defaultValue;
-			showSliderAngle("r-slider", document.getElementById("r-slider").value);
+	$('#openGripper').click(function (e) {
+		e.preventDefault();
+		var goal = new ROSLIB.Goal({
+			actionClient: gripperClient,
+			goalMessage: {
+				close: false
+			}
 		});
-
-		//this is the topic for cartesian moving objects around
-		var cartesian_move_topic = new ROSLIB.Topic({
-                ros: _ROS,
-                name: '/tablebot_moveit_wrapper/cartesian_control',
-                messageType: 'geometry_msgs/Twist'
-        });
-        cartesian_move_topic.advertise();
-        var size = 500
-		<?php
-			$streamTopics = '[';
-			$streamNames = '[';
-			foreach ($environment['Stream'] as $stream) {
-				$streamTopics .= "'" . $stream['topic'] . "', ";
-				$streamNames .= "'" . $stream['name'] . "', ";
+		goal.send();
+	});
+	$('#closeGripper').click(function (e) {
+		e.preventDefault();
+		var goal = new ROSLIB.Goal({
+			actionClient: gripperClient,
+			goalMessage: {
+				close: true
 			}
-			// remove the final comma
-			$streamTopics = substr($streamTopics, 0, strlen($streamTopics) - 2);
-			$streamNames = substr($streamNames, 0, strlen($streamNames) - 2);
-			$streamTopics .= ']';
-			$streamNames .= ']';
-		?>
-		console.log(EventEmitter)
-	    var mjpegcanvas=new MJPEGCANVAS.MultiStreamViewer({
-			divID: 'mjpeg',
-			host: '<?php echo $environment['Mjpeg']['host']; ?>',
-			port: <?php echo $environment['Mjpeg']['port']; ?>,
-			width: size,
-			height: size * 0.85,
-			quality: <?php echo $environment['Stream']?(($environment['Stream'][0]['quality']) ? $environment['Stream'][0]['quality'] : '90'):''; ?>,
-			topics: <?php echo $streamTopics; ?>,
-			labels: <?php echo $streamNames; ?>,
-			tfObject:_TF,
-			tf:'arm_mount_plate_link',
-			refreshRate:'5'
-		},EventEmitter);
+		});
+		goal.send();
+	});
 
-		mjpegcanvas.interaction=function(linear,angular){
- 		    var message=new ROSLIB.Message({
-                'linear':linear,
-                'angular':angular
-            });
-            cartesian_move_topic.publish(message);
+	$('#moveForward').click(function (e) {
+		e.preventDefault();
+		var goal = new ROSLIB.Goal({
+			actionClient: primitiveClient,
+			goalMessage: {
+				primitive_type: 0,
+				axis: 1,
+				distance: 0.1
+			}
+		});
+		goal.send();
+	});
+	$('#moveBack').click(function (e) {
+		e.preventDefault();
+		var goal = new ROSLIB.Goal({
+			actionClient: primitiveClient,
+			goalMessage: {
+				primitive_type: 0,
+				axis: 1,
+				distance: -0.1
+			}
+		});
+		goal.send();
+	});
+
+	$('#moveLeft').click(function (e) {
+		e.preventDefault();
+		var goal = new ROSLIB.Goal({
+			actionClient: primitiveClient,
+			goalMessage: {
+				primitive_type: 0,
+				axis: 0,
+				distance: -0.1
+			}
+		});
+		goal.send();
+	});
+	$('#moveRight').click(function (e) {
+		e.preventDefault();
+		var goal = new ROSLIB.Goal({
+			actionClient: primitiveClient,
+			goalMessage: {
+				primitive_type: 0,
+				axis: 0,
+				distance: 0.1
+			}
+		});
+		goal.send();
+	});
+
+	$('#moveUp').click(function (e) {
+		e.preventDefault();
+		var goal = new ROSLIB.Goal({
+			actionClient: primitiveClient,
+			goalMessage: {
+				primitive_type: 0,
+				axis: 2,
+				distance: 0.1
+			}
+		});
+		goal.send();
+	});
+	$('#moveDown').click(function (e) {
+		e.preventDefault();
+		var goal = new ROSLIB.Goal({
+			actionClient: primitiveClient,
+			goalMessage: {
+				primitive_type: 0,
+				axis: 2,
+				distance: -0.1
+			}
+		});
+		goal.send();
+	});
+
+	$('#rotateCW').click(function (e) {
+		e.preventDefault();
+		var goal = new ROSLIB.Goal({
+			actionClient: primitiveClient,
+			goalMessage: {
+				primitive_type: 1,
+				axis: 0,
+				distance: 1.5708
+			}
+		});
+		goal.send();
+	});
+	$('#rotateCCW').click(function (e) {
+		e.preventDefault();
+		var goal = new ROSLIB.Goal({
+			actionClient: primitiveClient,
+			goalMessage: {
+				primitive_type: 1,
+				axis: 0,
+				distance: -1.5708
+			}
+		});
+		goal.send();
+	});
+
+	$('#resetArmMovementSliders').click(function () {
+		document.getElementById("x-slider").value = document.getElementById("x-slider").defaultValue;
+		document.getElementById("y-slider").value = document.getElementById("y-slider").defaultValue;
+		document.getElementById("z-slider").value = document.getElementById("z-slider").defaultValue;
+		showSliderValue("x-slider", document.getElementById("x-slider").value);
+		showSliderValue("y-slider", document.getElementById("y-slider").value);
+		showSliderValue("z-slider", document.getElementById("z-slider").value);
+	});
+
+	$('#resetArmRotationSlider').click(function () {
+		document.getElementById("r-slider").value = document.getElementById("r-slider").defaultValue;
+		showSliderAngle("r-slider", document.getElementById("r-slider").value);
+	});
+
+	//this is the topic for cartesian moving objects around
+	var cartesian_move_topic = new ROSLIB.Topic({
+			ros: _ROS,
+			name: '/tablebot_moveit_wrapper/cartesian_control',
+			messageType: 'geometry_msgs/Twist'
+	});
+	cartesian_move_topic.advertise();
+	var size = 500
+	<?php
+		$streamTopics = '[';
+		$streamNames = '[';
+		foreach ($environment['Stream'] as $stream) {
+			$streamTopics .= "'" . $stream['topic'] . "', ";
+			$streamNames .= "'" . $stream['name'] . "', ";
 		}
-		var timer=null;
-		var move_arm_x=null;
-		var move_arm_y=null;
-		var mjpeg_canvas_rect = mjpegcanvas.canvas.getBoundingClientRect();
-		var speed=1; //a constant representing the speed of the interaction of the arm
-		mjpegcanvas.canvas.addEventListener('mousemove',function(event){
-			if (timer){
-				clearTimeout(timer)
-			}
-			move_arm_x=event.clientX - mjpeg_canvas_rect.left- (mjpegcanvas.width/2)
-			move_arm_y=mjpegcanvas.height-event.clientY - mjpeg_canvas_rect.top
-			timers=setTimeout(move_arm,1000)
-		})
+		// remove the final comma
+		$streamTopics = substr($streamTopics, 0, strlen($streamTopics) - 2);
+		$streamNames = substr($streamNames, 0, strlen($streamNames) - 2);
+		$streamTopics .= ']';
+		$streamNames .= ']';
+	?>
+	console.log(EventEmitter)
+	var mjpegcanvas=new MJPEGCANVAS.MultiStreamViewer({
+		divID: 'mjpeg',
+		host: '<?php echo $environment['Mjpeg']['host']; ?>',
+		port: <?php echo $environment['Mjpeg']['port']; ?>,
+		width: size,
+		height: size * 0.85,
+		quality: <?php echo $environment['Stream']?(($environment['Stream'][0]['quality']) ? $environment['Stream'][0]['quality'] : '90'):''; ?>,
+		topics: <?php echo $streamTopics; ?>,
+		labels: <?php echo $streamNames; ?>,
+		tfObject:_TF,
+		tf:'arm_mount_plate_link',
+		refreshRate:'5'
+	},EventEmitter);
 
-		mjpegcanvas.canvas.addEventListener('mouseout',function(event){
-			if (timer){
-				clearTimeout(timer)
-			}
-		})
-
-		function move_arm(x,y){
-    		var linear={'x':move_arm_x,'y':move_arm_y,'z':0};
-      		var point=MJPEGCANVAS.convertImageCoordinatestoWorldCoordinates(mjpegcanvas.transform,linear.x,linear.y,linear.z,mjpegcanvas.width,mjpegcanvas.height)
-      		var temp = point.z
-      		point.z=point.x
-      		point.x=temp
-			console.log(linear)
-			var message=new ROSLIB.Message({
-			    'linear':{x:0.0,y:-1.0,z:0.0},
-			    'angular':{x:0.0,y:0.0,z:0.0}
-			});
-			cartesian_move_topic.publish(message);
+	mjpegcanvas.interaction=function(linear,angular){
+		var message=new ROSLIB.Message({
+			'linear':linear,
+			'angular':angular
+		});
+		cartesian_move_topic.publish(message);
+	}
+	var timer=null;
+	var move_arm_x=null;
+	var move_arm_y=null;
+	var mjpeg_canvas_rect = mjpegcanvas.canvas.getBoundingClientRect();
+	var speed=1; //a constant representing the speed of the interaction of the arm
+	mjpegcanvas.canvas.addEventListener('mousemove',function(event){
+		if (timer){
+			clearTimeout(timer)
 		}
-	    //add a set of interactive markers
-	  //  mjpegcanvas.addTopic('/tablebot_interactive_manipulation/update_full','visualization_msgs/InteractiveMarkerInit')
+		move_arm_x=event.clientX - mjpeg_canvas_rect.left- (mjpegcanvas.width/2)
+		move_arm_y=mjpegcanvas.height-event.clientY - mjpeg_canvas_rect.top
+		timers=setTimeout(move_arm,1000)
+	})
 
-	</script>
-	<script>
-	     // var cartesian_move_topic = new ROSLIB.Topic({
-         //        ros: _ROS,
-         //        name: '/tablebot_moveit_wrapper/cartesian_control',
-         //        messageType: 'geometry_msgs/Twist'
-         //    });
-         //    cartesian_move_topic.advertise();
-         //    var message=new ROSLIB.Message({
-         //        'linear':{x:0.0,y:0.0,z:0.0},
-         //        'angular':{x:0.0,y:0.0,z:0.0}
-         //    });
-         //    cartesian_move_topic.publish(message);
-	</script>
+	mjpegcanvas.canvas.addEventListener('mouseout',function(event){
+		if (timer){
+			clearTimeout(timer)
+		}
+	})
+
+	function move_arm(x,y){
+		var linear={'x':move_arm_x,'y':move_arm_y,'z':0};
+		var point=MJPEGCANVAS.convertImageCoordinatestoWorldCoordinates(mjpegcanvas.transform,linear.x,linear.y,linear.z,mjpegcanvas.width,mjpegcanvas.height)
+		var temp = point.z
+		point.z=point.x
+		point.x=temp
+		console.log(linear)
+		var message=new ROSLIB.Message({
+			'linear':{x:0.0,y:-1.0,z:0.0},
+			'angular':{x:0.0,y:0.0,z:0.0}
+		});
+		cartesian_move_topic.publish(message);
+	}
+	//add a set of interactive markers
+  //  mjpegcanvas.addTopic('/tablebot_interactive_manipulation/update_full','visualization_msgs/InteractiveMarkerInit')
+
+</script>
+<script>
+	 // var cartesian_move_topic = new ROSLIB.Topic({
+	 //        ros: _ROS,
+	 //        name: '/tablebot_moveit_wrapper/cartesian_control',
+	 //        messageType: 'geometry_msgs/Twist'
+	 //    });
+	 //    cartesian_move_topic.advertise();
+	 //    var message=new ROSLIB.Message({
+	 //        'linear':{x:0.0,y:0.0,z:0.0},
+	 //        'angular':{x:0.0,y:0.0,z:0.0}
+	 //    });
+	 //    cartesian_move_topic.publish(message);
+</script>
 </html
