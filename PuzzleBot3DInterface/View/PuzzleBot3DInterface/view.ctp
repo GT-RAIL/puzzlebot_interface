@@ -241,8 +241,8 @@ foreach ($environment['Urdf'] as $urdf) {
 	//Setup ROS action clients
 	var armClient = new ROSLIB.ActionClient({
 		ros: _ROS,
-		serverName: '/tablebot_moveit/common_actions/arm_action',
-		actionName: 'tablebot_moveit/ArmAction'
+		serverName: '/nimbus_moveit/common_actions/arm_action',
+		actionName: 'nimbus_moveit/ArmAction'
 	});
 	var gripperClient = new ROSLIB.ActionClient({
 		ros: _ROS,
@@ -251,7 +251,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	});
 	var primitiveClient = new ROSLIB.ActionClient({
 		ros: _ROS,
-		serverName: '/tablebot_moveit/primitive_action',
+		serverName: '/nimbus_moveit/primitive_action',
 		actionName: 'rail_manipulation_msgs/PrimitiveAction'
 	});
 
@@ -409,7 +409,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	//this is the topic for cartesian moving objects around
 	var cartesian_move_topic = new ROSLIB.Topic({
 			ros: _ROS,
-			name: '/tablebot_moveit_wrapper/cartesian_control',
+			name: '/nimbus_moveit_wrapper/cartesian_control',
 			messageType: 'geometry_msgs/Twist'
 	});
 	cartesian_move_topic.advertise();
@@ -483,13 +483,13 @@ foreach ($environment['Urdf'] as $urdf) {
 		cartesian_move_topic.publish(message);
 	}
 	//add a set of interactive markers
-  //  mjpegcanvas.addTopic('/tablebot_interactive_manipulation/update_full','visualization_msgs/InteractiveMarkerInit')
+  //  mjpegcanvas.addTopic('/nimbus_interactive_manipulation/update_full','visualization_msgs/InteractiveMarkerInit')
 
 </script>
 <script>
 	 // var cartesian_move_topic = new ROSLIB.Topic({
 	 //        ros: _ROS,
-	 //        name: '/tablebot_moveit_wrapper/cartesian_control',
+	 //        name: '/nimbus_moveit_wrapper/cartesian_control',
 	 //        messageType: 'geometry_msgs/Twist'
 	 //    });
 	 //    cartesian_move_topic.advertise();
