@@ -14,7 +14,7 @@
 
 <?php
 //custom styling
-echo $this->Html->css('PuzzleBot3DInterface');
+echo $this->Html->css('PuzzleBotClickInterface');
 ?>
 
 <html>
@@ -69,19 +69,35 @@ echo $this->Html->css('PuzzleBot3DInterface');
 			<td style="width: 22%; vertical-align:top;">
 				<div id="instructions" style="height=500px; text-align: left; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
 					<b>Instructions:</b>
-					<ol type="1" style="list-style-type:decimal; margin-left:15px;">
-					<li><b>Set a position</b> for the gripper by <b>clicking and dragging</b> the <b>ring and arrow marker</b> on the left.</li>
+					<ol type="1" style="list-style-type:decimal; margin-left:15px; margin-bottom:0px;">
+					<li><b>Set a position</b> for the gripper by <b>clicking in the 3D scene</b> on the left.</li>
 					<li>
-						<b>Click the move button</b> below to automatically move the arm to your set position.
+						<b>Cycle through suggestions</b> to choose a good grasp.
+						<br><table style="margin-left:auto; margin-right:auto">
+							<tr>
+								<td><img src="/img/Nimbus/nimbus-prev.png" height="50" width="75" style="vertical-align:middle"></td>
+								<td><img src="/img/Nimbus/nimbus-next.png" height="50" width="75" style="vertical-align:middle"></td>
+							</tr>
+						</table>
+					</li>
+					<li>
+						Select <b>Shallow</b> or <b>Deep Grasp</b> and the robot will automatically move to your selected position.
 						<br /><table style="margin-left:auto; margin-right:auto;">
 							<tr>
-								<td style="text-align:center; vertical-align:middle;" width="150px">
-									<button id='move-arm' class='button special' style="width:140px">move arm</button>
-								</td>
 								<td style="vertical-align:middle;">
-									<img src="/img/Nimbus/nimbus-plan.png" height="100" width="150" style="vertical-align:middle">
+									<img src="/img/Nimbus/nimbus-shallow-grasp.png" height="50" width="75" style="vertical-align:middle">
 								</td>
-
+								<td style="text-align:center" width="200px">
+									<button id='shallowGrasp' class='button special' style="width:190px">shallow grasp</button>
+								</td>
+							</tr>
+							<tr>
+								<td style="vertical-align:middle;">
+									<img src="/img/Nimbus/nimbus-deep-grasp.png" height="50" width="75" style="vertical-align:middle">
+								</td>
+								<td style="text-align:center" width="200px">
+									<button id='deepGrasp' class='button special' style="width:190px">deep grasp</button>
+								</td>
 							</tr>
 						</table>
 					</li>
