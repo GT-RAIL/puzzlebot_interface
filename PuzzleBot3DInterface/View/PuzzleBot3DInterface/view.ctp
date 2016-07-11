@@ -103,7 +103,12 @@ echo $this->Html->css('PuzzleBot3DInterface');
 				<table style="margin-left:auto;">
 					<tr>
 						<td style="vertical-align:middle;">
-							<img src="/img/Nimbus/nimbus-gripper.png" height="100" width="150" style="vertical-align:middle">
+							<map name="gripper-map">
+								<area shape="rect" coords="0,0,45,100" href="javascript:executeOpenGripper()">
+								<area shape="rect" coords="46,0,104,100" href="javascript:executeCloseGripper()">
+								<area shape="rect" coords="105,0,150,100" href="javascript:executeOpenGripper()">
+							</map>
+							<img src="/img/Nimbus/nimbus-gripper.png" height="100" width="150" style="vertical-align:middle" usemap="#gripper-map">
 						</td>
 						<td>
 							<table>
@@ -119,7 +124,10 @@ echo $this->Html->css('PuzzleBot3DInterface');
 					<tr height="20px"></tr>
 					<tr>
 						<td style="vertical-align:middle;">
-							<img src="/img/Nimbus/nimbus-reset-arm.png" height="100" width="150" style="vertical-align:middle">
+							<map name="reset-map">
+								<area shape="rect" coords="0,0,150,100" href="javascript:executeResetArm()">
+							</map>
+							<img src="/img/Nimbus/nimbus-reset-arm.png" height="100" width="150" style="vertical-align:middle" usemap="#reset-map">
 						</td>
 						<td style="text-align:center; vertical-align:middle;" width="180px">
 							<button id='resetArm' class='button special' style="width:170px">reset arm</button>
@@ -131,7 +139,11 @@ echo $this->Html->css('PuzzleBot3DInterface');
 				<table style="margin-left:auto; margin-right:auto;">
 					<tr>
 						<td style="vertical-align:middle;">
-							<img src="/img/Nimbus/nimbus-forward-back.png" height="100" width="150" style="vertical-align:middle">
+							<map name="fb-map">
+								<area shape="rect" coords="0,0,150,40" href="javascript:executeMoveForward()">
+								<area shape="rect" coords="0,41,150,100" href="javascript:executeMoveBack()">
+							</map>
+							<img src="/img/Nimbus/nimbus-forward-back.png" height="100" width="150" style="vertical-align:middle" usemap="#fb-map">
 						</td>
 						<td>
 							<table>
@@ -147,7 +159,11 @@ echo $this->Html->css('PuzzleBot3DInterface');
 					<tr height="20px"></tr>
 					<tr>
 						<td style="vertical-align:middle;">
-							<img src="/img/Nimbus/nimbus-left-right.png" height="100" width="150" style="vertical-align:middle">
+							<map name="lr-map">
+								<area shape="rect" coords="0,0,80,100" href="javascript:executeMoveLeft()">
+								<area shape="rect" coords="81,0,150,100" href="javascript:executeMoveRight()">
+							</map>
+							<img src="/img/Nimbus/nimbus-left-right.png" height="100" width="150" style="vertical-align:middle" usemap="#lr-map">
 						</td>
 						<td>
 							<table>
@@ -166,7 +182,11 @@ echo $this->Html->css('PuzzleBot3DInterface');
 				<table style="margin-right:auto;">
 					<tr>
 						<td style="vertical-align:middle;">
-							<img src="/img/Nimbus/nimbus-up-down.png" height="100" width="150" style="vertical-align:middle">
+							<map name="ud-map">
+								<area shape="rect" coords="0,0,150,49" href="javascript:executeMoveUp()">
+								<area shape="rect" coords="0,50,150,100" href="javascript:executeMoveDown()">
+							</map>
+							<img src="/img/Nimbus/nimbus-up-down.png" height="100" width="150" style="vertical-align:middle" usemap="#ud-map">
 						</td>
 						<td>
 							<table>
@@ -182,7 +202,11 @@ echo $this->Html->css('PuzzleBot3DInterface');
 					<tr height="20px"></tr>
 					<tr>
 						<td style="vertical-align:middle;">
-							<img src="/img/Nimbus/nimbus-rotate-wrist.png" height="100" width="150" style="vertical-align:middle">
+							<map name="rotate-map">
+								<area shape="rect" coords="0,0,75,100" href="javascript:executeRotateCW()">
+								<area shape="rect" coords="76,0,150,100" href="javascript:executeRotateCCW()">
+							</map>
+							<img src="/img/Nimbus/nimbus-rotate-wrist.png" height="100" width="150" style="vertical-align:middle" usemap="#rotate-map">
 						</td>
 						<td>
 							<table>
@@ -268,9 +292,62 @@ foreach ($environment['Urdf'] as $urdf) {
 
 <script type="text/javascript">
 
-	//button callbacks
+	/****************************************************************************
+	 *                          Button Callbacks                                *
+	 ****************************************************************************/
 	$('#resetArm').click(function (e) {
 		e.preventDefault();
+		executeResetArm();
+	});
+
+	$('#openGripper').click(function (e) {
+		e.preventDefault();
+		executeOpenGripper();
+	});
+	$('#closeGripper').click(function (e) {
+		executeCloseGripper();
+	});
+
+	$('#moveForward').click(function (e) {
+		e.preventDefault();
+		executeMoveForward();
+	});
+	$('#moveBack').click(function (e) {
+		e.preventDefault();
+		executeMoveBack();
+	});
+
+	$('#moveLeft').click(function (e) {
+		e.preventDefault();
+		executeMoveLeft();
+	});
+	$('#moveRight').click(function (e) {
+		e.preventDefault();
+		executeMoveRight();
+	});
+
+	$('#moveUp').click(function (e) {
+		e.preventDefault();
+		executeMoveUp();
+	});
+	$('#moveDown').click(function (e) {
+		e.preventDefault();
+		executeMoveDown();
+	});
+
+	$('#rotateCW').click(function (e) {
+		e.preventDefault();
+		executeRotateCW();
+	});
+	$('#rotateCCW').click(function (e) {
+		e.preventDefault();
+		executeRotateCCW();
+	});
+
+	/****************************************************************************
+	 *                         Primitive Actions                                *
+	 ****************************************************************************/
+	function executeResetArm() {
 		var goal = new ROSLIB.Goal({
 			actionClient: armClient,
 			goalMessage: {
@@ -278,10 +355,9 @@ foreach ($environment['Urdf'] as $urdf) {
 			}
 		});
 		goal.send();
-	});
+	}
 
-	$('#openGripper').click(function (e) {
-		e.preventDefault();
+	function executeOpenGripper() {
 		var goal = new ROSLIB.Goal({
 			actionClient: gripperClient,
 			goalMessage: {
@@ -289,9 +365,8 @@ foreach ($environment['Urdf'] as $urdf) {
 			}
 		});
 		goal.send();
-	});
-	$('#closeGripper').click(function (e) {
-		e.preventDefault();
+	}
+	function executeCloseGripper() {
 		var goal = new ROSLIB.Goal({
 			actionClient: gripperClient,
 			goalMessage: {
@@ -299,10 +374,9 @@ foreach ($environment['Urdf'] as $urdf) {
 			}
 		});
 		goal.send();
-	});
+	}
 
-	$('#moveForward').click(function (e) {
-		e.preventDefault();
+	function executeMoveForward() {
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -312,9 +386,8 @@ foreach ($environment['Urdf'] as $urdf) {
 			}
 		});
 		goal.send();
-	});
-	$('#moveBack').click(function (e) {
-		e.preventDefault();
+	}
+	function executeMoveBack() {
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -324,10 +397,9 @@ foreach ($environment['Urdf'] as $urdf) {
 			}
 		});
 		goal.send();
-	});
+	}
 
-	$('#moveLeft').click(function (e) {
-		e.preventDefault();
+	function executeMoveLeft() {
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -337,9 +409,8 @@ foreach ($environment['Urdf'] as $urdf) {
 			}
 		});
 		goal.send();
-	});
-	$('#moveRight').click(function (e) {
-		e.preventDefault();
+	}
+	function executeMoveRight() {
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -349,10 +420,9 @@ foreach ($environment['Urdf'] as $urdf) {
 			}
 		});
 		goal.send();
-	});
+	}
 
-	$('#moveUp').click(function (e) {
-		e.preventDefault();
+	function executeMoveUp() {
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -362,9 +432,8 @@ foreach ($environment['Urdf'] as $urdf) {
 			}
 		});
 		goal.send();
-	});
-	$('#moveDown').click(function (e) {
-		e.preventDefault();
+	}
+	function executeMoveDown() {
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -374,10 +443,9 @@ foreach ($environment['Urdf'] as $urdf) {
 			}
 		});
 		goal.send();
-	});
+	}
 
-	$('#rotateCW').click(function (e) {
-		e.preventDefault();
+	function executeRotateCW() {
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -387,9 +455,8 @@ foreach ($environment['Urdf'] as $urdf) {
 			}
 		});
 		goal.send();
-	});
-	$('#rotateCCW').click(function (e) {
-		e.preventDefault();
+	}
+	function executeRotateCCW() {
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -399,21 +466,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			}
 		});
 		goal.send();
-	});
-
-	$('#resetArmMovementSliders').click(function () {
-		document.getElementById("x-slider").value = document.getElementById("x-slider").defaultValue;
-		document.getElementById("y-slider").value = document.getElementById("y-slider").defaultValue;
-		document.getElementById("z-slider").value = document.getElementById("z-slider").defaultValue;
-		showSliderValue("x-slider", document.getElementById("x-slider").value);
-		showSliderValue("y-slider", document.getElementById("y-slider").value);
-		showSliderValue("z-slider", document.getElementById("z-slider").value);
-	});
-
-	$('#resetArmRotationSlider').click(function () {
-		document.getElementById("r-slider").value = document.getElementById("r-slider").defaultValue;
-		showSliderAngle("r-slider", document.getElementById("r-slider").value);
-	});
+	}
 
 	//this is the topic for cartesian moving objects around
 	var cartesian_move_topic = new ROSLIB.Topic({
