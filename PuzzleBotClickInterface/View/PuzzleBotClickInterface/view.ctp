@@ -75,8 +75,19 @@ echo $this->Html->css('PuzzleBotClickInterface');
 						<b>Cycle through suggestions</b> to choose a good grasp.
 						<br><table style="margin-left:auto; margin-right:auto">
 							<tr>
-								<td><img src="/img/Nimbus/nimbus-prev.png" height="50" width="75" style="vertical-align:middle"></td>
-								<td><img src="/img/Nimbus/nimbus-next.png" height="50" width="75" style="vertical-align:middle"></td>
+
+								<td>
+									<map name="prev-map">
+										<area shape="rect" coords="0,0,75,50" href="javascript:prevGrasp()">
+									</map>
+									<img src="/img/Nimbus/nimbus-prev.png" height="50" width="75" style="vertical-align:middle" usemap="prev-map">
+								</td>
+								<td>
+									<map name="next-map">
+										<area shape="rect" coords="0,0,75,50" href="javascript:nextGrasp()">
+									</map>
+									<img src="/img/Nimbus/nimbus-next.png" height="50" width="75" style="vertical-align:middle" usemap="next-map">
+								</td>
 							</tr>
 						</table>
 					</li>
@@ -85,7 +96,10 @@ echo $this->Html->css('PuzzleBotClickInterface');
 						<br /><table style="margin-left:auto; margin-right:auto;">
 							<tr>
 								<td style="vertical-align:middle;">
-									<img src="/img/Nimbus/nimbus-shallow-grasp.png" height="50" width="75" style="vertical-align:middle">
+									<map name="shallow-grasp-map">
+										<area shape="rect" coords="0,0,75,50" href="javascript:executeShallowGrasp()">
+									</map>
+									<img src="/img/Nimbus/nimbus-shallow-grasp.png" height="50" width="75" style="vertical-align:middle" usemap="shallow-grasp-map">
 								</td>
 								<td style="text-align:center" width="200px">
 									<button id='shallowGrasp' class='button special' style="width:190px">shallow grasp</button>
@@ -93,7 +107,10 @@ echo $this->Html->css('PuzzleBotClickInterface');
 							</tr>
 							<tr>
 								<td style="vertical-align:middle;">
-									<img src="/img/Nimbus/nimbus-deep-grasp.png" height="50" width="75" style="vertical-align:middle">
+									<map name="deep-grasp-map">
+										<area shape="rect" coords="0,0,75,50" href="javascript:executeShallowGrasp()">
+									</map>
+									<img src="/img/Nimbus/nimbus-deep-grasp.png" height="50" width="75" style="vertical-align:middle" usemap="deep-grasp-map">
 								</td>
 								<td style="text-align:center" width="200px">
 									<button id='deepGrasp' class='button special' style="width:190px">deep grasp</button>
@@ -303,6 +320,18 @@ foreach ($environment['Urdf'] as $urdf) {
 		serverName: '/nimbus_moveit/primitive_action',
 		actionName: 'rail_manipulation_msgs/PrimitiveAction'
 	});
+	var graspClient = new ROSLIB.ActionClient({
+		ros: _ROS,
+		serverName: '/grasp_selector/execute_grasp',
+		actionName: 'rail_agile_grasp_msgs/SelectedGraspAction'
+	})
+
+	//Setup ROS service clients
+	var cycleGraspsClient = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/grasp_selector/cycle_grasps',
+		serviceType : 'rail_agile_grasp_msgs/CycleGrasps'
+	});
 
 </script>
 
@@ -359,6 +388,52 @@ foreach ($environment['Urdf'] as $urdf) {
 		e.preventDefault();
 		executeRotateCCW();
 	});
+
+	$('#shallowGrasp').click(function (e) {
+		e.preventDefault();
+		executeShallowGrasp();
+	});
+	$('#deepGrasp').click(function (e) {
+		e.preventDefault();
+		executeDeepGrasp();
+	});
+
+	/****************************************************************************
+	 *                           Grasp Actions                                  *
+	 ****************************************************************************/
+	function prevGrasp() {
+		var request = new ROSLIB.ServiceRequest({
+			forward: false
+		});
+		segmentClient.callService(request, function(result) {});
+	}
+
+	function nextGrasp() {
+		var request = new ROSLIB.ServiceRequest({
+			forward: true
+		});
+		segmentClient.callService(request, function(result) {});
+	}
+
+	function executeShallowGrasp() {
+		var goal = new ROSLIB.Goal({
+			actionClient: graspClient,
+			goalMessage: {
+				shallow: true
+			}
+		});
+		goal.send();
+	}
+
+	function executeDeepGrasp() {
+		var goal = new ROSLIB.Goal({
+			actionClient: graspClient,
+			goalMessage: {
+				shallow: false
+			}
+		});
+		goal.send();
+	}
 
 	/****************************************************************************
 	 *                         Primitive Actions                                *
@@ -467,7 +542,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			goalMessage: {
 				primitive_type: 1,
 				axis: 0,
-				distance: 1.5708
+				distance: -1.5708
 			}
 		});
 		goal.send();
@@ -478,7 +553,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			goalMessage: {
 				primitive_type: 1,
 				axis: 0,
-				distance: -1.5708
+				distance: 1.5708
 			}
 		});
 		goal.send();

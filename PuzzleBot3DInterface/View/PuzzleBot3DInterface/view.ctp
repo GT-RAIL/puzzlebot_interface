@@ -76,10 +76,13 @@ echo $this->Html->css('PuzzleBot3DInterface');
 						<br /><table style="margin-left:auto; margin-right:auto;">
 							<tr>
 								<td style="text-align:center; vertical-align:middle;" width="150px">
-									<button id='move-arm' class='button special' style="width:140px">move arm</button>
+									<button id='moveArm' class='button special' style="width:140px">move arm</button>
 								</td>
 								<td style="vertical-align:middle;">
-									<img src="/img/Nimbus/nimbus-plan.png" height="100" width="150" style="vertical-align:middle">
+									<map name="plan-map">
+										<area shape="rect" coords="0,0,150,100" href="javascript:executeGrasp()">
+									</map>
+									<img src="/img/Nimbus/nimbus-plan.png" height="100" width="150" style="vertical-align:middle" usemap="plan-map">
 								</td>
 
 							</tr>
@@ -287,6 +290,8 @@ foreach ($environment['Urdf'] as $urdf) {
 		serverName: '/nimbus_moveit/primitive_action',
 		actionName: 'rail_manipulation_msgs/PrimitiveAction'
 	});
+	
+	//TODO: Connect to marker action server for grasp execution
 
 </script>
 
@@ -343,6 +348,19 @@ foreach ($environment['Urdf'] as $urdf) {
 		e.preventDefault();
 		executeRotateCCW();
 	});
+
+	$('#moveArm').click(function (e) {
+		e.preventDefault();
+		executeGrasp();
+	});
+
+	/****************************************************************************
+	 *                           Grasp Actions                                  *
+	 ****************************************************************************/
+	function executeGrasp() {
+		//TODO: Connect to marker action server for grasp execution
+	}
+
 
 	/****************************************************************************
 	 *                         Primitive Actions                                *
@@ -451,7 +469,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			goalMessage: {
 				primitive_type: 1,
 				axis: 0,
-				distance: 1.5708
+				distance: -1.5708
 			}
 		});
 		goal.send();
@@ -462,7 +480,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			goalMessage: {
 				primitive_type: 1,
 				axis: 0,
-				distance: -1.5708
+				distance: 1.5708
 			}
 		});
 		goal.send();
