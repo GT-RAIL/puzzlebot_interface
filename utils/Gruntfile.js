@@ -1,11 +1,16 @@
+(function () {
+   'use strict';
+}());
 module.exports = function(grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('../package.json'),
     copy: {
       build: {
-        src  : ['../src/*'],
-        dest : '../build/'
+        cwd : '..',
+        src  : ['src/*/**'],
+        dest : grunt.config.get('dest'),
+        expand: true
       }
     },
     jshint: {
@@ -56,11 +61,11 @@ module.exports = function(grunt) {
 
   grunt.registerTask('dev', 'copy files to local RMS', function(dest){
     if (arguments.length === 0){
-      grunt.log.writeln("Please add the destination as the root of your RMS. grunt dev:destination");
+      grunt.log.writeln('Please add the destination as the root of your RMS. grunt dev:destination');
     }
     else{
       grunt.config.set('dest',dest);
-      grunt.task.run(['build'])
+      grunt.task.run(['build']);
     }
   });
 };
