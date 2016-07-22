@@ -1,9 +1,8 @@
 <?php
 /**
- * TODO The whole thing must be rewritten!!
  * Puzzle Bot Interface
  *
- * The Puzzle Click Interface Bot view. 
+ * The Puzzle 3d/2d merged view. 
  *
  * @author		Carl Saldanha csaldanha3@gatech.edu
  * @copyright	2015 Georgia Institute of Technology 
@@ -15,7 +14,7 @@
 
 <?php
 //custom styling
-echo $this->Html->css('PuzzleBotClickInterface');
+echo $this->Html->css('PuzzleBotOverlay');
 ?> 
 
 <html>
@@ -23,15 +22,13 @@ echo $this->Html->css('PuzzleBotClickInterface');
 
 	<?php
 		echo $this->Html->script('bootstrap.min');
+		echo $this->Html->script('ros3d_interactive.min')
 		echo $this->Html->css('bootstrap.min');
 		echo $this->Rms->ros($environment['Rosbridge']['uri']);
 		//Init study information
 		echo $this->Rms->initStudy();
 	?>
 	<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/EventEmitter/5.0.0/EventEmitter.js'></script>
-	<script type='text/javascript' src='http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.1/fabric.min.js'></script>
-	
-	<?php echo $this->Html->script('mjpegcanvas2.js');?>
 
 	<?php
 		echo $this->Rms->tf(
@@ -46,10 +43,9 @@ echo $this->Html->css('PuzzleBotClickInterface');
 
 
 <body>
-	<table style="width:100% !important;">
-		<tr>
-			<td style="width: 22%; vertical-align:top;">
-				<div id="tasks" style="height=500px; text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
+	<div class='col-lg-12'>
+			<div class='col-lg-3'>
+				<div id="tasks" class='box'>
 					<b>Your Tasks:</b>
 					<ul style="margin:0">
 						<li>Open the drawer</li>
@@ -60,15 +56,12 @@ echo $this->Html->css('PuzzleBotClickInterface');
 						<li>Take an apple from the lunch box</li>
 					</ul>
 				</div>
-			</td>
-			<td style="width: 28%">
-				<div id="viewer" style="text-align:center"></div>
-			</td>
-			<td style="width: 28%">
-				<div id="mjpeg" style="text-align:center"></div>
-			</td>
-			<td style="width: 22%; vertical-align:top;">
-				<div id="instructions" style="height=500px; text-align: left; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
+			</div>
+			<div class='col-lg-6'>
+				<div id="viewer" ></div>
+			</div>
+			<div class='col-lg-3'>
+				<div id="instructions" class='box'>
 					<b>Instructions:</b>
 					<ol type="1" style="list-style-type:decimal; margin-left:15px; margin-bottom:0px;">
 					<li><b>Set a position</b> for the gripper by <b>clicking in the 3D scene</b> on the left.</li>
@@ -124,7 +117,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 				</div>
 			</td>
 		</tr>
-	</table>
+	</div>
 	<hr>
 	<table style="width:100% !important">
 		<tr>
