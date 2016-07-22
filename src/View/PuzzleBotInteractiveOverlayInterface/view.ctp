@@ -314,6 +314,11 @@ foreach ($environment['Urdf'] as $urdf) {
 		serverName: '/nimbus_moveit/primitive_action',
 		actionName: 'rail_manipulation_msgs/PrimitiveAction'
 	});
+	var pointCloudClickClient = new ROSLIB.ActionClient({
+		ros: _ROS,
+		serverName: '/point_cloud_clicker/click_image_point',
+		actionName: 'rail_agile_grasp_msgs/ClickImagePointAction'
+	});
 	var graspClient = new ROSLIB.ActionClient({
 		ros: _ROS,
 		serverName: '/grasp_selector/execute_grasp',
@@ -391,6 +396,19 @@ foreach ($environment['Urdf'] as $urdf) {
 		e.preventDefault();
 		executeDeepGrasp();
 	});
+
+	$('#viewer').click(function(event){
+
+		var goal = new ROSLIB.Goal({
+			actionClient: pointCloudClickClient,
+			goalMessage: {
+				x, y, imageWidth, imageHeight
+				primitive_type: 0,
+				axis: 2,
+				distance: 0.1
+			}
+		});
+	})
 
 	/****************************************************************************
 	 *                           Grasp Actions                                  *
@@ -506,6 +524,8 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 		goal.send();
 	}
+
+
 
 	function executeMoveUp() {
 		var goal = new ROSLIB.Goal({
