@@ -6,14 +6,11 @@ To install RMS, follow instructions on its' [Github](https://github.com/gt-rail/
 
 ###Adding this interface to RMS
 
-In the web view of RMS, go to `Admin>ROS Settings>Interfaces` and create a new Entry with the name `PuzzleBot`
+In the web view of RMS, go to `Admin>ROS Settings>Interfaces` and create 3 new entries with the names `PuzzleBotClickInterface`,`PuzzleBot3Intterface` and `PuzzleBot3DInterface`.
 
-###Copying these files into your RMS
+###Developing 
 
-1. Copy `PuzzleBotInterfaceController.php` into the `app/Controller` folder
-2. Copy `PuzzleBotInterface` folder into the `app/View` folder
-3. Copy `mjpegcanvas2.js` to `app/webroot/js` folder
-
+In the utils folder run `grunt build_and_watch:path/to/rms/app`. There is more information on installing Grunt and it's dependencies in [utils/README.md](utils/README.md)
 
 ### License
 This is released with a BSD license. For full terms and conditions, see the [LICENSE](LICENSE) file.
