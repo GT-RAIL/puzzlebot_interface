@@ -5,67 +5,66 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('../package.json'),
-    copy: {
-      build: {
-        cwd : '..',
-        src  : ['src/*/**'],
-        dest : grunt.config.get('dest'),
-        expand: true
-      }
+    shell: {
+        copyTemplate: {
+            command: 'cp -R ../src/* ~/<%= dest %>'
+        }
     },
     jshint: {
-      options: {
+      options: { 
         jshintrc: '.jshintrc'
       },
       files: [
         'Gruntfile.js',
-        '../src/js/*.js'
+        '../src/webroot/js/*.js'
       ]
     },
     watch: {
       dev: {
         options: {
+          spawn: false,
           interrupt: true
         },
-        files: [
-          '../src/*.*',
-          '../src/**/*.*'
-        ],
-        tasks: []
-      },
-      build_and_watch: {
-        options: {
-          interrupt: true
-        },
+        dest:'<%= dest %>',
         files: [
           'Gruntfile.js',
           '../src/*.*',
-          '../src/**/*.*'
+          '../src/**/*.*',
+          '../src/**/**/*.*'
         ],
-        tasks: ['dev']
+        tasks: ['jshint','shell:copyTemplate']
       }
     }
-  }
-
-  );
+  });
 
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-shell');
 
-
-  grunt.registerTask('build', ['jshint','copy:build']);
-  grunt.registerTask('build_and_watch', ['watch']);
-
-  grunt.registerTask('dev', 'copy files to local RMS', function(dest){
+  grunt.registerTask('build_and_watch',function(dest){
     if (arguments.length === 0){
       grunt.log.writeln('Please add the destination as the root of your RMS. grunt dev:destination');
+      return false;
     }
     else{
       grunt.config.set('dest',dest);
-      grunt.task.run(['build']);
+      grunt.task.run(['watch:dev']);
+      return true;
+    }  
+  });
+
+  grunt.registerTask('build', 'copy files to local RMS', function(dest){
+    if (arguments.length === 0){
+      grunt.log.writeln('Please add the destination as the root of your RMS. grunt dev:destination');
+      return false;
+    }
+    else{
+      grunt.config.set('dest',dest);
+      grunt.task.run(['jshint','shell:copyTemplate']);
+      return true;
     }
   });
 };
