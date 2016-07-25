@@ -60,11 +60,26 @@ echo $this->Html->css('PuzzleBot3DInterface');
 					</ul>
 				</div>
 			</td>
-			<td style="width: 28%">
-				<div id="viewer" style="text-align:center"></div>
-			</td>
-			<td style="width: 28%">
-				<div id="mjpeg" style="text-align:center"></div>
+			<td>
+				<table>
+					<tr><td>
+						<table>
+							<tr>
+								<td style="width: 28%">
+									<div id="viewer" style="text-align:center"></div>
+								</td>
+								<td style="width: 28%">
+									<div id="mjpeg" style="text-align:center"></div>
+								</td>
+							</tr>
+						</table>
+					</td></tr>
+					<tr>
+						<td style="text-align:center; background-color:rgba(232, 238, 244, 1.0); border-radius:20px;">
+							<b><span id="feedback-text">&nbsp;</span></b>
+						</td>
+					</tr>
+				</table>
 			</td>
 			<td style="width: 22%; vertical-align:top;">
 				<div id="instructions" style="height=500px; text-align: left; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
@@ -82,7 +97,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 									<map name="plan-map">
 										<area shape="rect" coords="0,0,150,100" href="javascript:executeGrasp()">
 									</map>
-									<img src="/img/Nimbus/nimbus-plan.png" height="100" width="150" style="vertical-align:middle" usemap="plan-map">
+									<img id="img-plan" src="/img/Nimbus/nimbus-plan.png" height="100" width="150" style="vertical-align:middle" usemap="plan-map">
 								</td>
 
 							</tr>
@@ -111,7 +126,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 								<area shape="rect" coords="46,0,104,100" href="javascript:executeCloseGripper()">
 								<area shape="rect" coords="105,0,150,100" href="javascript:executeOpenGripper()">
 							</map>
-							<img src="/img/Nimbus/nimbus-gripper.png" height="100" width="150" style="vertical-align:middle" usemap="#gripper-map">
+							<img id="img-gripper" src="/img/Nimbus/nimbus-gripper.png" height="100" width="150" style="vertical-align:middle" usemap="#gripper-map">
 						</td>
 						<td>
 							<table>
@@ -130,7 +145,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 							<map name="reset-map">
 								<area shape="rect" coords="0,0,150,100" href="javascript:executeResetArm()">
 							</map>
-							<img src="/img/Nimbus/nimbus-reset-arm.png" height="100" width="150" style="vertical-align:middle" usemap="#reset-map">
+							<img id="img-reset" src="/img/Nimbus/nimbus-reset-arm.png" height="100" width="150" style="vertical-align:middle" usemap="#reset-map">
 						</td>
 						<td style="text-align:center; vertical-align:middle;" width="180px">
 							<button id='resetArm' class='button special' style="width:170px">reset arm</button>
@@ -146,7 +161,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 								<area shape="rect" coords="0,0,150,40" href="javascript:executeMoveForward()">
 								<area shape="rect" coords="0,41,150,100" href="javascript:executeMoveBack()">
 							</map>
-							<img src="/img/Nimbus/nimbus-forward-back.png" height="100" width="150" style="vertical-align:middle" usemap="#fb-map">
+							<img id="img-fb" src="/img/Nimbus/nimbus-forward-back.png" height="100" width="150" style="vertical-align:middle" usemap="#fb-map">
 						</td>
 						<td>
 							<table>
@@ -166,7 +181,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 								<area shape="rect" coords="0,0,80,100" href="javascript:executeMoveLeft()">
 								<area shape="rect" coords="81,0,150,100" href="javascript:executeMoveRight()">
 							</map>
-							<img src="/img/Nimbus/nimbus-left-right.png" height="100" width="150" style="vertical-align:middle" usemap="#lr-map">
+							<img id="img-lr" src="/img/Nimbus/nimbus-left-right.png" height="100" width="150" style="vertical-align:middle" usemap="#lr-map">
 						</td>
 						<td>
 							<table>
@@ -189,7 +204,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 								<area shape="rect" coords="0,0,150,49" href="javascript:executeMoveUp()">
 								<area shape="rect" coords="0,50,150,100" href="javascript:executeMoveDown()">
 							</map>
-							<img src="/img/Nimbus/nimbus-up-down.png" height="100" width="150" style="vertical-align:middle" usemap="#ud-map">
+							<img id="img-ud" src="/img/Nimbus/nimbus-up-down.png" height="100" width="150" style="vertical-align:middle" usemap="#ud-map">
 						</td>
 						<td>
 							<table>
@@ -209,7 +224,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 								<area shape="rect" coords="0,0,75,100" href="javascript:executeRotateCW()">
 								<area shape="rect" coords="76,0,150,100" href="javascript:executeRotateCCW()">
 							</map>
-							<img src="/img/Nimbus/nimbus-rotate-wrist.png" height="100" width="150" style="vertical-align:middle" usemap="#rotate-map">
+							<img id="img-rotate" src="/img/Nimbus/nimbus-rotate-wrist.png" height="100" width="150" style="vertical-align:middle" usemap="#rotate-map">
 						</td>
 						<td>
 							<table>
@@ -359,6 +374,8 @@ foreach ($environment['Urdf'] as $urdf) {
 	 ****************************************************************************/
 	function executeGrasp() {
 		//TODO: Connect to marker action server for grasp execution
+
+		disableInput(); //TODO: remove this, for debugging only
 	}
 
 
@@ -366,6 +383,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	 *                         Primitive Actions                                *
 	 ****************************************************************************/
 	function executeResetArm() {
+		enableInput();	//TODO: remove this, for debugging only
 		var goal = new ROSLIB.Goal({
 			actionClient: armClient,
 			goalMessage: {
@@ -395,6 +413,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	}
 
 	function executeMoveForward() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -403,9 +422,16 @@ foreach ($environment['Urdf'] as $urdf) {
 				distance: 0.1
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			enableInput();
+		});
 		goal.send();
 	}
 	function executeMoveBack() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -413,11 +439,18 @@ foreach ($environment['Urdf'] as $urdf) {
 				axis: 1,
 				distance: -0.1
 			}
+		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			enableInput();
 		});
 		goal.send();
 	}
 
 	function executeMoveLeft() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -426,9 +459,16 @@ foreach ($environment['Urdf'] as $urdf) {
 				distance: -0.1
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			enableInput();
+		});
 		goal.send();
 	}
 	function executeMoveRight() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -436,11 +476,18 @@ foreach ($environment['Urdf'] as $urdf) {
 				axis: 0,
 				distance: 0.1
 			}
+		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			enableInput();
 		});
 		goal.send();
 	}
 
 	function executeMoveUp() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -449,9 +496,16 @@ foreach ($environment['Urdf'] as $urdf) {
 				distance: 0.1
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			enableInput();
+		});
 		goal.send();
 	}
 	function executeMoveDown() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -460,10 +514,17 @@ foreach ($environment['Urdf'] as $urdf) {
 				distance: -0.1
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			enableInput();
+		});
 		goal.send();
 	}
 
 	function executeRotateCW() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -472,9 +533,16 @@ foreach ($environment['Urdf'] as $urdf) {
 				distance: -1.5708
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			enableInput();
+		});
 		goal.send();
 	}
 	function executeRotateCCW() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -483,8 +551,95 @@ foreach ($environment['Urdf'] as $urdf) {
 				distance: 1.5708
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			enableInput();
+		});
 		goal.send();
 	}
+
+	/****************************************************************************
+	 *                             Feedback                                     *
+	 ****************************************************************************/
+
+	function disableInput() {
+		$('#img-plan').css("pointerEvents", "none");
+		$('#img-gripper').css("pointerEvents", "none");
+		//$('#img-reset').css("pointerEvents", "none");
+		$('#img-fb').css("pointerEvents", "none");
+		$('#img-lr').css("pointerEvents", "none");
+		$('#img-ud').css("pointerEvents", "none");
+		$('#img-rotate').css("pointerEvents", "none");
+
+		$('#moveArm').css("pointerEvents", "none");
+		$('#openGripper').css("pointerEvents", "none");
+		$('#closeGripper').css("pointerEvents", "none");
+		//$('#resetArm').css("pointerEvents", "none");
+		$('#moveForward').css("pointerEvents", "none");
+		$('#moveBack').css("pointerEvents", "none");
+		$('#moveLeft').css("pointerEvents", "none");
+		$('#moveRight').css("pointerEvents", "none");
+		$('#moveUp').css("pointerEvents", "none");
+		$('#moveDown').css("pointerEvents", "none");
+		$('#rotateCW').css("pointerEvents", "none");
+		$('#rotateCCW').css("pointerEvents", "none");
+
+		$('#moveArm').prop("disabled", true);
+		$('#openGripper').prop("disabled", true);
+		$('#closeGripper').prop("disabled", true);
+		//$('#resetArm').prop("disabled", true);
+		$('#moveForward').prop("disabled", true);
+		$('#moveBack').prop("disabled", true);
+		$('#moveLeft').prop("disabled", true);
+		$('#moveRight').prop("disabled", true);
+		$('#moveUp').prop("disabled", true);
+		$('#moveDown').prop("disabled", true);
+		$('#rotateCW').prop("disabled", true);
+		$('#rotateCCW').prop("disabled", true);
+	}
+
+	function enableInput() {
+		$('#img-plan').css("pointerEvents", "");
+		$('#img-gripper').css("pointerEvents", "");
+		$('#img-reset').css("pointerEvents", "");
+		$('#img-fb').css("pointerEvents", "");
+		$('#img-lr').css("pointerEvents", "");
+		$('#img-ud').css("pointerEvents", "");
+		$('#img-rotate').css("pointerEvents", "");
+
+		$('#moveArm').css("pointerEvents", "");
+		$('#openGripper').css("pointerEvents", "");
+		$('#closeGripper').css("pointerEvents", "");
+		$('#resetArm').css("pointerEvents", "");
+		$('#moveForward').css("pointerEvents", "");
+		$('#moveBack').css("pointerEvents", "");
+		$('#moveLeft').css("pointerEvents", "");
+		$('#moveRight').css("pointerEvents", "");
+		$('#moveUp').css("pointerEvents", "");
+		$('#moveDown').css("pointerEvents", "");
+		$('#rotateCW').css("pointerEvents", "");
+		$('#rotateCCW').css("pointerEvents", "");
+
+		$('#moveArm').prop("disabled", false);
+		$('#openGripper').prop("disabled", false);
+		$('#closeGripper').prop("disabled", false);
+		$('#resetArm').prop("disabled", false);
+		$('#moveForward').prop("disabled", false);
+		$('#moveBack').prop("disabled", false);
+		$('#moveLeft').prop("disabled", false);
+		$('#moveRight').prop("disabled", false);
+		$('#moveUp').prop("disabled", false);
+		$('#moveDown').prop("disabled", false);
+		$('#rotateCW').prop("disabled", false);
+		$('#rotateCCW').prop("disabled", false);
+	}
+
+	function displayFeedback(message) {
+		$('#feedback-text').innerHTML = message
+	}
+
 
 	//this is the topic for cartesian moving objects around
 	var cartesian_move_topic = new ROSLIB.Topic({
