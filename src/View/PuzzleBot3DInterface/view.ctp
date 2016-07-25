@@ -30,7 +30,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 	<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/EventEmitter/5.0.0/EventEmitter.js'></script>
 	<script type='text/javascript' src='http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.1/fabric.min.js'></script>
 	
-	<?php echo $this->Html->script('mjpegcanvas2.js');?>
+	<?php echo $this->Html->script('mjpegcanvas.js');?>
 
 	<?php
 		echo $this->Rms->tf(
@@ -662,7 +662,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		$streamTopics .= ']';
 		$streamNames .= ']';
 	?>
-	console.log(EventEmitter)
 	var mjpegcanvas=new MJPEGCANVAS.MultiStreamViewer({
 		divID: 'mjpeg',
 		host: '<?php echo $environment['Mjpeg']['host']; ?>',

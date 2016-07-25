@@ -1,8 +1,9 @@
 <?php
 /**
+ * TODO The whole thing must be rewritten!!
  * Puzzle Bot Interface
  *
- * The Puzzle 3d/2d merged view. 
+ * The Puzzle Click Interface Bot view. 
  *
  * @author		Carl Saldanha csaldanha3@gatech.edu
  * @copyright	2015 Georgia Institute of Technology 
@@ -14,7 +15,7 @@
 
 <?php
 //custom styling
-echo $this->Html->css('PuzzleBotOverlay');
+echo $this->Html->css('PuzzleBotClickInterface');
 ?> 
 
 <html>
@@ -22,13 +23,15 @@ echo $this->Html->css('PuzzleBotOverlay');
 
 	<?php
 		echo $this->Html->script('bootstrap.min');
-		echo $this->Html->script('ros3d_interactive.min')
 		echo $this->Html->css('bootstrap.min');
 		echo $this->Rms->ros($environment['Rosbridge']['uri']);
 		//Init study information
 		echo $this->Rms->initStudy();
 	?>
 	<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/EventEmitter/5.0.0/EventEmitter.js'></script>
+	<script type='text/javascript' src='http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.1/fabric.min.js'></script>
+	
+	<?php echo $this->Html->script('mjpegcanvas2.js');?>
 
 	<?php
 		echo $this->Rms->tf(
@@ -43,9 +46,10 @@ echo $this->Html->css('PuzzleBotOverlay');
 
 
 <body>
-	<div class='col-lg-12'>
-			<div class='col-lg-3'>
-				<div id="tasks" class='box'>
+	<table style="width:100% !important;">
+		<tr>
+			<td style="width: 22%; vertical-align:top;">
+				<div id="tasks" style="height=500px; text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
 					<b>Your Tasks:</b>
 					<ul style="margin:0">
 						<li>Open the drawer</li>
@@ -56,12 +60,12 @@ echo $this->Html->css('PuzzleBotOverlay');
 						<li>Take an apple from the lunch box</li>
 					</ul>
 				</div>
-			</div>
-			<div class='col-lg-6'>
-				<div id="viewer" ></div>
-			</div>
-			<div class='col-lg-3'>
-				<div id="instructions" class='box'>
+			</td>
+			<td style="width: 56%">
+				<div id="mjpeg" style="text-align:center"></div>
+			</td>
+			<td style="width: 22%; vertical-align:top;">
+				<div id="instructions" style="height=500px; text-align: left; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
 					<b>Instructions:</b>
 					<ol type="1" style="list-style-type:decimal; margin-left:15px; margin-bottom:0px;">
 					<li><b>Set a position</b> for the gripper by <b>clicking in the 3D scene</b> on the left.</li>
@@ -117,7 +121,7 @@ echo $this->Html->css('PuzzleBotOverlay');
 				</div>
 			</td>
 		</tr>
-	</div>
+	</table>
 	<hr>
 	<table style="width:100% !important">
 		<tr>
@@ -252,7 +256,7 @@ echo $this->Html->css('PuzzleBotOverlay');
 	</table>
 </body>
 
-<script>
+<!-- <script>
 	var size = Math.min(((window.innerWidth / 2) - 120), window.innerHeight * 0.60);
 	
 	_VIEWER = new ROS3D.Viewer({
@@ -285,8 +289,8 @@ echo $this->Html->css('PuzzleBotOverlay');
 		});
 	<?php endforeach; ?>
 </script>
-
-<?php
+ -->
+<!-- <?php
 // URDF
 foreach ($environment['Urdf'] as $urdf) {
 	echo $this->Rms->urdf(
@@ -296,7 +300,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	);
 }
 ?>
-
+ -->
 <script>
 	//Setup ROS action clients
 	var armClient = new ROSLIB.ActionClient({
@@ -319,6 +323,12 @@ foreach ($environment['Urdf'] as $urdf) {
 		serverName: '/grasp_selector/execute_grasp',
 		actionName: 'rail_agile_grasp_msgs/SelectedGraspAction'
 	})
+
+	var pointCloudClickClient = new ROSLIB.ActionClient({
+		ros: _ROS,
+		serverName: '/point_cloud_clicker/click_image_point',
+		actionName: 'rail_agile_grasp_msgs/ClickImagePointAction'
+	});
 
 	//Setup ROS service clients
 	var cycleGraspsClient = new ROSLIB.Service({
@@ -560,7 +570,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			messageType: 'geometry_msgs/Twist'
 	});
 	cartesian_move_topic.advertise();
-	var size = 500
+	var size = 600
 	<?php
 		$streamTopics = '[';
 		$streamNames = '[';
@@ -574,7 +584,21 @@ foreach ($environment['Urdf'] as $urdf) {
 		$streamTopics .= ']';
 		$streamNames .= ']';
 	?>
-	console.log(EventEmitter)
+	//TODO Move back up when Saturday is over
+	$('#mjpeg').on('click','canvas',function(event){
+		var rect = $(this)[0].getBoundingClientRect();
+		var goal = new ROSLIB.Goal({
+			actionClient: pointCloudClickClient,
+			goalMessage: {
+				x:event.clientX - rect.left, 
+				y:event.clientY -rect.top, 
+				imageWidth:size, 
+				imageHeight:size*0.85
+			}
+		});
+		goal.send();
+	})
+
 	var mjpegcanvas=new MJPEGCANVAS.MultiStreamViewer({
 		divID: 'mjpeg',
 		host: '<?php echo $environment['Mjpeg']['host']; ?>',
@@ -596,39 +620,39 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 		cartesian_move_topic.publish(message);
 	}
-	var timer=null;
-	var move_arm_x=null;
-	var move_arm_y=null;
-	var mjpeg_canvas_rect = mjpegcanvas.canvas.getBoundingClientRect();
-	var speed=1; //a constant representing the speed of the interaction of the arm
-	mjpegcanvas.canvas.addEventListener('mousemove',function(event){
-		if (timer){
-			clearTimeout(timer)
-		}
-		move_arm_x=event.clientX - mjpeg_canvas_rect.left- (mjpegcanvas.width/2)
-		move_arm_y=mjpegcanvas.height-event.clientY - mjpeg_canvas_rect.top
-		timers=setTimeout(move_arm,1000)
-	})
+	// var timer=null;
+	// var move_arm_x=null;
+	// var move_arm_y=null;
+	// var mjpeg_canvas_rect = mjpegcanvas.canvas.getBoundingClientRect();
+	// var speed=1; //a constant representing the speed of the interaction of the arm
+	// mjpegcanvas.canvas.addEventListener('mousemove',function(event){
+	// 	if (timer){
+	// 		clearTimeout(timer)
+	// 	}
+	// 	move_arm_x=event.clientX - mjpeg_canvas_rect.left- (mjpegcanvas.width/2)
+	// 	move_arm_y=mjpegcanvas.height-event.clientY - mjpeg_canvas_rect.top
+	// 	timers=setTimeout(move_arm,1000)
+	// })
 
-	mjpegcanvas.canvas.addEventListener('mouseout',function(event){
-		if (timer){
-			clearTimeout(timer)
-		}
-	})
+	// mjpegcanvas.canvas.addEventListener('mouseout',function(event){
+	// 	if (timer){
+	// 		clearTimeout(timer)
+	// 	}
+	// })
 
-	function move_arm(x,y){
-		var linear={'x':move_arm_x,'y':move_arm_y,'z':0};
-		var point=MJPEGCANVAS.convertImageCoordinatestoWorldCoordinates(mjpegcanvas.transform,linear.x,linear.y,linear.z,mjpegcanvas.width,mjpegcanvas.height)
-		var temp = point.z
-		point.z=point.x
-		point.x=temp
-		console.log(linear)
-		var message=new ROSLIB.Message({
-			'linear':{x:0.0,y:-1.0,z:0.0},
-			'angular':{x:0.0,y:0.0,z:0.0}
-		});
-		cartesian_move_topic.publish(message);
-	}
+	// function move_arm(x,y){
+	// 	var linear={'x':move_arm_x,'y':move_arm_y,'z':0};
+	// 	var point=MJPEGCANVAS.convertImageCoordinatestoWorldCoordinates(mjpegcanvas.transform,linear.x,linear.y,linear.z,mjpegcanvas.width,mjpegcanvas.height)
+	// 	var temp = point.z
+	// 	point.z=point.x
+	// 	point.x=temp
+	// 	console.log(linear)
+	// 	var message=new ROSLIB.Message({
+	// 		'linear':{x:0.0,y:-1.0,z:0.0},
+	// 		'angular':{x:0.0,y:0.0,z:0.0}
+	// 	});
+	// 	cartesian_move_topic.publish(message);
+	// }
 	//add a set of interactive markers
   //  mjpegcanvas.addTopic('/nimbus_interactive_manipulation/update_full','visualization_msgs/InteractiveMarkerInit')
 
