@@ -1,21 +1,22 @@
 <?php
 /**
+ * TODO The whole thing must be rewritten!!
  * Puzzle Bot Interface
  *
- * The Puzzle Bot view. This interface will for testing queuing and chat.
+ * The Puzzle Click Interface Bot view. 
  *
  * @author		Carl Saldanha csaldanha3@gatech.edu
- * @copyright	2015 Georgia Institute of Technology
+ * @copyright	2015 Georgia Institute of Technology 
  * @link		none 
  * @version		0.0.1
- * @package		app.Controller
- */
-?>
+ * @package		app.Controller 
+ */ 
+?>   
 
 <?php
 //custom styling
-echo $this->Html->css('PuzzleBot3DInterface');
-?>
+echo $this->Html->css('PuzzleBotClickInterface');
+?> 
 
 <html>
 <head>
@@ -28,8 +29,6 @@ echo $this->Html->css('PuzzleBot3DInterface');
 		echo $this->Rms->initStudy();
 	?>
 	<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/EventEmitter/5.0.0/EventEmitter.js'></script>
-	<script type='text/javascript' src='http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.1/fabric.min.js'></script>
-	
 	<?php echo $this->Html->script('mjpegcanvas.js');?>
 
 	<?php
@@ -60,31 +59,58 @@ echo $this->Html->css('PuzzleBot3DInterface');
 					</ul>
 				</div>
 			</td>
-			<td style="width: 28%">
-				<div id="viewer" style="text-align:center"></div>
-			</td>
-			<td style="width: 28%">
+			<td style="width: 56%">
 				<div id="mjpeg" style="text-align:center"></div>
 			</td>
 			<td style="width: 22%; vertical-align:top;">
 				<div id="instructions" style="height=500px; text-align: left; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
 					<b>Instructions:</b>
-					<ol type="1" style="list-style-type:decimal; margin-left:15px;">
-					<li><b>Set a position</b> for the gripper by <b>clicking and dragging</b> the <b>ring and arrow marker</b> on the left.</li>
+					<ol type="1" style="list-style-type:decimal; margin-left:15px; margin-bottom:0px;">
+					<li><b>Set a position</b> for the gripper by <b>clicking in the 3D scene</b> on the left.</li>
 					<li>
-						<b>Click the move button</b> below to automatically move the arm to your set position.
+						<b>Cycle through suggestions</b> to choose a good grasp.
+						<br><table style="margin-left:auto; margin-right:auto">
+							<tr>
+
+								<td>
+									<map name="prev-map">
+										<area shape="rect" coords="0,0,75,50" href="javascript:prevGrasp()">
+									</map>
+									<img src="/img/Nimbus/nimbus-prev.png" height="50" width="75" style="vertical-align:middle" usemap="prev-map">
+								</td>
+								<td>
+									<map name="next-map">
+										<area shape="rect" coords="0,0,75,50" href="javascript:nextGrasp()">
+									</map>
+									<img src="/img/Nimbus/nimbus-next.png" height="50" width="75" style="vertical-align:middle" usemap="next-map">
+								</td>
+							</tr>
+						</table>
+					</li>
+					<li>
+						Select <b>Shallow</b> or <b>Deep Grasp</b> and the robot will automatically move to your selected position.
 						<br /><table style="margin-left:auto; margin-right:auto;">
 							<tr>
-								<td style="text-align:center; vertical-align:middle;" width="150px">
-									<button id='moveArm' class='button special' style="width:140px">move arm</button>
-								</td>
 								<td style="vertical-align:middle;">
-									<map name="plan-map">
-										<area shape="rect" coords="0,0,150,100" href="javascript:executeGrasp()">
+									<map name="shallow-grasp-map">
+										<area shape="rect" coords="0,0,75,50" href="javascript:executeShallowGrasp()">
 									</map>
-									<img src="/img/Nimbus/nimbus-plan.png" height="100" width="150" style="vertical-align:middle" usemap="plan-map">
+									<img src="/img/Nimbus/nimbus-shallow-grasp.png" height="50" width="75" style="vertical-align:middle" usemap="shallow-grasp-map">
 								</td>
-
+								<td style="text-align:center" width="200px">
+									<button id='shallowGrasp' class='button special' style="width:190px">shallow grasp</button>
+								</td>
+							</tr>
+							<tr>
+								<td style="vertical-align:middle;">
+									<map name="deep-grasp-map">
+										<area shape="rect" coords="0,0,75,50" href="javascript:executeShallowGrasp()">
+									</map>
+									<img src="/img/Nimbus/nimbus-deep-grasp.png" height="50" width="75" style="vertical-align:middle" usemap="deep-grasp-map">
+								</td>
+								<td style="text-align:center" width="200px">
+									<button id='deepGrasp' class='button special' style="width:190px">deep grasp</button>
+								</td>
 							</tr>
 						</table>
 					</li>
@@ -228,7 +254,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 	</table>
 </body>
 
-<script>
+<!-- <script>
 	var size = Math.min(((window.innerWidth / 2) - 120), window.innerHeight * 0.60);
 	
 	_VIEWER = new ROS3D.Viewer({
@@ -261,8 +287,8 @@ echo $this->Html->css('PuzzleBot3DInterface');
 		});
 	<?php endforeach; ?>
 </script>
-
-<?php
+ -->
+<!-- <?php
 // URDF
 foreach ($environment['Urdf'] as $urdf) {
 	echo $this->Rms->urdf(
@@ -272,7 +298,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	);
 }
 ?>
-
+ -->
 <script>
 	//Setup ROS action clients
 	var armClient = new ROSLIB.ActionClient({
@@ -290,8 +316,24 @@ foreach ($environment['Urdf'] as $urdf) {
 		serverName: '/nimbus_moveit/primitive_action',
 		actionName: 'rail_manipulation_msgs/PrimitiveAction'
 	});
-	
-	//TODO: Connect to marker action server for grasp execution
+	var graspClient = new ROSLIB.ActionClient({
+		ros: _ROS,
+		serverName: '/grasp_selector/execute_grasp',
+		actionName: 'rail_agile_grasp_msgs/SelectedGraspAction'
+	})
+
+	var pointCloudClickClient = new ROSLIB.ActionClient({
+		ros: _ROS,
+		serverName: '/point_cloud_clicker/click_image_point',
+		actionName: 'rail_agile_grasp_msgs/ClickImagePointAction'
+	});
+
+	//Setup ROS service clients
+	var cycleGraspsClient = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/grasp_selector/cycle_grasps',
+		serviceType : 'rail_agile_grasp_msgs/CycleGrasps'
+	});
 
 </script>
 
@@ -349,18 +391,51 @@ foreach ($environment['Urdf'] as $urdf) {
 		executeRotateCCW();
 	});
 
-	$('#moveArm').click(function (e) {
+	$('#shallowGrasp').click(function (e) {
 		e.preventDefault();
-		executeGrasp();
+		executeShallowGrasp();
+	});
+	$('#deepGrasp').click(function (e) {
+		e.preventDefault();
+		executeDeepGrasp();
 	});
 
 	/****************************************************************************
 	 *                           Grasp Actions                                  *
 	 ****************************************************************************/
-	function executeGrasp() {
-		//TODO: Connect to marker action server for grasp execution
+	function prevGrasp() {
+		var request = new ROSLIB.ServiceRequest({
+			forward: false
+		});
+		segmentClient.callService(request, function(result) {});
 	}
 
+	function nextGrasp() {
+		var request = new ROSLIB.ServiceRequest({
+			forward: true
+		});
+		segmentClient.callService(request, function(result) {});
+	}
+
+	function executeShallowGrasp() {
+		var goal = new ROSLIB.Goal({
+			actionClient: graspClient,
+			goalMessage: {
+				shallow: true
+			}
+		});
+		goal.send();
+	}
+
+	function executeDeepGrasp() {
+		var goal = new ROSLIB.Goal({
+			actionClient: graspClient,
+			goalMessage: {
+				shallow: false
+			}
+		});
+		goal.send();
+	}
 
 	/****************************************************************************
 	 *                         Primitive Actions                                *
@@ -486,14 +561,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		goal.send();
 	}
 
-	//this is the topic for cartesian moving objects around
-	var cartesian_move_topic = new ROSLIB.Topic({
-			ros: _ROS,
-			name: '/nimbus_moveit_wrapper/cartesian_control',
-			messageType: 'geometry_msgs/Twist'
-	});
-	cartesian_move_topic.advertise();
-	var size = 500
 	<?php
 		$streamTopics = '[';
 		$streamNames = '[';
@@ -507,6 +574,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		$streamTopics .= ']';
 		$streamNames .= ']';
 	?>
+	var size=500;
 	var mjpegcanvas=new MJPEGCANVAS.MultiStreamViewer({
 		divID: 'mjpeg',
 		host: '<?php echo $environment['Mjpeg']['host']; ?>',
@@ -521,61 +589,105 @@ foreach ($environment['Urdf'] as $urdf) {
 		refreshRate:'5'
 	},EventEmitter);
 
-	mjpegcanvas.interaction=function(linear,angular){
-		var message=new ROSLIB.Message({
-			'linear':linear,
-			'angular':angular
-		});
-		cartesian_move_topic.publish(message);
-	}
-	var timer=null;
-	var move_arm_x=null;
-	var move_arm_y=null;
-	var mjpeg_canvas_rect = mjpegcanvas.canvas.getBoundingClientRect();
-	var speed=1; //a constant representing the speed of the interaction of the arm
-	mjpegcanvas.canvas.addEventListener('mousemove',function(event){
-		if (timer){
-			clearTimeout(timer)
-		}
-		move_arm_x=event.clientX - mjpeg_canvas_rect.left- (mjpegcanvas.width/2)
-		move_arm_y=mjpegcanvas.height-event.clientY - mjpeg_canvas_rect.top
-		timers=setTimeout(move_arm,1000)
-	})
-
-	mjpegcanvas.canvas.addEventListener('mouseout',function(event){
-		if (timer){
-			clearTimeout(timer)
-		}
-	})
-
-	function move_arm(x,y){
-		var linear={'x':move_arm_x,'y':move_arm_y,'z':0};
-		var point=MJPEGCANVAS.convertImageCoordinatestoWorldCoordinates(mjpegcanvas.transform,linear.x,linear.y,linear.z,mjpegcanvas.width,mjpegcanvas.height)
-		var temp = point.z
-		point.z=point.x
-		point.x=temp
-		console.log(linear)
-		var message=new ROSLIB.Message({
-			'linear':{x:0.0,y:-1.0,z:0.0},
-			'angular':{x:0.0,y:0.0,z:0.0}
-		});
-		cartesian_move_topic.publish(message);
-	}
-	//add a set of interactive markers
-  //  mjpegcanvas.addTopic('/nimbus_interactive_manipulation/update_full','visualization_msgs/InteractiveMarkerInit')
-
 </script>
 <script>
-	 // var cartesian_move_topic = new ROSLIB.Topic({
-	 //        ros: _ROS,
-	 //        name: '/nimbus_moveit_wrapper/cartesian_control',
-	 //        messageType: 'geometry_msgs/Twist'
-	 //    });
-	 //    cartesian_move_topic.advertise();
-	 //    var message=new ROSLIB.Message({
-	 //        'linear':{x:0.0,y:0.0,z:0.0},
-	 //        'angular':{x:0.0,y:0.0,z:0.0}
-	 //    });
-	 //    cartesian_move_topic.publish(message);
+  /**
+   * Setup all visualization elements when the page is loaded. 
+   */
+  function init() {
+    var mjpegcanvas =  new MJPEGCANVAS.MultiStreamViewer({
+      divID : 'markers',
+      width : 800,
+      height : 600,
+      host : 'rail-engine.cc.gatech.edu',
+      port : 8080,
+      quality: '90',
+      topics: ['/camera/rgb/image_rect_color','/kinect2/hd/image_color'],
+      labels: ['Side','Overhead']
+    });
+
+    // Connect to ROS.
+    var ros = new ROSLIB.Ros({
+      url : 'ws://localhost:9090'
+    });
+
+    // Setup a client to listen to TFs.
+    var tfClient = new ROSLIB.TFClient({
+      ros : ros,
+      angularThres : 0.01,
+      transThres : 0.01,
+      rate : 10.0,
+      fixedFrame : '/jaco_base_link'
+    });
+
+
+    //asus
+    // var viewerHandle = new ROS3D.ViewerHandle({
+    //   ros : ros,
+    //   tfClient : tfClient,
+    //   camera : viewer.camera,
+    //   frame : '/camera_rgb_optical_frame'
+    // });
+    //kinect
+    //  viewerHandle = new ROS3D.ViewerHandle({
+    //   ros : ros,
+    //   tfClient : tfClient,
+    //   camera : viewer.camera,
+    //   frame : '/table_base_link'
+    // });
+
+
+    // Create the main viewer
+    var viewer = new ROS3D.Viewer({
+      divID : 'markers',
+      width : 800,
+      height : 600,
+      antialias : true,
+      alpha: 0.1,
+      near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
+      far: 50,
+      fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
+      cameraPose:{x:0,y:0,z:1},
+      originPosition:{x:0,y:0.36,z:0},
+      //originPosition:{x:0.25,y:0,z:-0.5}, //kinect 2 
+      //originRotation:{x:-1.5708,y:0,z:-1.5708}, //kinect 2
+      interactive:true,
+      frame: '/camera_rgb_optical_frame',
+      tfClient: tfClient
+     });
+
+	var viewerCamera=new ROS3D.ViewerCamera({
+      near :0.1,
+      far :50,
+      fov: 60,
+      interactive :false,
+      aspect : (viewer.width/viewer.height),
+      originPosition : {x:0,y:0,z:-1},
+      originRotation : {x:0,y:1.5708,z:-1.5708},
+      tfClient :tfClient,
+      frame  : '/jaco_base_link'
+    });//@TODO Correct parameters for JACO
+
+    //add the kinect 2 in
+    viewer.addCamera(viewerCamera);
+    viewer.changeCamera(1);
+
+    mjpegcanvas.on('change',function(topic){
+      if(topic =='/camera/rgb/image_rect_color'){
+        viewer.changeCamera(0);
+      } else{
+        viewer.changeCamera(1);
+      }
+    });
+    
+    // Setup the marker client.
+    var imClient = new ROS3D.InteractiveMarkerClient({
+      ros : ros,
+      tfClient : tfClient,
+      topic : '/nimbus_interactive_manipulation',
+      camera : viewer.camera,
+      rootObject : viewer.selectableObjects
+    });
+  }
 </script>
-</html
+</html>

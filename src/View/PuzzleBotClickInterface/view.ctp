@@ -31,7 +31,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 	<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/EventEmitter/5.0.0/EventEmitter.js'></script>
 	<script type='text/javascript' src='http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.1/fabric.min.js'></script>
 	
-	<?php echo $this->Html->script('mjpegcanvas2.js');?>
+	<?php echo $this->Html->script('mjpegcanvas.js');?>
 
 	<?php
 		echo $this->Rms->tf(
@@ -58,6 +58,15 @@ echo $this->Html->css('PuzzleBotClickInterface');
 						<li>Pour out the pitcher</li>
 						<li>Pull the toy cart</li>
 						<li>Take an apple from the lunch box</li>
+					</ul>
+					<hr>
+					<b>Switch Cameras:</b>
+					<ul style="margin:0">
+						<select id='mjpegcanvas_select'>
+							<?php foreach ($environment['Stream'] as $stream):?>
+							<option value='<?php echo $stream['topic']?>'><?php echo $stream['name']?></option>
+							<?php endforeach;?>
+						</select>
 					</ul>
 				</div>
 			</td>
@@ -399,6 +408,10 @@ foreach ($environment['Urdf'] as $urdf) {
 		executeDeepGrasp();
 	});
 
+	$('#mjpegcanvas_select').change(function(e){
+		e.preventDefault();
+		mjpegcanvas.changeStream(this.value);
+	})
 	/****************************************************************************
 	 *                           Grasp Actions                                  *
 	 ****************************************************************************/
@@ -581,7 +594,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		$streamTopics .= ']';
 		$streamNames .= ']';
 	?>
-	console.log(EventEmitter)
 	var mjpegcanvas=new MJPEGCANVAS.MultiStreamViewer({
 		divID: 'mjpeg',
 		host: '<?php echo $environment['Mjpeg']['host']; ?>',
@@ -603,39 +615,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 		cartesian_move_topic.publish(message);
 	}
-	var timer=null;
-	var move_arm_x=null;
-	var move_arm_y=null;
-	var mjpeg_canvas_rect = mjpegcanvas.canvas.getBoundingClientRect();
-	var speed=1; //a constant representing the speed of the interaction of the arm
-	mjpegcanvas.canvas.addEventListener('mousemove',function(event){
-		if (timer){
-			clearTimeout(timer)
-		}
-		move_arm_x=event.clientX - mjpeg_canvas_rect.left- (mjpegcanvas.width/2)
-		move_arm_y=mjpegcanvas.height-event.clientY - mjpeg_canvas_rect.top
-		timers=setTimeout(move_arm,1000)
-	})
 
-	mjpegcanvas.canvas.addEventListener('mouseout',function(event){
-		if (timer){
-			clearTimeout(timer)
-		}
-	})
-
-	function move_arm(x,y){
-		var linear={'x':move_arm_x,'y':move_arm_y,'z':0};
-		var point=MJPEGCANVAS.convertImageCoordinatestoWorldCoordinates(mjpegcanvas.transform,linear.x,linear.y,linear.z,mjpegcanvas.width,mjpegcanvas.height)
-		var temp = point.z
-		point.z=point.x
-		point.x=temp
-		console.log(linear)
-		var message=new ROSLIB.Message({
-			'linear':{x:0.0,y:-1.0,z:0.0},
-			'angular':{x:0.0,y:0.0,z:0.0}
-		});
-		cartesian_move_topic.publish(message);
-	}
 	//add a set of interactive markers
   //  mjpegcanvas.addTopic('/nimbus_interactive_manipulation/update_full','visualization_msgs/InteractiveMarkerInit')
 
