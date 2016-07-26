@@ -375,7 +375,6 @@ foreach ($environment['Urdf'] as $urdf) {
 	function executeGrasp() {
 		//TODO: Connect to marker action server for grasp execution
 
-		disableInput(); //TODO: remove this, for debugging only
 	}
 
 
@@ -383,31 +382,51 @@ foreach ($environment['Urdf'] as $urdf) {
 	 *                         Primitive Actions                                *
 	 ****************************************************************************/
 	function executeResetArm() {
-		enableInput();	//TODO: remove this, for debugging only
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: armClient,
 			goalMessage: {
 				action: 1
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.message);
+		});
+		goal.on('result', function(result) {
+			enableInput();
+		});
 		goal.send();
 	}
 
 	function executeOpenGripper() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: gripperClient,
 			goalMessage: {
 				close: false
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.message);
+		});
+		goal.on('result', function(result) {
+			enableInput();
+		});
 		goal.send();
 	}
 	function executeCloseGripper() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: gripperClient,
 			goalMessage: {
 				close: true
 			}
+		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.message);
+		});
+		goal.on('result', function(result) {
+			enableInput();
 		});
 		goal.send();
 	}
@@ -567,7 +586,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	function disableInput() {
 		$('#img-plan').css("pointerEvents", "none");
 		$('#img-gripper').css("pointerEvents", "none");
-		//$('#img-reset').css("pointerEvents", "none");
+		$('#img-reset').css("pointerEvents", "none");
 		$('#img-fb').css("pointerEvents", "none");
 		$('#img-lr').css("pointerEvents", "none");
 		$('#img-ud').css("pointerEvents", "none");
@@ -576,7 +595,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		$('#moveArm').css("pointerEvents", "none");
 		$('#openGripper').css("pointerEvents", "none");
 		$('#closeGripper').css("pointerEvents", "none");
-		//$('#resetArm').css("pointerEvents", "none");
+		$('#resetArm').css("pointerEvents", "none");
 		$('#moveForward').css("pointerEvents", "none");
 		$('#moveBack').css("pointerEvents", "none");
 		$('#moveLeft').css("pointerEvents", "none");
@@ -589,7 +608,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		$('#moveArm').prop("disabled", true);
 		$('#openGripper').prop("disabled", true);
 		$('#closeGripper').prop("disabled", true);
-		//$('#resetArm').prop("disabled", true);
+		$('#resetArm').prop("disabled", true);
 		$('#moveForward').prop("disabled", true);
 		$('#moveBack').prop("disabled", true);
 		$('#moveLeft').prop("disabled", true);
