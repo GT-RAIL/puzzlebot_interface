@@ -637,7 +637,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	}
 
 	function displayFeedback(message) {
-		$('#feedback-text').innerHTML = message
+		document.getElementById("feedback-text").innerHTML = message;
 	}
 
 
