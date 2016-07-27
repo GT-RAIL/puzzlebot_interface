@@ -16,7 +16,8 @@ module.exports = function(grunt) {
       },
       files: [
         'Gruntfile.js',
-        '../src/webroot/js/*.js'
+        '../src/webroot/js/*.js',
+        '!../src/webroot/js/*.min.js' 
       ]
     },
     watch: {

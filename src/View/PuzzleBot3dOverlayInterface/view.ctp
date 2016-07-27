@@ -30,6 +30,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 	?>
 	<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/EventEmitter/5.0.0/EventEmitter.js'></script>
 	<?php echo $this->Html->script('mjpegcanvas.js');?>
+	<?php echo $this->Html->script('ros3d.js');?>
 
 	<?php
 		echo $this->Rms->tf(
@@ -39,6 +40,17 @@ echo $this->Html->css('PuzzleBotClickInterface');
     		$environment['Tf']['rate']
 		);
 	?>
+
+	<style type="text/css">
+		  #markers{
+		    position: relative;
+		  }
+		  #markers canvas{
+		    position: absolute;
+		    top:0;
+		    left:30px;
+		  }
+	</style>
 
 </head>
 
@@ -60,7 +72,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 				</div>
 			</td>
 			<td style="width: 56%">
-				<div id="mjpeg" style="text-align:center"></div>
+				<div id="markers" style="text-align:center"></div>
 			</td>
 			<td style="width: 22%; vertical-align:top;">
 				<div id="instructions" style="height=500px; text-align: left; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
@@ -254,51 +266,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 	</table>
 </body>
 
-<!-- <script>
-	var size = Math.min(((window.innerWidth / 2) - 120), window.innerHeight * 0.60);
-	
-	_VIEWER = new ROS3D.Viewer({
-		divID: 'viewer',
-		width: 500,
-		height: 425,
-		antialias: true,
-		background: '#50817b',
-		intensity: 0.660000
-	});
 
-	_VIEWER.addObject(
-		new ROS3D.SceneNode({
-			object: new ROS3D.Grid({cellSize: 0.75, size: 20, color: '#2B0000'}),
-			tfClient: _TF,
-			frameID: '/table_base_link'
-		})
-	);
-
-	//add IMs
-	<?php foreach ($environment['Im'] as $im): ?>
-		new ROS3D.InteractiveMarkerClient({
-			ros: _ROS,
-			tfClient: _TF,
-			camera: _VIEWER.camera,
-			rootObject: _VIEWER.selectableObjects,
-			<?php echo isset($im['Collada']['id']) ? __('loader:%d,', h($im['Collada']['id'])) : ''; ?>
-			<?php echo isset($im['Resource']['url']) ? __('path:"%s",', h($im['Resource']['url'])) : ''; ?>
-			topic: '<?php echo h($im['topic']); ?>'
-		});
-	<?php endforeach; ?>
-</script>
- -->
-<!-- <?php
-// URDF
-foreach ($environment['Urdf'] as $urdf) {
-	echo $this->Rms->urdf(
-		$urdf['param'],
-		$urdf['Collada']['id'],
-		$urdf['Resource']['url']
-	);
-}
-?>
- -->
 <script>
 	//Setup ROS action clients
 	var armClient = new ROSLIB.ActionClient({
@@ -560,7 +528,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 		goal.send();
 	}
-
 	<?php
 		$streamTopics = '[';
 		$streamNames = '[';
@@ -574,9 +541,17 @@ foreach ($environment['Urdf'] as $urdf) {
 		$streamTopics .= ']';
 		$streamNames .= ']';
 	?>
-	var size=500;
+
+
+</script>
+<script>
+  /**
+   * Setup all visualization elements when the page is loaded. 
+   */
+  function init() {
+	var size=600;
 	var mjpegcanvas=new MJPEGCANVAS.MultiStreamViewer({
-		divID: 'mjpeg',
+		divID: 'markers',
 		host: '<?php echo $environment['Mjpeg']['host']; ?>',
 		port: <?php echo $environment['Mjpeg']['port']; ?>,
 		width: size,
@@ -589,52 +564,14 @@ foreach ($environment['Urdf'] as $urdf) {
 		refreshRate:'5'
 	},EventEmitter);
 
-</script>
-<script>
-  /**
-   * Setup all visualization elements when the page is loaded. 
-   */
-  function init() {
-    var mjpegcanvas =  new MJPEGCANVAS.MultiStreamViewer({
-      divID : 'markers',
-      width : 800,
-      height : 600,
-      host : 'rail-engine.cc.gatech.edu',
-      port : 8080,
-      quality: '90',
-      topics: ['/camera/rgb/image_rect_color','/kinect2/hd/image_color'],
-      labels: ['Side','Overhead']
-    });
-
-    // Connect to ROS.
-    var ros = new ROSLIB.Ros({
-      url : 'ws://localhost:9090'
-    });
-
     // Setup a client to listen to TFs.
     var tfClient = new ROSLIB.TFClient({
-      ros : ros,
+      ros : _ROS,
       angularThres : 0.01,
       transThres : 0.01,
       rate : 10.0,
       fixedFrame : '/jaco_base_link'
     });
-
-
-    //asus
-    // var viewerHandle = new ROS3D.ViewerHandle({
-    //   ros : ros,
-    //   tfClient : tfClient,
-    //   camera : viewer.camera,
-    //   frame : '/camera_rgb_optical_frame'
-    // });
-    //kinect
-    //  viewerHandle = new ROS3D.ViewerHandle({
-    //   ros : ros,
-    //   tfClient : tfClient,
-    //   camera : viewer.camera,
-    //   frame : '/table_base_link'
-    // });
 
 
     // Create the main viewer
@@ -647,30 +584,14 @@ foreach ($environment['Urdf'] as $urdf) {
       near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
       far: 50,
       fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
-      cameraPose:{x:0,y:0,z:1},
-      originPosition:{x:0,y:0.36,z:0},
-      //originPosition:{x:0.25,y:0,z:-0.5}, //kinect 2 
-      //originRotation:{x:-1.5708,y:0,z:-1.5708}, //kinect 2
-      interactive:true,
+      cameraPose:{x:0.05,y:0.34,z:0},
+      //cameraPosition:{x:0.25,y:0,z:-0.5}, //kinect 2 
+      //cameraRotation:{x:-1.5708,y:0,z:-1.5708}, //kinect 2
+      interactive:false,
       frame: '/camera_rgb_optical_frame',
       tfClient: tfClient
      });
 
-	var viewerCamera=new ROS3D.ViewerCamera({
-      near :0.1,
-      far :50,
-      fov: 60,
-      interactive :false,
-      aspect : (viewer.width/viewer.height),
-      originPosition : {x:0,y:0,z:-1},
-      originRotation : {x:0,y:1.5708,z:-1.5708},
-      tfClient :tfClient,
-      frame  : '/jaco_base_link'
-    });//@TODO Correct parameters for JACO
-
-    //add the kinect 2 in
-    viewer.addCamera(viewerCamera);
-    viewer.changeCamera(1);
 
     mjpegcanvas.on('change',function(topic){
       if(topic =='/camera/rgb/image_rect_color'){
@@ -682,12 +603,13 @@ foreach ($environment['Urdf'] as $urdf) {
     
     // Setup the marker client.
     var imClient = new ROS3D.InteractiveMarkerClient({
-      ros : ros,
+      ros : _ROS,
       tfClient : tfClient,
       topic : '/nimbus_interactive_manipulation',
       camera : viewer.camera,
       rootObject : viewer.selectableObjects
     });
   }
+  init();
 </script>
 </html>
