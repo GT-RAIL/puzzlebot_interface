@@ -59,6 +59,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 						<li>Pull the toy cart</li>
 						<li>Take an apple from the lunch box</li>
 					</ul>
+					<!--
 					<hr>
 					<b>Switch Cameras:</b>
 					<ul style="margin:0">
@@ -68,13 +69,29 @@ echo $this->Html->css('PuzzleBotClickInterface');
 							<?php endforeach;?>
 						</select>
 					</ul>
+					-->
 				</div>
 			</td>
-			<td style="width: 28%">
-				<div id="viewer" style="text-align:center"></div>
-			</td>
-			<td style="width: 28%">
-				<div id="mjpeg" style="text-align:center"></div>
+			<td>
+				<table>
+					<tr><td>
+							<table>
+								<tr>
+									<td style="width: 28%">
+										<div id="viewer" style="text-align:center"></div>
+									</td>
+									<td style="width: 28%">
+										<div id="mjpeg" style="text-align:center"></div>
+									</td>
+								</tr>
+							</table>
+						</td></tr>
+					<tr>
+						<td style="text-align:center; background-color:rgba(232, 238, 244, 1.0); border-radius:20px;">
+							<b><span id="feedback-text">&nbsp;</span></b>
+						</td>
+					</tr>
+				</table>
 			</td>
 			<td style="width: 22%; vertical-align:top;">
 				<div id="instructions" style="height=500px; text-align: left; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
@@ -90,13 +107,13 @@ echo $this->Html->css('PuzzleBotClickInterface');
 									<map name="prev-map">
 										<area shape="rect" coords="0,0,75,50" href="javascript:prevGrasp()">
 									</map>
-									<img src="/img/Nimbus/nimbus-prev.png" height="50" width="75" style="vertical-align:middle" usemap="prev-map">
+									<img id="img-prev" src="/img/Nimbus/nimbus-prev.png" height="50" width="75" style="vertical-align:middle" usemap="prev-map">
 								</td>
 								<td>
 									<map name="next-map">
 										<area shape="rect" coords="0,0,75,50" href="javascript:nextGrasp()">
 									</map>
-									<img src="/img/Nimbus/nimbus-next.png" height="50" width="75" style="vertical-align:middle" usemap="next-map">
+									<img id="img-next" src="/img/Nimbus/nimbus-next.png" height="50" width="75" style="vertical-align:middle" usemap="next-map">
 								</td>
 							</tr>
 						</table>
@@ -109,7 +126,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 									<map name="shallow-grasp-map">
 										<area shape="rect" coords="0,0,75,50" href="javascript:executeShallowGrasp()">
 									</map>
-									<img src="/img/Nimbus/nimbus-shallow-grasp.png" height="50" width="75" style="vertical-align:middle" usemap="shallow-grasp-map">
+									<img id="img-shallow" src="/img/Nimbus/nimbus-shallow-grasp.png" height="50" width="75" style="vertical-align:middle" usemap="shallow-grasp-map">
 								</td>
 								<td style="text-align:center" width="200px">
 									<button id='shallowGrasp' class='button special' style="width:190px">shallow grasp</button>
@@ -120,7 +137,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 									<map name="deep-grasp-map">
 										<area shape="rect" coords="0,0,75,50" href="javascript:executeShallowGrasp()">
 									</map>
-									<img src="/img/Nimbus/nimbus-deep-grasp.png" height="50" width="75" style="vertical-align:middle" usemap="deep-grasp-map">
+									<img id="img-deep" src="/img/Nimbus/nimbus-deep-grasp.png" height="50" width="75" style="vertical-align:middle" usemap="deep-grasp-map">
 								</td>
 								<td style="text-align:center" width="200px">
 									<button id='deepGrasp' class='button special' style="width:190px">deep grasp</button>
@@ -151,7 +168,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 								<area shape="rect" coords="46,0,104,100" href="javascript:executeCloseGripper()">
 								<area shape="rect" coords="105,0,150,100" href="javascript:executeOpenGripper()">
 							</map>
-							<img src="/img/Nimbus/nimbus-gripper.png" height="100" width="150" style="vertical-align:middle" usemap="#gripper-map">
+							<img id="img-gripper" src="/img/Nimbus/nimbus-gripper.png" height="100" width="150" style="vertical-align:middle" usemap="#gripper-map">
 						</td>
 						<td>
 							<table>
@@ -170,7 +187,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 							<map name="reset-map">
 								<area shape="rect" coords="0,0,150,100" href="javascript:executeResetArm()">
 							</map>
-							<img src="/img/Nimbus/nimbus-reset-arm.png" height="100" width="150" style="vertical-align:middle" usemap="#reset-map">
+							<img id="img-reset" src="/img/Nimbus/nimbus-reset-arm.png" height="100" width="150" style="vertical-align:middle" usemap="#reset-map">
 						</td>
 						<td style="text-align:center; vertical-align:middle;" width="180px">
 							<button id='resetArm' class='button special' style="width:170px">reset arm</button>
@@ -186,7 +203,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 								<area shape="rect" coords="0,0,150,40" href="javascript:executeMoveForward()">
 								<area shape="rect" coords="0,41,150,100" href="javascript:executeMoveBack()">
 							</map>
-							<img src="/img/Nimbus/nimbus-forward-back.png" height="100" width="150" style="vertical-align:middle" usemap="#fb-map">
+							<img id="img-fb" src="/img/Nimbus/nimbus-forward-back.png" height="100" width="150" style="vertical-align:middle" usemap="#fb-map">
 						</td>
 						<td>
 							<table>
@@ -206,7 +223,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 								<area shape="rect" coords="0,0,80,100" href="javascript:executeMoveLeft()">
 								<area shape="rect" coords="81,0,150,100" href="javascript:executeMoveRight()">
 							</map>
-							<img src="/img/Nimbus/nimbus-left-right.png" height="100" width="150" style="vertical-align:middle" usemap="#lr-map">
+							<img id="img-lr" src="/img/Nimbus/nimbus-left-right.png" height="100" width="150" style="vertical-align:middle" usemap="#lr-map">
 						</td>
 						<td>
 							<table>
@@ -229,7 +246,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 								<area shape="rect" coords="0,0,150,49" href="javascript:executeMoveUp()">
 								<area shape="rect" coords="0,50,150,100" href="javascript:executeMoveDown()">
 							</map>
-							<img src="/img/Nimbus/nimbus-up-down.png" height="100" width="150" style="vertical-align:middle" usemap="#ud-map">
+							<img id="img-ud" src="/img/Nimbus/nimbus-up-down.png" height="100" width="150" style="vertical-align:middle" usemap="#ud-map">
 						</td>
 						<td>
 							<table>
@@ -249,7 +266,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 								<area shape="rect" coords="0,0,75,100" href="javascript:executeRotateCW()">
 								<area shape="rect" coords="76,0,150,100" href="javascript:executeRotateCCW()">
 							</map>
-							<img src="/img/Nimbus/nimbus-rotate-wrist.png" height="100" width="150" style="vertical-align:middle" usemap="#rotate-map">
+							<img id="img-rotate" src="/img/Nimbus/nimbus-rotate-wrist.png" height="100" width="150" style="vertical-align:middle" usemap="#rotate-map">
 						</td>
 						<td>
 							<table>
@@ -334,7 +351,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		ros: _ROS,
 		serverName: '/grasp_selector/execute_grasp',
 		actionName: 'rail_agile_grasp_msgs/SelectedGraspAction'
-	})
+	});
 
 	//Setup ROS service clients
 	var cycleGraspsClient = new ROSLIB.Service({
@@ -360,6 +377,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		executeOpenGripper();
 	});
 	$('#closeGripper').click(function (e) {
+		e.preventDefault();
 		executeCloseGripper();
 	});
 
@@ -430,21 +448,35 @@ foreach ($environment['Urdf'] as $urdf) {
 	}
 
 	function executeShallowGrasp() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: graspClient,
 			goalMessage: {
 				shallow: true
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			enableInput();
+		});
 		goal.send();
 	}
 
 	function executeDeepGrasp() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: graspClient,
 			goalMessage: {
 				shallow: false
 			}
+		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			enableInput();
 		});
 		goal.send();
 	}
@@ -453,35 +485,58 @@ foreach ($environment['Urdf'] as $urdf) {
 	 *                         Primitive Actions                                *
 	 ****************************************************************************/
 	function executeResetArm() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: armClient,
 			goalMessage: {
 				action: 1
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.message);
+		});
+		goal.on('result', function(result) {
+			resetMarkerPose();
+			enableInput();
+		});
 		goal.send();
 	}
 
 	function executeOpenGripper() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: gripperClient,
 			goalMessage: {
 				close: false
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.message);
+		});
+		goal.on('result', function(result) {
+			enableInput();
+		});
 		goal.send();
 	}
 	function executeCloseGripper() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: gripperClient,
 			goalMessage: {
 				close: true
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.message);
+		});
+		goal.on('result', function(result) {
+			enableInput();
+		});
 		goal.send();
 	}
 
 	function executeMoveForward() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -490,9 +545,17 @@ foreach ($environment['Urdf'] as $urdf) {
 				distance: 0.1
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			resetMarkerPose();
+			enableInput();
+		});
 		goal.send();
 	}
 	function executeMoveBack() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -500,11 +563,19 @@ foreach ($environment['Urdf'] as $urdf) {
 				axis: 1,
 				distance: -0.1
 			}
+		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			resetMarkerPose();
+			enableInput();
 		});
 		goal.send();
 	}
 
 	function executeMoveLeft() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -513,9 +584,17 @@ foreach ($environment['Urdf'] as $urdf) {
 				distance: -0.1
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			resetMarkerPose();
+			enableInput();
+		});
 		goal.send();
 	}
 	function executeMoveRight() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -523,11 +602,18 @@ foreach ($environment['Urdf'] as $urdf) {
 				axis: 0,
 				distance: 0.1
 			}
+		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			enableInput();
 		});
 		goal.send();
 	}
 
 	function executeMoveUp() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -536,9 +622,17 @@ foreach ($environment['Urdf'] as $urdf) {
 				distance: 0.1
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			resetMarkerPose();
+			enableInput();
+		});
 		goal.send();
 	}
 	function executeMoveDown() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -547,10 +641,18 @@ foreach ($environment['Urdf'] as $urdf) {
 				distance: -0.1
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			resetMarkerPose();
+			enableInput();
+		});
 		goal.send();
 	}
 
 	function executeRotateCW() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -559,9 +661,17 @@ foreach ($environment['Urdf'] as $urdf) {
 				distance: -1.5708
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			resetMarkerPose();
+			enableInput();
+		});
 		goal.send();
 	}
 	function executeRotateCCW() {
+		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -570,7 +680,104 @@ foreach ($environment['Urdf'] as $urdf) {
 				distance: 1.5708
 			}
 		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.feedback);
+		});
+		goal.on('result', function(result) {
+			resetMarkerPose();
+			enableInput();
+		});
 		goal.send();
+	}
+
+	/****************************************************************************
+	 *                             Feedback                                     *
+	 ****************************************************************************/
+
+	function disableInput() {
+		$('#img-prev').css("pointerEvents", "none");
+		$('#img-next').css("pointerEvents", "none");
+		$('#img-shallow').css("pointerEvents", "none");
+		$('#img-deep').css("pointerEvents", "none");
+		$('#img-gripper').css("pointerEvents", "none");
+		$('#img-reset').css("pointerEvents", "none");
+		$('#img-fb').css("pointerEvents", "none");
+		$('#img-lr').css("pointerEvents", "none");
+		$('#img-ud').css("pointerEvents", "none");
+		$('#img-rotate').css("pointerEvents", "none");
+
+		$('#shallowGrasp').css("pointerEvents", "none");
+		$('#deepGrasp').css("pointerEvents", "none");
+		$('#openGripper').css("pointerEvents", "none");
+		$('#closeGripper').css("pointerEvents", "none");
+		$('#resetArm').css("pointerEvents", "none");
+		$('#moveForward').css("pointerEvents", "none");
+		$('#moveBack').css("pointerEvents", "none");
+		$('#moveLeft').css("pointerEvents", "none");
+		$('#moveRight').css("pointerEvents", "none");
+		$('#moveUp').css("pointerEvents", "none");
+		$('#moveDown').css("pointerEvents", "none");
+		$('#rotateCW').css("pointerEvents", "none");
+		$('#rotateCCW').css("pointerEvents", "none");
+
+		$('#shallowGrasp').prop("disabled", true);
+		$('#deepGrasp').prop("disabled", true);
+		$('#openGripper').prop("disabled", true);
+		$('#closeGripper').prop("disabled", true);
+		$('#resetArm').prop("disabled", true);
+		$('#moveForward').prop("disabled", true);
+		$('#moveBack').prop("disabled", true);
+		$('#moveLeft').prop("disabled", true);
+		$('#moveRight').prop("disabled", true);
+		$('#moveUp').prop("disabled", true);
+		$('#moveDown').prop("disabled", true);
+		$('#rotateCW').prop("disabled", true);
+		$('#rotateCCW').prop("disabled", true);
+	}
+
+	function enableInput() {
+		$('#img-prev').css("pointerEvents", "");
+		$('#img-next').css("pointerEvents", "");
+		$('#img-shallow').css("pointerEvents", "");
+		$('#img-deep').css("pointerEvents", "");
+		$('#img-gripper').css("pointerEvents", "");
+		$('#img-reset').css("pointerEvents", "");
+		$('#img-fb').css("pointerEvents", "");
+		$('#img-lr').css("pointerEvents", "");
+		$('#img-ud').css("pointerEvents", "");
+		$('#img-rotate').css("pointerEvents", "");
+
+		$('#shallowGrasp').css("pointerEvents", "");
+		$('#deepGrasp').css("pointerEvents", "");
+		$('#openGripper').css("pointerEvents", "");
+		$('#closeGripper').css("pointerEvents", "");
+		$('#resetArm').css("pointerEvents", "");
+		$('#moveForward').css("pointerEvents", "");
+		$('#moveBack').css("pointerEvents", "");
+		$('#moveLeft').css("pointerEvents", "");
+		$('#moveRight').css("pointerEvents", "");
+		$('#moveUp').css("pointerEvents", "");
+		$('#moveDown').css("pointerEvents", "");
+		$('#rotateCW').css("pointerEvents", "");
+		$('#rotateCCW').css("pointerEvents", "");
+
+		$('#shallowGrasp').css("pointerEvents", "");
+		$('#deepGrasp').css("pointerEvents", "");
+		$('#openGripper').prop("disabled", false);
+		$('#closeGripper').prop("disabled", false);
+		$('#resetArm').prop("disabled", false);
+		$('#moveForward').prop("disabled", false);
+		$('#moveBack').prop("disabled", false);
+		$('#moveLeft').prop("disabled", false);
+		$('#moveRight').prop("disabled", false);
+		$('#moveUp').prop("disabled", false);
+		$('#moveDown').prop("disabled", false);
+		$('#rotateCW').prop("disabled", false);
+		$('#rotateCCW').prop("disabled", false);
+	}
+
+	function displayFeedback(message) {
+		document.getElementById("feedback-text").innerHTML = message;
 	}
 
 	//this is the topic for cartesian moving objects around

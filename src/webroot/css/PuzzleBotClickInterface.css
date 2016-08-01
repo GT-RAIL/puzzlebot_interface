@@ -29,6 +29,11 @@ li {
 	margin: 5px;
 }
 
+.button:disabled {
+  background: #aaaaaa;
+  border-color: #aaaaaa;
+}
+
 /* Range slider style */
 input[type=range] {
 	-webkit-appearance: none; /* Hides the slider so that custom slider can be made */

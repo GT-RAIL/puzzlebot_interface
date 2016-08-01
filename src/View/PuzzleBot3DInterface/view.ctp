@@ -311,8 +311,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		actionName: 'nimbus_interactive_manipulation/SpecifiedGraspAction'
 	});
 	
-	//TODO: Connect to marker action server for grasp execution
-
 	//Setup ROS service clients
 	var resetMarkerClient = new ROSLIB.Service({
 		ros : _ROS,
@@ -336,6 +334,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		executeOpenGripper();
 	});
 	$('#closeGripper').click(function (e) {
+		e.preventDefault();
 		executeCloseGripper();
 	});
 
@@ -385,7 +384,6 @@ foreach ($environment['Urdf'] as $urdf) {
 	 *                           Grasp Actions                                  *
 	 ****************************************************************************/
 	function executeGrasp() {
-		//TODO: Connect to marker action server for grasp execution
 		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: graspClient,
