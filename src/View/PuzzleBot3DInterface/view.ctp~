@@ -57,6 +57,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 						<li>Pour out the pitcher</li>
 						<li>Pull the toy cart</li>
 						<li>Take an apple from the lunch box</li>
+						<li>Test</li>
 					</ul>
 				</div>
 			</td>
@@ -293,7 +294,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	var armClient = new ROSLIB.ActionClient({
 		ros: _ROS,
 		serverName: '/nimbus_moveit/common_actions/arm_action',
-		actionName: 'rail_manipulation_msgs/ArmAction'
+		actionName: 'nimbus_moveit/ArmAction'
 	});
 	var gripperClient = new ROSLIB.ActionClient({
 		ros: _ROS,
@@ -305,20 +306,9 @@ foreach ($environment['Urdf'] as $urdf) {
 		serverName: '/nimbus_moveit/primitive_action',
 		actionName: 'rail_manipulation_msgs/PrimitiveAction'
 	});
-	var graspClient = new ROSLIB.ActionClient({
-		ros: _ROS,
-		serverName: '/nimbus_6dof_planning/execute_grasp',
-		actionName: 'nimbus_interactive_manipulation/SpecifiedGraspAction'
-	});
 	
 	//TODO: Connect to marker action server for grasp execution
 
-	//Setup ROS service clients
-	var resetMarkerClient = new ROSLIB.Service({
-		ros : _ROS,
-		name : '/nimbus_6dof_planning/reset_marker_position',
-		serviceType : 'std_srvs/Empty'
-	});
 </script>
 
 <script type="text/javascript">
@@ -380,31 +370,13 @@ foreach ($environment['Urdf'] as $urdf) {
 		executeGrasp();
 	});
 
-
 	/****************************************************************************
 	 *                           Grasp Actions                                  *
 	 ****************************************************************************/
 	function executeGrasp() {
 		//TODO: Connect to marker action server for grasp execution
-		disableInput();
-		var goal = new ROSLIB.Goal({
-			actionClient: graspClient,
-			goalMessage: {
 
-			}
-		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.message);
-		});
-		goal.on('result', function(result) {
-			enableInput();
-		});
-		goal.send();
-	}
-
-	function resetMarkerPose() {
-		var request = new ROSLIB.ServiceRequest ({});
-		resetMarkerClient.callService(request, function(result){});
+		disableInput(); //TODO: remove this, for debugging only
 	}
 
 
@@ -412,52 +384,31 @@ foreach ($environment['Urdf'] as $urdf) {
 	 *                         Primitive Actions                                *
 	 ****************************************************************************/
 	function executeResetArm() {
-		disableInput();
+		enableInput();	//TODO: remove this, for debugging only
 		var goal = new ROSLIB.Goal({
 			actionClient: armClient,
 			goalMessage: {
 				action: 1
 			}
 		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.message);
-		});
-		goal.on('result', function(result) {
-			resetMarkerPose();
-			enableInput();
-		});
 		goal.send();
 	}
 
 	function executeOpenGripper() {
-		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: gripperClient,
 			goalMessage: {
 				close: false
 			}
 		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.message);
-		});
-		goal.on('result', function(result) {
-			enableInput();
-		});
 		goal.send();
 	}
 	function executeCloseGripper() {
-		disableInput();
 		var goal = new ROSLIB.Goal({
 			actionClient: gripperClient,
 			goalMessage: {
 				close: true
 			}
-		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.message);
-		});
-		goal.on('result', function(result) {
-			enableInput();
 		});
 		goal.send();
 	}
@@ -476,7 +427,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -495,7 +445,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -515,7 +464,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -553,7 +501,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -572,7 +519,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -592,7 +538,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -611,7 +556,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -624,7 +568,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	function disableInput() {
 		$('#img-plan').css("pointerEvents", "none");
 		$('#img-gripper').css("pointerEvents", "none");
-		$('#img-reset').css("pointerEvents", "none");
+		//$('#img-reset').css("pointerEvents", "none");
 		$('#img-fb').css("pointerEvents", "none");
 		$('#img-lr').css("pointerEvents", "none");
 		$('#img-ud').css("pointerEvents", "none");
@@ -633,7 +577,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		$('#moveArm').css("pointerEvents", "none");
 		$('#openGripper').css("pointerEvents", "none");
 		$('#closeGripper').css("pointerEvents", "none");
-		$('#resetArm').css("pointerEvents", "none");
+		//$('#resetArm').css("pointerEvents", "none");
 		$('#moveForward').css("pointerEvents", "none");
 		$('#moveBack').css("pointerEvents", "none");
 		$('#moveLeft').css("pointerEvents", "none");
@@ -646,7 +590,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		$('#moveArm').prop("disabled", true);
 		$('#openGripper').prop("disabled", true);
 		$('#closeGripper').prop("disabled", true);
-		$('#resetArm').prop("disabled", true);
+		//$('#resetArm').prop("disabled", true);
 		$('#moveForward').prop("disabled", true);
 		$('#moveBack').prop("disabled", true);
 		$('#moveLeft').prop("disabled", true);
@@ -694,7 +638,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	}
 
 	function displayFeedback(message) {
-		document.getElementById("feedback-text").innerHTML = message;
+		$('#feedback-text').innerHTML = message
 	}
 
 

@@ -419,14 +419,14 @@ foreach ($environment['Urdf'] as $urdf) {
 		var request = new ROSLIB.ServiceRequest({
 			forward: false
 		});
-		segmentClient.callService(request, function(result) {});
+		cycleGraspsClient.callService(request, function(result) {});
 	}
 
 	function nextGrasp() {
 		var request = new ROSLIB.ServiceRequest({
 			forward: true
 		});
-		segmentClient.callService(request, function(result) {});
+		cycleGraspsClient.callService(request, function(result) {});
 	}
 
 	function executeShallowGrasp() {
