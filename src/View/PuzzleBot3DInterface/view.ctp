@@ -792,17 +792,5 @@ foreach ($environment['Urdf'] as $urdf) {
 
 
 </script>
-<script>
-	 // var cartesian_move_topic = new ROSLIB.Topic({
-	 //        ros: _ROS,
-	 //        name: '/nimbus_moveit_wrapper/cartesian_control',
-	 //        messageType: 'geometry_msgs/Twist'
-	 //    });
-	 //    cartesian_move_topic.advertise();
-	 //    var message=new ROSLIB.Message({
-	 //        'linear':{x:0.0,y:0.0,z:0.0},
-	 //        'angular':{x:0.0,y:0.0,z:0.0}
-	 //    });
-	 //    cartesian_move_topic.publish(message);
-</script>
+
 </html

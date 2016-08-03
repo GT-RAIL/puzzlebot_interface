@@ -3842,6 +3842,9 @@ ROS3D.Viewer = function(options) {
   if (frame===undefined){
 	camPosition=cameraPosition;
   }
+  else{
+	console.log(frame);
+  }
   this.cameras.push(new ROS3D.ViewerCamera({
     near :near,
     far :far,
@@ -4021,7 +4024,7 @@ ROS3D.ViewerCamera = function(options) {
 
   // create the global camera
   this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-
+  console.log(this.cameraPosition);
   this.camera.position.x=this.cameraPosition.x;
   this.camera.position.y=this.cameraPosition.y;
   this.camera.position.z=this.cameraPosition.z;
