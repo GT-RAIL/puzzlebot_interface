@@ -52,12 +52,9 @@ echo $this->Html->css('PuzzleBotClickInterface');
 				<div id="tasks" style="height=500px; text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
 					<b>Your Tasks:</b>
 					<ul style="margin:0">
-						<li>Open the drawer</li>
-						<li>Turn on the lamp</li>
-						<li>Open the jar of beans</li>
-						<li>Pour out the pitcher</li>
-						<li>Pull the toy cart</li>
-						<li>Take an apple from the lunch box</li>
+						<li>Pull the cart across the green line</li>
+						<li>Open the box</li>
+						<li>Open the bottle</li>
 					</ul>
 					<!--
 					<hr>
@@ -284,23 +281,12 @@ echo $this->Html->css('PuzzleBotClickInterface');
 
 </script>
 
-<?php
-// URDF
-foreach ($environment['Urdf'] as $urdf) {
-	echo $this->Rms->urdf(
-		$urdf['param'],
-		$urdf['Collada']['id'],
-		$urdf['Resource']['url']
-	);
-}
-?>
-
 <script>
 	//Setup ROS action clients
 	var armClient = new ROSLIB.ActionClient({
 		ros: _ROS,
 		serverName: '/nimbus_moveit/common_actions/arm_action',
-		actionName: 'nimbus_moveit/ArmAction'
+		actionName: 'rail_manipulation_msgs/ArmAction'
 	});
 	var gripperClient = new ROSLIB.ActionClient({
 		ros: _ROS,
@@ -316,6 +302,11 @@ foreach ($environment['Urdf'] as $urdf) {
 		ros: _ROS,
 		serverName: '/grasp_selector/execute_grasp',
 		actionName: 'rail_agile_grasp_msgs/SelectedGraspAction'
+	});
+	var pointCloudClickClient = new ROSLIB.ActionClient({
+		ros: _ROS,
+		serverName: '/point_cloud_clicker/click_image_point',
+		actionName: 'rail_agile_grasp_msgs/ClickImagePointAction'
 	});
 
 	//Setup ROS service clients
@@ -461,7 +452,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.message);
 		});
 		goal.on('result', function(result) {
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -514,7 +504,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -533,7 +522,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -553,7 +541,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -591,7 +578,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -610,7 +596,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -630,7 +615,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -649,7 +633,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -726,8 +709,8 @@ foreach ($environment['Urdf'] as $urdf) {
 		$('#rotateCW').css("pointerEvents", "");
 		$('#rotateCCW').css("pointerEvents", "");
 
-		$('#shallowGrasp').css("pointerEvents", "");
-		$('#deepGrasp').css("pointerEvents", "");
+		$('#shallowGrasp').prop("disabled", false);
+		$('#deepGrasp').prop("disabled", false);
 		$('#openGripper').prop("disabled", false);
 		$('#closeGripper').prop("disabled", false);
 		$('#resetArm').prop("disabled", false);
@@ -787,6 +770,27 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 		cartesian_move_topic.publish(message);
 	}
+
+	$('#mjpeg').on('click','canvas',function(event){
+		disableInput();
+		var rect = $(this)[0].getBoundingClientRect();
+		var goal = new ROSLIB.Goal({
+			actionClient: pointCloudClickClient,
+			goalMessage: {
+				x:event.clientX - rect.left,
+				y:event.clientY -rect.top,
+				imageWidth:size,
+				imageHeight:size*0.85
+			}
+		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.message);
+		});
+		goal.on('result', function(result) {
+			enableInput();
+		});
+		goal.send();
+	})
 
 	//add a set of interactive markers
   //  mjpegcanvas.addTopic('/nimbus_interactive_manipulation/update_full','visualization_msgs/InteractiveMarkerInit')
