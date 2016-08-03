@@ -62,18 +62,15 @@ echo $this->Html->css('PuzzleBot3DInterface');
 				<div id="tasks" style="height=500px; text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
 					<b>Your Tasks:</b>
 					<ul style="margin:0">
-						<li>Open the drawer</li>
-						<li>Turn on the lamp</li>
-						<li>Open the jar of beans</li>
-						<li>Pour out the pitcher</li>
-						<li>Pull the toy cart</li>
-						<li>Take an apple from the lunch box</li>
+						<li>Pull the cart across the green line</li>
+						<li>Open the box</li>
+						<li>Open the bottle</li>
 					</ul>
 				</div>
 			</td>
 			<td>
 				<table>
-					<tr><td style="width: 51%">
+					<tr><td style="width: 51.5%">
 						<table>
 							<tr>
 								<td>
