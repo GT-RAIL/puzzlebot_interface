@@ -3837,18 +3837,13 @@ ROS3D.Viewer = function(options) {
   this.scene.add(this.rootObject);
 
   // create the global camera
-  //assume it is controlled by TF
-  var camPosition={x:0,y:0,z:0}; 
-  if (frame===undefined){
-	camPosition=cameraPosition;
-  }
   this.cameras.push(new ROS3D.ViewerCamera({
     near :near,
     far :far,
     fov: fov,
     interactive :interactive,
     aspect : width / height,
-    cameraPosition : camPosition,
+    cameraPosition : cameraPosition,
     cameraRotation : cameraRotation,
     tfClient: tfClient,
     frame: frame
