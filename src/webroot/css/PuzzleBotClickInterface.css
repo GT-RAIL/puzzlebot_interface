@@ -27,6 +27,7 @@ li {
 .button {
 	min-width: 75px;
 	margin: 5px;
+	cursor:pointer;
 }
 
 .button:disabled {

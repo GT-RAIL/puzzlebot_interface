@@ -560,7 +560,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		topics: <?php echo $streamTopics; ?>,
 		labels: <?php echo $streamNames; ?>,
 		tfObject:_TF,
-		tf:'arm_mount_plate_link',
+		tf:'table_base_link',
 		refreshRate:'5'
 	},EventEmitter);
 
@@ -589,7 +589,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
       //cameraRotation:{x:-1.5708,y:0,z:-1.5708}, //kinect 2
       interactive:false,
       frame: '/camera_rgb_optical_frame',
-      tfClient: tfClient
+      tfClient: _TF
      });
 
 
