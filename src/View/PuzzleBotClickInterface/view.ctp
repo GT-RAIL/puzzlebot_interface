@@ -16,7 +16,16 @@
 <?php
 //custom styling
 echo $this->Html->css('PuzzleBotClickInterface');
-?> 
+?>
+
+<style type="text/css">
+	#mjpeg{
+		position: relative;
+	}
+	#mjpeg canvas{
+		position: absolute;
+	}
+</style>
 
 <html>
 <head>
@@ -32,6 +41,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 	<script type='text/javascript' src='http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.1/fabric.min.js'></script>
 	
 	<?php echo $this->Html->script('mjpegcanvas.js');?>
+	<?php echo $this->Html->script('ros3d.js');?>
 
 	<?php
 		echo $this->Rms->tf(
@@ -72,12 +82,12 @@ echo $this->Html->css('PuzzleBotClickInterface');
 			<td>
 				<table>
 					<tr>
-						<td style="width: 40%">
-							<div id="mjpeg" style="text-align:center"></div>
+						<td style="width:500px; height:435px;">
+							<div id="mjpeg" style="text-align:center; width:40%"></div>
 						</td>
 					</tr>
 					<tr>
-						<td style="text-align:center; background-color:rgba(232, 238, 244, 1.0); border-radius:20px;">
+						<td style="text-align:center; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; width:40%">
 							<b><span id="feedback-text">&nbsp;</span></b>
 						</td>
 					</tr>
@@ -385,7 +395,8 @@ echo $this->Html->css('PuzzleBotClickInterface');
 	$('#mjpegcanvas_select').change(function(e){
 		e.preventDefault();
 		mjpegcanvas.changeStream(this.value);
-	})
+	});
+
 	/****************************************************************************
 	 *                           Grasp Actions                                  *
 	 ****************************************************************************/
@@ -728,14 +739,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		document.getElementById("feedback-text").innerHTML = message;
 	}
 
-	//this is the topic for cartesian moving objects around
-	var cartesian_move_topic = new ROSLIB.Topic({
-			ros: _ROS,
-			name: '/nimbus_moveit_wrapper/cartesian_control',
-			messageType: 'geometry_msgs/Twist'
-	});
-	cartesian_move_topic.advertise();
-	var size = 500
+	var size = 500;
 	<?php
 		$streamTopics = '[';
 		$streamNames = '[';
@@ -763,13 +767,41 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		refreshRate:'5'
 	},EventEmitter);
 
-	mjpegcanvas.interaction=function(linear,angular){
-		var message=new ROSLIB.Message({
-			'linear':linear,
-			'angular':angular
-		});
-		cartesian_move_topic.publish(message);
-	}
+	// Setup a client to listen to TFs.
+	var tfClient = new ROSLIB.TFClient({
+		ros : _ROS,
+		angularThres : 0.01,
+		transThres : 0.01,
+		rate : 10.0,
+		fixedFrame : '/table_base_link'
+	});
+
+	// Create the main viewer
+	var viewer = new ROS3D.Viewer({
+		divID : 'mjpeg',
+		width : size,
+		height : size * 0.85,
+		antialias : true,
+		alpha: 0.1,
+		near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
+		far: 50,
+		fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
+		cameraPose:{x:-0.05,y:0.42,z:-0.05},
+		//cameraPosition:{x:0.25,y:0,z:-0.5}, //kinect 2
+		cameraRotation:{x:-0.34,y:0,z:3.15}, //kinect 2
+		frame: '/camera_rgb_optical_frame',
+		interactive:false,
+		tfClient: tfClient
+	});
+
+	// Setup the marker client.
+	var imClient = new ROS3D.InteractiveMarkerClient({
+		ros : _ROS,
+		tfClient : tfClient,
+		topic : '/grasp_selector',
+		camera : viewer.camera,
+		rootObject : viewer.selectableObjects
+	});
 
 	$('#mjpeg').on('click','canvas',function(event){
 		disableInput();

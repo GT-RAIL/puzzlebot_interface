@@ -745,7 +745,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			fixedFrame : '/table_base_link'
 		});
 
-
 		// Create the main viewer
 		var viewer = new ROS3D.Viewer({
 			divID : 'mjpeg',
@@ -756,14 +755,11 @@ foreach ($environment['Urdf'] as $urdf) {
 			near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
 			far: 50,
 			fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
-			cameraPose:{x:0.05,y:0.34,z:0},
-			//cameraPose:{x:0.025,y:0.141,z:1.193},
+      		cameraPose:{x:-0.05,y:0.42,z:-0.05},
 			//cameraPosition:{x:0.25,y:0,z:-0.5}, //kinect 2
-			//cameraRotation:{x:-1.5708,y:0,z:-1.5708}, //kinect 2
-			//cameraPosition:{x:0.025,y:0.141,z:1.193}, //asus overhead
-			//cameraRotation:{x:-2.906,y:-0.008,z:-0.002}, //asus overhead
-			interactive:false,
+			cameraRotation:{x:-0.34,y:0,z:3.15}, //kinect 2
 			frame: '/camera_rgb_optical_frame',
+			interactive:false,
 			tfClient: tfClient
 		});
 

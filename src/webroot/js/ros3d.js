@@ -3789,7 +3789,7 @@ ROS3D.Viewer = function(options) {
   var interactive = options.interactive;
   var tfClient = options.tfClient;
   var frame = options.frame;
-  if (interactive===undefined){
+  if (interactive===undefined){ 
     interactive=true;
   }
 
@@ -3836,6 +3836,13 @@ ROS3D.Viewer = function(options) {
 
   this.scene.add(this.rootObject);
 
+  var cameraPositionCopy;
+  if(frame===undefined){
+    cameraPositionCopy=cameraPosition;
+  }
+  else{
+    cameraPositionCopy={x:0,y:0,z:0};
+  }
   // create the global camera
   this.cameras.push(new ROS3D.ViewerCamera({
     near :near,
@@ -3843,7 +3850,7 @@ ROS3D.Viewer = function(options) {
     fov: fov,
     interactive :interactive,
     aspect : width / height,
-    cameraPosition : cameraPosition,
+    cameraPosition : cameraPositionCopy,
     cameraRotation : cameraRotation,
     tfClient: tfClient,
     frame: frame
@@ -3854,13 +3861,13 @@ ROS3D.Viewer = function(options) {
   this.scene.add(this.camera);
 
   // add controls to the camera
-  if(interactive){
+
     this.cameraControls = new ROS3D.OrbitControls({
       scene : this.rootObject,
       camera : this.camera
     });
     this.cameraControls.userZoomSpeed = cameraZoomSpeed;
-  }
+
 
   // lights
   this.scene.add(new THREE.AmbientLight(0x555555));
@@ -3891,10 +3898,8 @@ ROS3D.Viewer = function(options) {
    */
   function draw() {
     // update the controls
+    that.cameraControls.update();
 
-    if (interactive){
-      that.cameraControls.update();
-    }
     // put light to the top-left of the camera
     that.directionalLight.position = that.camera.localToWorld(new THREE.Vector3(-1, 1, 0));
     that.directionalLight.position.normalize();
@@ -4108,6 +4113,8 @@ ROS3D.ViewerHandle.prototype.emitServerPoseUpdate = function() {
   inv.translation.z *= -1;
   this.camera.quaternion.set(inv.rotation.x,inv.rotation.y,inv.rotation.z,inv.rotation.w);
   this.camera.position.set(inv.translation.x ,inv.translation.y  ,inv.translation.z);
+  console.log(this.camera.position);
+  console.log(this.camera.rotation);
   this.camera.updateMatrix();
 };
 
