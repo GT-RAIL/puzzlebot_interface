@@ -27,6 +27,12 @@ li {
 .button {
 	min-width: 75px;
 	margin: 5px;
+	cursor:pointer;
+}
+
+.button:disabled {
+  background: #aaaaaa;
+  border-color: #aaaaaa;
 }
 
 /* Range slider style */

@@ -17,6 +17,15 @@
 echo $this->Html->css('PuzzleBot3DInterface');
 ?>
 
+<style type="text/css">
+	#mjpeg{
+		position: relative;
+	}
+	#mjpeg canvas{
+		position: absolute;
+	}
+</style>
+
 <html>
 <head>
 
@@ -31,6 +40,8 @@ echo $this->Html->css('PuzzleBot3DInterface');
 	<script type='text/javascript' src='http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.1/fabric.min.js'></script>
 	
 	<?php echo $this->Html->script('mjpegcanvas.js');?>
+	<?php echo $this->Html->script('ros3d.js');?>
+
 
 	<?php
 		echo $this->Rms->tf(
@@ -51,24 +62,21 @@ echo $this->Html->css('PuzzleBot3DInterface');
 				<div id="tasks" style="height=500px; text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
 					<b>Your Tasks:</b>
 					<ul style="margin:0">
-						<li>Open the drawer</li>
-						<li>Turn on the lamp</li>
-						<li>Open the jar of beans</li>
-						<li>Pour out the pitcher</li>
-						<li>Pull the toy cart</li>
-						<li>Take an apple from the lunch box</li>
+						<li>Pull the cart across the green line</li>
+						<li>Open the box</li>
+						<li>Open the bottle</li>
 					</ul>
 				</div>
 			</td>
 			<td>
 				<table>
-					<tr><td>
+					<tr><td style="width: 51.5%">
 						<table>
 							<tr>
-								<td style="width: 28%">
+								<td>
 									<div id="viewer" style="text-align:center"></div>
 								</td>
-								<td style="width: 28%">
+								<td>
 									<div id="mjpeg" style="text-align:center"></div>
 								</td>
 							</tr>
@@ -265,15 +273,18 @@ echo $this->Html->css('PuzzleBot3DInterface');
 
 	//add IMs
 	<?php foreach ($environment['Im'] as $im): ?>
-		new ROS3D.InteractiveMarkerClient({
-			ros: _ROS,
-			tfClient: _TF,
-			camera: _VIEWER.camera,
-			rootObject: _VIEWER.selectableObjects,
-			<?php echo isset($im['Collada']['id']) ? __('loader:%d,', h($im['Collada']['id'])) : ''; ?>
-			<?php echo isset($im['Resource']['url']) ? __('path:"%s",', h($im['Resource']['url'])) : ''; ?>
-			topic: '<?php echo h($im['topic']); ?>'
-		});
+		if ('<?php echo h($im['topic']); ?>' == '/nimbus_6dof_planning') {
+			new ROS3D.InteractiveMarkerClient({
+				ros: _ROS,
+				tfClient: _TF,
+				camera: _VIEWER.camera,
+				rootObject: _VIEWER.selectableObjects,
+				<?php echo isset($im['Collada']['id']) ? __('loader:%d,', h($im['Collada']['id'])) : ''; ?>
+				<?php echo isset($im['Resource']['url']) ? __('path:"%s",', h($im['Resource']['url'])) : ''; ?>
+				topic: '<?php echo h($im['topic']); ?>'
+			});
+			console.log('<?php echo h($im['topic']); ?>');
+		}
 	<?php endforeach; ?>
 </script>
 
@@ -293,7 +304,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	var armClient = new ROSLIB.ActionClient({
 		ros: _ROS,
 		serverName: '/nimbus_moveit/common_actions/arm_action',
-		actionName: 'nimbus_moveit/ArmAction'
+		actionName: 'rail_manipulation_msgs/ArmAction'
 	});
 	var gripperClient = new ROSLIB.ActionClient({
 		ros: _ROS,
@@ -305,9 +316,18 @@ foreach ($environment['Urdf'] as $urdf) {
 		serverName: '/nimbus_moveit/primitive_action',
 		actionName: 'rail_manipulation_msgs/PrimitiveAction'
 	});
+	var graspClient = new ROSLIB.ActionClient({
+		ros: _ROS,
+		serverName: '/nimbus_6dof_planning/execute_grasp',
+		actionName: 'nimbus_interactive_manipulation/SpecifiedGraspAction'
+	});
 	
-	//TODO: Connect to marker action server for grasp execution
-
+	//Setup ROS service clients
+	var resetMarkerClient = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/nimbus_6dof_planning/reset_marker_position',
+		serviceType : 'std_srvs/Empty'
+	});
 </script>
 
 <script type="text/javascript">
@@ -325,6 +345,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		executeOpenGripper();
 	});
 	$('#closeGripper').click(function (e) {
+		e.preventDefault();
 		executeCloseGripper();
 	});
 
@@ -369,12 +390,30 @@ foreach ($environment['Urdf'] as $urdf) {
 		executeGrasp();
 	});
 
+	
 	/****************************************************************************
 	 *                           Grasp Actions                                  *
 	 ****************************************************************************/
 	function executeGrasp() {
-		//TODO: Connect to marker action server for grasp execution
+		disableInput();
+		var goal = new ROSLIB.Goal({
+			actionClient: graspClient,
+			goalMessage: {
 
+			}
+		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.message);
+		});
+		goal.on('result', function(result) {
+			enableInput();
+		});
+		goal.send();
+	}
+
+	function resetMarkerPose() {
+		var request = new ROSLIB.ServiceRequest ({});
+		resetMarkerClient.callService(request, function(result){});
 	}
 
 
@@ -393,6 +432,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.message);
 		});
 		goal.on('result', function(result) {
+			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -445,6 +485,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -463,6 +504,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -482,6 +524,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -519,6 +562,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -537,6 +581,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -556,6 +601,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -574,6 +620,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -658,17 +705,10 @@ foreach ($environment['Urdf'] as $urdf) {
 	function displayFeedback(message) {
 		document.getElementById("feedback-text").innerHTML = message;
 	}
+	function init() {
+		var size=500;
 
-
-	//this is the topic for cartesian moving objects around
-	var cartesian_move_topic = new ROSLIB.Topic({
-			ros: _ROS,
-			name: '/nimbus_moveit_wrapper/cartesian_control',
-			messageType: 'geometry_msgs/Twist'
-	});
-	cartesian_move_topic.advertise();
-	var size = 500
-	<?php
+		<?php
 		$streamTopics = '[';
 		$streamNames = '[';
 		foreach ($environment['Stream'] as $stream) {
@@ -680,76 +720,70 @@ foreach ($environment['Urdf'] as $urdf) {
 		$streamNames = substr($streamNames, 0, strlen($streamNames) - 2);
 		$streamTopics .= ']';
 		$streamNames .= ']';
-	?>
-	var mjpegcanvas=new MJPEGCANVAS.MultiStreamViewer({
-		divID: 'mjpeg',
-		host: '<?php echo $environment['Mjpeg']['host']; ?>',
-		port: <?php echo $environment['Mjpeg']['port']; ?>,
-		width: size,
-		height: size * 0.85,
-		quality: <?php echo $environment['Stream']?(($environment['Stream'][0]['quality']) ? $environment['Stream'][0]['quality'] : '90'):''; ?>,
-		topics: <?php echo $streamTopics; ?>,
-		labels: <?php echo $streamNames; ?>,
-		tfObject:_TF,
-		tf:'arm_mount_plate_link',
-		refreshRate:'5'
-	},EventEmitter);
+		?>
 
-	mjpegcanvas.interaction=function(linear,angular){
-		var message=new ROSLIB.Message({
-			'linear':linear,
-			'angular':angular
+		var mjpegcanvas=new MJPEGCANVAS.MultiStreamViewer({
+			divID: 'mjpeg',
+			host: '<?php echo $environment['Mjpeg']['host']; ?>',
+			port: <?php echo $environment['Mjpeg']['port']; ?>,
+			width: size,
+			height: size * 0.85,
+			quality: <?php echo $environment['Stream']?(($environment['Stream'][0]['quality']) ? $environment['Stream'][0]['quality'] : '90'):''; ?>,
+			topics: <?php echo $streamTopics; ?>,
+			labels: <?php echo $streamNames; ?>,
+			tfObject:_TF,
+			tf:'table_base_link',
+			refreshRate:'5'
+		},EventEmitter);
+
+		// Setup a client to listen to TFs.
+		var tfClient = new ROSLIB.TFClient({
+			ros : _ROS,
+			angularThres : 0.01,
+			transThres : 0.01,
+			rate : 10.0,
+			fixedFrame : '/table_base_link'
 		});
-		cartesian_move_topic.publish(message);
-	}
-	var timer=null;
-	var move_arm_x=null;
-	var move_arm_y=null;
-	var mjpeg_canvas_rect = mjpegcanvas.canvas.getBoundingClientRect();
-	var speed=1; //a constant representing the speed of the interaction of the arm
-	mjpegcanvas.canvas.addEventListener('mousemove',function(event){
-		if (timer){
-			clearTimeout(timer)
-		}
-		move_arm_x=event.clientX - mjpeg_canvas_rect.left- (mjpegcanvas.width/2)
-		move_arm_y=mjpegcanvas.height-event.clientY - mjpeg_canvas_rect.top
-		timers=setTimeout(move_arm,1000)
-	})
 
-	mjpegcanvas.canvas.addEventListener('mouseout',function(event){
-		if (timer){
-			clearTimeout(timer)
-		}
-	})
-
-	function move_arm(x,y){
-		var linear={'x':move_arm_x,'y':move_arm_y,'z':0};
-		var point=MJPEGCANVAS.convertImageCoordinatestoWorldCoordinates(mjpegcanvas.transform,linear.x,linear.y,linear.z,mjpegcanvas.width,mjpegcanvas.height)
-		var temp = point.z
-		point.z=point.x
-		point.x=temp
-		console.log(linear)
-		var message=new ROSLIB.Message({
-			'linear':{x:0.0,y:-1.0,z:0.0},
-			'angular':{x:0.0,y:0.0,z:0.0}
+		// Create the main viewer
+		var viewer = new ROS3D.Viewer({
+			divID : 'mjpeg',
+			width : size,
+			height : size * 0.85,
+			antialias : true,
+			alpha: 0.1,
+			near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
+			far: 50,
+			fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
+      		cameraPose:{x:-0.05,y:0.42,z:-0.05},
+			//cameraPosition:{x:0.25,y:0,z:-0.5}, //kinect 2
+			cameraRotation:{x:-0.34,y:0,z:3.15}, //kinect 2
+			frame: '/camera_rgb_optical_frame',
+			interactive:false,
+			tfClient: tfClient
 		});
-		cartesian_move_topic.publish(message);
+
+
+		mjpegcanvas.on('change',function(topic){
+			if(topic =='/camera/rgb/image_rect_color'){
+				viewer.changeCamera(0);
+			} else{
+				viewer.changeCamera(1);
+			}
+		});
+
+		// Setup the marker client.
+		var imClient = new ROS3D.InteractiveMarkerClient({
+			ros : _ROS,
+			tfClient : tfClient,
+			topic : '/nimbus_6dof_vis',
+			camera : viewer.camera,
+			rootObject : viewer.selectableObjects
+		});
 	}
-	//add a set of interactive markers
-  //  mjpegcanvas.addTopic('/nimbus_interactive_manipulation/update_full','visualization_msgs/InteractiveMarkerInit')
+	init();
+
 
 </script>
-<script>
-	 // var cartesian_move_topic = new ROSLIB.Topic({
-	 //        ros: _ROS,
-	 //        name: '/nimbus_moveit_wrapper/cartesian_control',
-	 //        messageType: 'geometry_msgs/Twist'
-	 //    });
-	 //    cartesian_move_topic.advertise();
-	 //    var message=new ROSLIB.Message({
-	 //        'linear':{x:0.0,y:0.0,z:0.0},
-	 //        'angular':{x:0.0,y:0.0,z:0.0}
-	 //    });
-	 //    cartesian_move_topic.publish(message);
-</script>
+
 </html
