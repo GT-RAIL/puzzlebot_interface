@@ -2,7 +2,7 @@
 /**
  * Puzzle Bot Interface
  *
- * The Puzzle Bot view. This interface will for testing queuing and chat.
+ * The original Puzzle Bot view. This interface will for testing queuing and chat. DEPRECATED
  *
  * @author		Carl Saldanha csaldanha3@gatech.edu
  * @copyright	2015 Georgia Institute of Technology

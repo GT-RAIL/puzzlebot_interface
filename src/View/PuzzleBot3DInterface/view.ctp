@@ -2,7 +2,7 @@
 /**
  * Puzzle Bot Interface
  *
- * The Puzzle Bot view. This interface will for testing queuing and chat.
+ * This is a 3d side by side view of the system with an interactive marker that overlays on the 2d video
  *
  * @author		Carl Saldanha csaldanha3@gatech.edu
  * @copyright	2015 Georgia Institute of Technology

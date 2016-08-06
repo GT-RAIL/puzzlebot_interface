@@ -1,9 +1,8 @@
 <?php
 /**
- * TODO The whole thing must be rewritten!!
  * Puzzle Bot Interface
  *
- * The Puzzle Click Interface Bot view. 
+ * This uses agile grasp to add user clicks to the sytem 
  *
  * @author		Carl Saldanha csaldanha3@gatech.edu
  * @copyright	2015 Georgia Institute of Technology 

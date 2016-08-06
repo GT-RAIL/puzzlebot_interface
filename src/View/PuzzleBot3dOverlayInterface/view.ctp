@@ -1,9 +1,8 @@
 <?php
 /**
- * TODO The whole thing must be rewritten!!
  * Puzzle Bot Interface
  *
- * The Puzzle Click Interface Bot view. 
+ * This is a 2d  view of the system with a 3d interactive marker that moves the robot with the interaction
  *
  * @author		Carl Saldanha csaldanha3@gatech.edu
  * @copyright	2015 Georgia Institute of Technology 

@@ -1,6 +1,5 @@
 <?php
 /**
- * TODO The whole thing must be rewritten!!
  * Puzzle Bot Interface
  *
  * The Puzzle Click Interface Bot view. 
