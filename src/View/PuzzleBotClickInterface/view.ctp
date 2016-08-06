@@ -767,14 +767,6 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		refreshRate:'5'
 	},EventEmitter);
 
-	// Setup a client to listen to TFs.
-	var tfClient = new ROSLIB.TFClient({
-		ros : _ROS,
-		angularThres : 0.01,
-		transThres : 0.01,
-		rate : 10.0,
-		fixedFrame : '/table_base_link'
-	});
 
 	// Create the main viewer
 	var viewer = new ROS3D.Viewer({
@@ -791,13 +783,13 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		cameraRotation:{x:-0.34,y:0,z:3.15}, //kinect 2
 		frame: '/camera_rgb_optical_frame',
 		interactive:false,
-		tfClient: tfClient
+		tfClient: _TF
 	});
 
 	// Setup the marker client.
 	var imClient = new ROS3D.InteractiveMarkerClient({
 		ros : _ROS,
-		tfClient : tfClient,
+		tfClient : _TF,
 		topic : '/grasp_selector',
 		camera : viewer.camera,
 		rootObject : viewer.selectableObjects

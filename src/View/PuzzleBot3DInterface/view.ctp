@@ -736,15 +736,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			refreshRate:'5'
 		},EventEmitter);
 
-		// Setup a client to listen to TFs.
-		var tfClient = new ROSLIB.TFClient({
-			ros : _ROS,
-			angularThres : 0.01,
-			transThres : 0.01,
-			rate : 10.0,
-			fixedFrame : '/table_base_link'
-		});
-
 		// Create the main viewer
 		var viewer = new ROS3D.Viewer({
 			divID : 'mjpeg',
@@ -755,12 +746,11 @@ foreach ($environment['Urdf'] as $urdf) {
 			near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
 			far: 50,
 			fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
-      		cameraPose:{x:-0.05,y:0.42,z:-0.05},
-			//cameraPosition:{x:0.25,y:0,z:-0.5}, //kinect 2
-			cameraRotation:{x:-0.34,y:0,z:3.15}, //kinect 2
-			frame: '/camera_rgb_optical_frame',
+      		cameraPose:{x:-0.02,y:0.37,z:0},
+      		cameraRotation:{x:0,y:0,z:0.1}, //for the asus overhead camera
+      		frame: '/camera_rgb_optical_frame',
 			interactive:false,
-			tfClient: tfClient
+			tfClient: _TF
 		});
 
 
@@ -775,7 +765,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		// Setup the marker client.
 		var imClient = new ROS3D.InteractiveMarkerClient({
 			ros : _ROS,
-			tfClient : tfClient,
+			tfClient : _TF,
 			topic : '/nimbus_6dof_vis',
 			camera : viewer.camera,
 			rootObject : viewer.selectableObjects
