@@ -53,8 +53,8 @@ Before proceeding, please confirm you have installed the dependencies above.
 To run the build tasks:
 
  1. `cd /path/to/ros3djs/utils/`
- 2. `grunt build`
+ 2. `grunt build:path/to/rms/app`
 
 To watch for changes: 
 
-`grunt dev:RMSDirectory` will watch for any changes to any of the src/ files and automatically copy them to the RMS Directory that they came from.
+`grunt build_and_watch:RMSDirectory` will watch for any changes to any of the src/ files and automatically copy them to the RMS Directory that they came from.
