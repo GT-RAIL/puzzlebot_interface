@@ -779,7 +779,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
 		cameraPose:{x:-0.05,y:0.42,z:-0.05},
 		//cameraPosition:{x:0.25,y:0,z:-0.5}, //kinect 2
-		cameraRotation:{x:-0.34,y:0,z:3.15}, //kinect 2
+		cameraRotation:{x:-0.34,y:0,z:3.15}, //this is when the interactive markers base frame is set to table instead of jaco
 		frame: '/camera_rgb_optical_frame',
 		interactive:false,
 		tfClient: _TF
@@ -815,21 +815,6 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		goal.send();
 	})
 
-	//add a set of interactive markers
-  //  mjpegcanvas.addTopic('/nimbus_interactive_manipulation/update_full','visualization_msgs/InteractiveMarkerInit')
+</script>
 
-</script>
-<script>
-	 // var cartesian_move_topic = new ROSLIB.Topic({
-	 //        ros: _ROS,
-	 //        name: '/nimbus_moveit_wrapper/cartesian_control',
-	 //        messageType: 'geometry_msgs/Twist'
-	 //    });
-	 //    cartesian_move_topic.advertise();
-	 //    var message=new ROSLIB.Message({
-	 //        'linear':{x:0.0,y:0.0,z:0.0},
-	 //        'angular':{x:0.0,y:0.0,z:0.0}
-	 //    });
-	 //    cartesian_move_topic.publish(message);
-</script>
-</html
+</html>
