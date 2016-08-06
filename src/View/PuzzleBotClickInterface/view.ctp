@@ -474,7 +474,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	function executeCloseGripper() {
 		var goal = new ROSLIB.Goal({
 			actionClient: gripperClient,
-			goalMessage: {
+			goalMessage: {				
 				close: true
 			}
 		});
