@@ -3714,7 +3714,7 @@ ROS3D.SceneNode = function(options) {
 
   // save the TF handler so we can remove it later
   this.tfUpdate = function(msg) {
-
+    console.log('updating based on the transform');
     // apply the transform
     var tf = new ROSLIB.Transform(msg);
     var poseTransformed = new ROSLIB.Pose(that.pose);
@@ -4113,8 +4113,6 @@ ROS3D.ViewerHandle.prototype.emitServerPoseUpdate = function() {
   inv.translation.z *= -1;
   this.camera.quaternion.set(inv.rotation.x,inv.rotation.y,inv.rotation.z,inv.rotation.w);
   this.camera.position.set(inv.translation.x ,inv.translation.y  ,inv.translation.z);
-  console.log(this.camera.position);
-  console.log(this.camera.rotation);
   this.camera.updateMatrix();
 };
 

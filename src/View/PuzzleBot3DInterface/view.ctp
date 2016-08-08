@@ -271,6 +271,8 @@ echo $this->Html->css('PuzzleBot3DInterface');
 		})
 	);
 
+	
+
 	//add IMs
 	<?php foreach ($environment['Im'] as $im): ?>
 		if ('<?php echo h($im['topic']); ?>' == '/nimbus_6dof_planning') {
@@ -328,6 +330,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		name : '/nimbus_6dof_planning/reset_marker_position',
 		serviceType : 'std_srvs/Empty'
 	});
+
 </script>
 
 <script type="text/javascript">
@@ -770,6 +773,30 @@ foreach ($environment['Urdf'] as $urdf) {
 			camera : viewer.camera,
 			rootObject : viewer.selectableObjects
 		});
+
+		//focal length done by hand tuning
+		function register_depth_cloud(){
+			var depthCloud = new ROS3D.DepthCloud({
+      		url : 'http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=500000&quality=100',
+      		f : 1100.0,  
+      		width: 640,
+  			height:480
+    		});
+		    depthCloud.startStream();
+			var kinectNode = new ROS3D.SceneNode({
+		      frameID : '/camera_rgb_optical_frame',
+		      tfClient : _TF,
+		      object : depthCloud,
+		      pose : {position:{x:0.1,y:0.5,z:-1.1},orientation:{x:0.125,y:0,z:0}}
+		    });
+    		_VIEWER.scene.add(kinectNode);
+		}
+		//temporary measure to prevent depth cloud mapping from taking all the packets and throttling connection
+		setTimeout(register_depth_cloud, 2000);
+
+
+    // Create Kinect scene node
+    
 	}
 	init();
 
