@@ -77,7 +77,8 @@ echo $this->Html->css('PuzzleBot3DInterface');
 									<div id="viewer" style="text-align:center"></div>
 								</td>
 								<td>
-									<div id="mjpeg" style="text-align:center"></div>
+									<!-- <div id="mjpeg" style="text-align:center"></div> -->
+									<video id='mjpeg' src='http://localhost:9999/stream?topic=/camera/rgb/image_rect_color&type=vp8&bitrate=50000&quality=100' autoplay>  
 								</td>
 							</tr>
 						</table>
@@ -725,22 +726,22 @@ foreach ($environment['Urdf'] as $urdf) {
 		$streamNames .= ']';
 		?>
 
-		var mjpegcanvas=new MJPEGCANVAS.MultiStreamViewer({
-			divID: 'mjpeg',
-			host: '<?php echo $environment['Mjpeg']['host']; ?>',
-			port: <?php echo $environment['Mjpeg']['port']; ?>,
-			width: size,
-			height: size * 0.85,
-			quality: <?php echo $environment['Stream']?(($environment['Stream'][0]['quality']) ? $environment['Stream'][0]['quality'] : '90'):''; ?>,
-			topics: <?php echo $streamTopics; ?>,
-			labels: <?php echo $streamNames; ?>,
-			tfObject:_TF,
-			tf:'table_base_link',
-			refreshRate:'5'
-		},EventEmitter);
+		// var mjpegcanvas=new MJPEGCANVAS.MultiStreamViewer({
+		// 	divID: 'mjpeg',
+		// 	host: '<?php echo $environment['Mjpeg']['host']; ?>',
+		// 	port: <?php echo $environment['Mjpeg']['port']; ?>,
+		// 	width: size,
+		// 	height: size * 0.85,
+		// 	quality: <?php echo $environment['Stream']?(($environment['Stream'][0]['quality']) ? $environment['Stream'][0]['quality'] : '90'):''; ?>,
+		// 	topics: <?php echo $streamTopics; ?>,
+		// 	labels: <?php echo $streamNames; ?>,
+		// 	tfObject:_TF,
+		// 	tf:'table_base_link',
+		// 	refreshRate:'5'
+		// },EventEmitter);
 
 		// Create the main viewer
-		var viewer = new ROS3D.Viewer({
+/*		var viewer = new ROS3D.Viewer({
 			divID : 'mjpeg',
 			width : size,
 			height : size * 0.85,
@@ -757,13 +758,13 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 
 
-		mjpegcanvas.on('change',function(topic){
-			if(topic =='/camera/rgb/image_rect_color'){
-				viewer.changeCamera(0);
-			} else{
-				viewer.changeCamera(1);
-			}
-		});
+		// mjpegcanvas.on('change',function(topic){
+		// 	if(topic =='/camera/rgb/image_rect_color'){
+		// 		viewer.changeCamera(0);
+		// 	} else{
+		// 		viewer.changeCamera(1);
+		// 	}
+		// });
 
 		// Setup the marker client.
 		var imClient = new ROS3D.InteractiveMarkerClient({
@@ -773,11 +774,13 @@ foreach ($environment['Urdf'] as $urdf) {
 			camera : viewer.camera,
 			rootObject : viewer.selectableObjects
 		});
+*/
+
 
 		//focal length done by hand tuning
 		function register_depth_cloud(){
 			var depthCloud = new ROS3D.DepthCloud({
-      		url : 'http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=500000&quality=100',
+      		url : 'http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100',
       		f : 1100.0,  
       		width: 640,
   			height:480
@@ -792,7 +795,7 @@ foreach ($environment['Urdf'] as $urdf) {
     		_VIEWER.scene.add(kinectNode);
 		}
 		//temporary measure to prevent depth cloud mapping from taking all the packets and throttling connection
-		setTimeout(register_depth_cloud, 2000);
+		setInterval(register_depth_cloud(),1000);
 
 
     // Create Kinect scene node
