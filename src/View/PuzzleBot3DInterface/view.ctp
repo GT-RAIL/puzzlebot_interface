@@ -78,7 +78,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 								</td>
 								<td>
 									<!-- <div id="mjpeg" style="text-align:center"></div> -->
-									<video id='mjpeg' src='http://localhost:9999/stream?topic=/camera/rgb/image_rect_color&type=vp8&bitrate=50000&quality=100' autoplay>  
+									<div id='mjpeg' style="text-align:center"><canvas id='mjpegcanvas'></canvas>  </div>
 								</td>
 							</tr>
 						</table>
@@ -741,7 +741,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		// },EventEmitter);
 
 		// Create the main viewer
-/*		var viewer = new ROS3D.Viewer({
+		var viewer = new ROS3D.Viewer({
 			divID : 'mjpeg',
 			width : size,
 			height : size * 0.85,
@@ -767,23 +767,27 @@ foreach ($environment['Urdf'] as $urdf) {
 		// });
 
 		// Setup the marker client.
-		var imClient = new ROS3D.InteractiveMarkerClient({
+			var imClient = new ROS3D.InteractiveMarkerClient({
 			ros : _ROS,
 			tfClient : _TF,
 			topic : '/nimbus_6dof_vis',
 			camera : viewer.camera,
 			rootObject : viewer.selectableObjects
 		});
-*/
 
 
+		var canvas=document.getElementById('mjpegcanvas');
+		canvas.width=500;
+		canvas.height=425;
+		
 		//focal length done by hand tuning
 		function register_depth_cloud(){
 			var depthCloud = new ROS3D.DepthCloud({
-      		url : 'http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100',
-      		f : 1100.0,  
-      		width: 640,
-  			height:480
+      			url : 'http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100',
+      			f : 700.0,  
+      			width: 1200,
+  				height:800,
+  				pointSize:3
     		});
 		    depthCloud.startStream();
 			var kinectNode = new ROS3D.SceneNode({
@@ -792,6 +796,23 @@ foreach ($environment['Urdf'] as $urdf) {
 		      object : depthCloud,
 		      pose : {position:{x:0.1,y:0.5,z:-1.1},orientation:{x:0.125,y:0,z:0}}
 		    });
+
+			
+			//duplicate the scene onto a canvas
+		    depthCloud.video.addEventListener('play',function()	{
+				var cw,ch;
+				
+				// canvas.width = cw;
+				// canvas.height = ch;
+				//TODO fix this width
+		        draw(this,canvas.getContext("2d"),cw,ch);
+    		},false);
+    		
+    		function draw(v,c,w,h) {
+    			c.drawImage(v,sx=520,sy=520,swidth=500,sheight=550,x=0,y=0,width=w,height=h);
+    			setTimeout(draw,200,v,c,500,520);
+
+			}
     		_VIEWER.scene.add(kinectNode);
 		}
 		//temporary measure to prevent depth cloud mapping from taking all the packets and throttling connection
@@ -801,7 +822,7 @@ foreach ($environment['Urdf'] as $urdf) {
     // Create Kinect scene node
     
 	}
-	init();
+	$(document).ready(function(){init();});
 
 
 </script>
