@@ -59,26 +59,42 @@ echo $this->Html->css('PuzzleBot3DInterface');
 	<table style="width:100% !important;">
 		<tr>
 			<td style="width: 22%; vertical-align:top;">
-				<div id="tasks" style="height=500px; text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
-					<b>Your Tasks:</b>
-					<ul style="margin:0">
-						<li>Pull the cart across the green line</li>
-						<li>Open the box</li>
-						<li>Open the bottle</li>
-					</ul>
-				</div>
-			</td>
-			<td>
 				<table>
-					<tr><td style="width: 51.5%">
+					<tr>
+						<td style="width: 30%; vertical-align:top; text-align:right">
+							<div id="tasks" style="height=500px; text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
+								<b>Your Tasks:</b>
+								<ul style="margin:0">
+									<li>Pull the cart across the green line</li>
+									<li>Open the box</li>
+									<li>Open the bottle</li>
+								</ul>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<div id="camera-controls" style="height=500px; text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
+								<b>View Controls</b>
+								<br />
+								<button id='changeView' class='button special' style="width:150px">change view</button>
+							</div>
+						</td>
+					</tr>
+				</table>
+			</td>
+			<td style="width: 56%;">
+				<table>
+					<tr><td>
 						<table>
 							<tr>
-								<td>
-									<div id="viewer" style="text-align:center"></div>
-								</td>
+
 								<td>
 									<!-- <div id="mjpeg" style="text-align:center"></div> -->
-									<div id='mjpeg' style="text-align:center"><canvas id='mjpegcanvas'></canvas>  </div>
+									<div id='mjpeg' style=" width:500px;"><canvas id='mjpegcanvas'></canvas>  </div>
+								</td>
+								<td>
+									<div id="viewer" style="text-align:center"></div>
 								</td>
 							</tr>
 						</table>

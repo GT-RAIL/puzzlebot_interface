@@ -57,14 +57,30 @@ echo $this->Html->css('PuzzleBotClickInterface');
 <body>
 	<table style="width:100% !important;">
 		<tr>
-			<td style="width: 30%; vertical-align:top;">
-				<div id="tasks" style="height=500px; text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
-					<b>Your Tasks:</b>
-					<ul style="margin:0">
-						<li>Pull the cart across the green line</li>
-						<li>Open the box</li>
-						<li>Open the bottle</li>
-					</ul>
+			<td style="width: 30%; vertical-align:top; text-align:right">
+				<table>
+					<tr>
+						<td style="width: 30%; vertical-align:top; text-align:right">
+							<div id="tasks" style="text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
+								<b>Your Tasks:</b>
+								<ul style="margin:0">
+									<li>Pull the cart across the green line</li>
+									<li>Open the box</li>
+									<li>Open the bottle</li>
+								</ul>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td >
+							<div id="camera-controls" style="text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
+								<b>View Controls</b>
+								<br />
+								<button id='changeView' class='button special' style="width:150px">change view</button>
+							</div>
+						</td>
+					</tr>
+				</table>
 					<!--
 					<hr>
 					<b>Switch Cameras:</b>
@@ -76,7 +92,6 @@ echo $this->Html->css('PuzzleBotClickInterface');
 						</select>
 					</ul>
 					-->
-				</div>
 			</td>
 			<td>
 				<table>
@@ -101,7 +116,6 @@ echo $this->Html->css('PuzzleBotClickInterface');
 						<b>Cycle through suggestions</b> to choose a good grasp.
 						<br><table style="margin-left:auto; margin-right:auto">
 							<tr>
-
 								<td>
 									<map name="prev-map">
 										<area shape="rect" coords="0,0,75,50" href="javascript:prevGrasp()">
@@ -323,6 +337,21 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		ros : _ROS,
 		name : '/grasp_selector/cycle_grasps',
 		serviceType : 'rail_agile_grasp_msgs/CycleGrasps'
+	});
+	var changePointCloudGS = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/grasp_sampler/change_point_cloud_topic',
+		serviceType : 'rail_agile_grasp_msgs/ChangePointCloud'
+	});
+	var changePointCloudPCC = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/point_cloud_clicker/change_point_cloud_topic',
+		serviceType : 'rail_agile_grasp_msgs/ChangePointCloud'
+	});
+	var changePointCloudRAG = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/rail_agile_grasp/change_point_cloud_topic',
+		serviceType : 'rail_agile_grasp_msgs/ChangePointCloud'
 	});
 
 </script>
@@ -646,6 +675,24 @@ echo $this->Html->css('PuzzleBotClickInterface');
 			enableInput();
 		});
 		goal.send();
+	}
+
+	/****************************************************************************
+	 *                           View Actions                                   *
+	 ****************************************************************************/
+	$('#changeView').click(function (e) {
+		e.preventDefault();
+		switchCamera();
+	});
+
+	function switchCamera() {
+		//TODO: Change stream, populate cloudTopic correctly
+		var request = new ROSLIB.ServiceRequest({
+			cloudTopic: "new_cloud_topic"
+		});
+		changePointCloudGS.callService(request, function(result) {});
+		changePointCloudPCC.callService(request, function(result) {});
+		changePointCloudRAG.callService(request, function(result) {});
 	}
 
 	/****************************************************************************
