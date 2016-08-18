@@ -742,19 +742,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		$streamNames .= ']';
 		?>
 
-		// var mjpegcanvas=new MJPEGCANVAS.MultiStreamViewer({
-		// 	divID: 'mjpeg',
-		// 	host: '<?php echo $environment['Mjpeg']['host']; ?>',
-		// 	port: <?php echo $environment['Mjpeg']['port']; ?>,
-		// 	width: size,
-		// 	height: size * 0.85,
-		// 	quality: <?php echo $environment['Stream']?(($environment['Stream'][0]['quality']) ? $environment['Stream'][0]['quality'] : '90'):''; ?>,
-		// 	topics: <?php echo $streamTopics; ?>,
-		// 	labels: <?php echo $streamNames; ?>,
-		// 	tfObject:_TF,
-		// 	tf:'table_base_link',
-		// 	refreshRate:'5'
-		// },EventEmitter);
 
 		// Create the main viewer
 		var viewer = new ROS3D.Viewer({
@@ -774,14 +761,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 
 
-		// mjpegcanvas.on('change',function(topic){
-		// 	if(topic =='/camera/rgb/image_rect_color'){
-		// 		viewer.changeCamera(0);
-		// 	} else{
-		// 		viewer.changeCamera(1);
-		// 	}
-		// });
-
 		// Setup the marker client.
 			var imClient = new ROS3D.InteractiveMarkerClient({
 			ros : _ROS,
@@ -791,7 +770,6 @@ foreach ($environment['Urdf'] as $urdf) {
 			rootObject : viewer.selectableObjects
 		});
 
-
 		var canvas=document.getElementById('mjpegcanvas');
 		canvas.width=500;
 		canvas.height=425;
@@ -800,34 +778,29 @@ foreach ($environment['Urdf'] as $urdf) {
 		function register_depth_cloud(){
 			var depthCloud = new ROS3D.DepthCloud({
       			url : 'http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100',
-      			f : 700.0,  
-      			width: 1200,
-  				height:800,
-  				pointSize:3
+      			f:400.0,
+      			width: 640,
+  				height:480
     		});
 		    depthCloud.startStream();
 			var kinectNode = new ROS3D.SceneNode({
-		      frameID : '/camera_rgb_optical_frame',
+		      frameID : '/camera_depth_optical_frame',
 		      tfClient : _TF,
 		      object : depthCloud,
-		      pose : {position:{x:0.1,y:0.5,z:-1.1},orientation:{x:0.125,y:0,z:0}}
+		      pose : {position:{x:0,y:0,z:0},orientation:{x:0,y:0,z:0}}
 		    });
 
 			
 			//duplicate the scene onto a canvas
-		    depthCloud.video.addEventListener('play',function()	{
-				var cw,ch;
-				
-				// canvas.width = cw;
-				// canvas.height = ch;
+			depthCloud.video.addEventListener('play',function()	{
 				//TODO fix this width
-		        draw(this,canvas.getContext("2d"),cw,ch);
+		        draw(this,canvas.getContext("2d"),500,550);
     		},false);
     		
     		function draw(v,c,w,h) {
+    			//sx and sy are the points on the original stream RGB is in the bottom right
     			c.drawImage(v,sx=520,sy=520,swidth=500,sheight=550,x=0,y=0,width=w,height=h);
-    			setTimeout(draw,200,v,c,500,520);
-
+    			setTimeout(draw,200,v,c,w,h);
 			}
     		_VIEWER.scene.add(kinectNode);
 		}
