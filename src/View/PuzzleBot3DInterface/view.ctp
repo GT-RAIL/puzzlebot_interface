@@ -351,6 +351,19 @@ foreach ($environment['Urdf'] as $urdf) {
 </script>
 
 <script type="text/javascript">
+	/****************************************************************************
+	 *                          Global Variables                                *
+	 ****************************************************************************/
+	 //TODO populate from ROS
+	 var streams=['http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100','http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100']
+	 //points to the current stream being played
+	 var current_stream_id=0;
+	 var canvas=document.getElementById('mjpegcanvas');
+	 canvas.width=500;
+	 canvas.height=425;
+	 var depthCloud;
+	 //what a lie this is an asus node
+	 var kinectNode;
 
 	/****************************************************************************
 	 *                          Button Callbacks                                *
@@ -409,6 +422,11 @@ foreach ($environment['Urdf'] as $urdf) {
 		e.preventDefault();
 		executeGrasp();
 	});
+
+	$('#changeView').click(function(e) {
+		e.preventDefault();
+		changeView();
+	})
 
 	
 	/****************************************************************************
@@ -646,6 +664,12 @@ foreach ($environment['Urdf'] as $urdf) {
 		goal.send();
 	}
 
+	//changes the stream and the video
+	function changeView(){
+		current_stream_id=(current_stream_id+1) % streams.length;
+		depthCloud.video.attr('src',current_stream[current_stream_id]);
+	}
+
 	/****************************************************************************
 	 *                             Feedback                                     *
 	 ****************************************************************************/
@@ -770,20 +794,17 @@ foreach ($environment['Urdf'] as $urdf) {
 			rootObject : viewer.selectableObjects
 		});
 
-		var canvas=document.getElementById('mjpegcanvas');
-		canvas.width=500;
-		canvas.height=425;
-		
+
 		//focal length done by hand tuning
 		function register_depth_cloud(){
-			var depthCloud = new ROS3D.DepthCloud({
+			depthCloud = new ROS3D.DepthCloud({
       			url : 'http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100',
-      			f:400.0,
+      			f:800.0,
       			width: 640,
   				height:480
     		});
 		    depthCloud.startStream();
-			var kinectNode = new ROS3D.SceneNode({
+			kinectNode = new ROS3D.SceneNode({
 		      frameID : '/camera_depth_optical_frame',
 		      tfClient : _TF,
 		      object : depthCloud,
