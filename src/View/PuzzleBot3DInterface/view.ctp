@@ -774,18 +774,16 @@ foreach ($environment['Urdf'] as $urdf) {
 			width : size,
 			height : size * 0.85,
 			antialias : true,
-			alpha: 0.6,
+			alpha: 0.1,
 			near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
 			far: 50,
 			fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
-      		cameraPose:{x:-0.03,y:0.37,z:-0.1},
-      		cameraRotation:{x:0,y:0.07,z:-0.05}, //for the asus overhead camera
+      		cameraPose:{x:-0.03,y:0.44,z:0.10},
+      		cameraRotation:{x:0.02,y:0.0,z:3.23}, //for the asus overhead camera
       		frame: '/camera_rgb_optical_frame',
 			interactive:false,
-			tfClient: _TF
+			tfClient: _TF 
 		});
-
-
 		// Setup the marker client.
 		var imClient = new ROS3D.InteractiveMarkerClient({
 			ros : _ROS,
@@ -796,7 +794,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			// rootObject : viewer.selectableObjects
 		});
 
-		new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://localhost/urdf/",param:"robot_description"})
+		//new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://localhost/urdf/",param:"robot_description"})
 		//focal length done by hand tuning
 		function register_depth_cloud(){
 			depthCloud = new ROS3D.DepthCloud({
