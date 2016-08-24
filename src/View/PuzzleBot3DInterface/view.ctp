@@ -5,7 +5,7 @@
  * This is a 3d side by side view of the system with an interactive marker that overlays on the 2d video
  *
  * @author		Carl Saldanha csaldanha3@gatech.edu
- * @copyright	2015 Georgia Institute of Technology
+ * @copyright	2016 Georgia Institute of Technology
  * @link		none 
  * @version		0.0.1
  * @package		app.Controller
@@ -310,6 +310,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 <?php
 // URDF
 foreach ($environment['Urdf'] as $urdf) {
+
 	echo $this->Rms->urdf(
 		$urdf['param'],
 		$urdf['Collada']['id'],
@@ -355,14 +356,14 @@ foreach ($environment['Urdf'] as $urdf) {
 	 *                          Global Variables                                *
 	 ****************************************************************************/
 	 //TODO populate from ROS
-	 var streams=['http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100','http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100']
+	 var streams=['http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100','http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100'];
 	 //points to the current stream being played
 	 var current_stream_id=0;
 	 var canvas=document.getElementById('mjpegcanvas');
 	 canvas.width=500;
 	 canvas.height=425;
 	 var depthCloud;
-	 //what a lie this is an asus node
+	 //what a lie this is an asus node	 
 	 var kinectNode;
 
 	/****************************************************************************
@@ -753,17 +754,17 @@ foreach ($environment['Urdf'] as $urdf) {
 		var size=500;
 
 		<?php
-		$streamTopics = '[';
-		$streamNames = '[';
-		foreach ($environment['Stream'] as $stream) {
-			$streamTopics .= "'" . $stream['topic'] . "', ";
-			$streamNames .= "'" . $stream['name'] . "', ";
-		}
-		// remove the final comma
-		$streamTopics = substr($streamTopics, 0, strlen($streamTopics) - 2);
-		$streamNames = substr($streamNames, 0, strlen($streamNames) - 2);
-		$streamTopics .= ']';
-		$streamNames .= ']';
+			$streamTopics = '[';
+			$streamNames = '[';
+			foreach ($environment['Stream'] as $stream) {
+				$streamTopics .= "'" . $stream['topic'] . "', ";
+				$streamNames .= "'" . $stream['name'] . "', ";
+			}
+			// remove the final comma
+			$streamTopics = substr($streamTopics, 0, strlen($streamTopics) - 2);
+			$streamNames = substr($streamNames, 0, strlen($streamNames) - 2);
+			$streamTopics .= ']';
+			$streamNames .= ']';
 		?>
 
 
@@ -773,12 +774,12 @@ foreach ($environment['Urdf'] as $urdf) {
 			width : size,
 			height : size * 0.85,
 			antialias : true,
-			alpha: 0.1,
+			alpha: 0.6,
 			near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
 			far: 50,
 			fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
-      		cameraPose:{x:-0.02,y:0.37,z:0},
-      		cameraRotation:{x:0,y:0,z:0.1}, //for the asus overhead camera
+      		cameraPose:{x:-0.03,y:0.37,z:-0.1},
+      		cameraRotation:{x:0,y:0.07,z:-0.05}, //for the asus overhead camera
       		frame: '/camera_rgb_optical_frame',
 			interactive:false,
 			tfClient: _TF
@@ -786,31 +787,32 @@ foreach ($environment['Urdf'] as $urdf) {
 
 
 		// Setup the marker client.
-			var imClient = new ROS3D.InteractiveMarkerClient({
+		var imClient = new ROS3D.InteractiveMarkerClient({
 			ros : _ROS,
 			tfClient : _TF,
 			topic : '/nimbus_6dof_vis',
-			camera : viewer.camera,
-			rootObject : viewer.selectableObjects
+			rootObject:viewer.rootObject,
+			camera : viewer.camera
+			// rootObject : viewer.selectableObjects
 		});
 
-
+		new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://localhost/urdf/",param:"robot_description"})
 		//focal length done by hand tuning
 		function register_depth_cloud(){
 			depthCloud = new ROS3D.DepthCloud({
       			url : 'http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100',
-      			f:800.0,
+      			f:1400.0,
       			width: 640,
   				height:480
     		});
 		    depthCloud.startStream();
-			kinectNode = new ROS3D.SceneNode({
+			// Create Kinect scene node
+			var kinectNode = new ROS3D.SceneNode({
 		      frameID : '/camera_depth_optical_frame',
 		      tfClient : _TF,
 		      object : depthCloud,
-		      pose : {position:{x:0,y:0,z:0},orientation:{x:0,y:0,z:0}}
+		      pose : {position:{x:0,y:0,z:-1},orientation:{x:0,y:0,z:0}}
 		    });
-
 			
 			//duplicate the scene onto a canvas
 			depthCloud.video.addEventListener('play',function()	{
@@ -823,18 +825,15 @@ foreach ($environment['Urdf'] as $urdf) {
     			c.drawImage(v,sx=520,sy=520,swidth=500,sheight=550,x=0,y=0,width=w,height=h);
     			setTimeout(draw,200,v,c,w,h);
 			}
-    		_VIEWER.scene.add(kinectNode);
+			_VIEWER.scene.add(kinectNode);
 		}
 		//temporary measure to prevent depth cloud mapping from taking all the packets and throttling connection
 		setInterval(register_depth_cloud(),1000);
 
-
-    // Create Kinect scene node
-    
 	}
 	$(document).ready(function(){init();});
 
 
 </script>
 
-</html
+</html>

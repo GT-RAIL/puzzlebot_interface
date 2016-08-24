@@ -1220,6 +1220,26 @@ ROS3D.InteractiveMarkerControl = function(options) {
         });
         // so we can apply the transform provided by the TFClient
         newPose.applyTransform(new ROSLIB.Transform(transformMsg));
+ 
+         // get transform between parent marker's location and its frame
+        // apply it to sub-marker position to get sub-marker position
+        // relative to parent marker
+        var transformMarker = new ROS3D.Marker({
+          message : markerMsg,
+          path : that.path,
+          loader : that.loader
+        });
+        transformMarker.position.add(posInv);
+        transformMarker.position.applyQuaternion(rotInv);
+        transformMarker.quaternion.multiplyQuaternions(rotInv, transformMarker.quaternion);
+        var translation = new THREE.Vector3(transformMarker.position.x, transformMarker.position.y, transformMarker.position.z);
+        var transform = new ROSLIB.Transform({
+          translation : translation,
+          orientation : transformMarker.quaternion
+        });
+
+         // apply that transform too
+        newPose.applyTransform(transform);
         markerHelper.setPose(newPose);
 
         markerHelper.updateMatrixWorld();
@@ -3825,14 +3845,13 @@ ROS3D.Viewer = function(options) {
   this.rootObject = new THREE.Object3D();
   //only if the frame is set can we move the root object
   if (frame!==undefined){
-  	this.rootObject.translateX(cameraPosition.x);
-  	this.rootObject.translateY(cameraPosition.y);
-  	this.rootObject.translateZ(cameraPosition.z);
+   	this.rootObject.translateX(cameraPosition.x);
+   	this.rootObject.translateY(cameraPosition.y);
+   	this.rootObject.translateZ(cameraPosition.z);
+    this.rootObject.rotateX(cameraRotation.x);
+    this.rootObject.rotateY(cameraRotation.y);
+    this.rootObject.rotateZ(cameraRotation.z);
   }
-
-  this.rootObject.rotateX(cameraRotation.x);
-  this.rootObject.rotateY(cameraRotation.y);
-  this.rootObject.rotateZ(cameraRotation.z);
 
   this.scene.add(this.rootObject);
 
@@ -3851,7 +3870,7 @@ ROS3D.Viewer = function(options) {
     interactive :interactive,
     aspect : width / height,
     cameraPosition : cameraPositionCopy,
-    cameraRotation : cameraRotation,
+    cameraRotation : cameraPositionCopy, //temporary test
     tfClient: tfClient,
     frame: frame
   }));
