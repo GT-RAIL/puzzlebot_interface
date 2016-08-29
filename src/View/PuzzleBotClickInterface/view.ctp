@@ -74,7 +74,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 					<tr>
 						<td >
 							<div id="camera-controls" style="text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
-								<b>View Controls</b>
+								<b>View Controls:</b>
 								<br />
 								<button id='changeView' class='button special' style="width:150px">change view</button>
 							</div>
@@ -429,21 +429,32 @@ echo $this->Html->css('PuzzleBotClickInterface');
 	 *                           Grasp Actions                                  *
 	 ****************************************************************************/
 	function prevGrasp() {
+		disableInput();
+		RMS.logString('manipulation-request', 'prev-grasp');
 		var request = new ROSLIB.ServiceRequest({
 			forward: false
 		});
 		cycleGraspsClient.callService(request, function(result) {});
+		RMS.logString('manipulation-result', JSON.stringify(result));
+		displayFeedback('Displaying grasp ' + (result.index + 1));
+		enableInput();
 	}
 
 	function nextGrasp() {
+		disableInput();
+		RMS.logString('manipulation-request', 'next-grasp');
 		var request = new ROSLIB.ServiceRequest({
 			forward: true
 		});
 		cycleGraspsClient.callService(request, function(result) {});
+		RMS.logString('manipulation-result', JSON.stringify(result));
+		displayFeedback('Displaying grasp ' + (result.index + 1));
+		enableInput();
 	}
 
 	function executeShallowGrasp() {
 		disableInput();
+		RMS.logString('manipulation-request', 'shallow-grasp');
 		var goal = new ROSLIB.Goal({
 			actionClient: graspClient,
 			goalMessage: {
@@ -454,6 +465,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('manipulation-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
@@ -461,6 +473,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 
 	function executeDeepGrasp() {
 		disableInput();
+		RMS.logString('manipulation-request', 'deep-grasp');
 		var goal = new ROSLIB.Goal({
 			actionClient: graspClient,
 			goalMessage: {
@@ -471,6 +484,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('manipulation-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
@@ -481,6 +495,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 	 ****************************************************************************/
 	function executeResetArm() {
 		disableInput();
+		RMS.logString('primitive-request', 'reset-arm');
 		var goal = new ROSLIB.Goal({
 			actionClient: armClient,
 			goalMessage: {
@@ -491,6 +506,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 			displayFeedback(feedback.message);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
@@ -498,6 +514,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 
 	function executeOpenGripper() {
 		disableInput();
+		RMS.logString('primitive-request', 'open-gripper');
 		var goal = new ROSLIB.Goal({
 			actionClient: gripperClient,
 			goalMessage: {
@@ -508,12 +525,14 @@ echo $this->Html->css('PuzzleBotClickInterface');
 			displayFeedback(feedback.message);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
 	}
 	function executeCloseGripper() {
 		disableInput();
+		RMS.logString('primitive-request', 'close-gripper');
 		var goal = new ROSLIB.Goal({
 			actionClient: gripperClient,
 			goalMessage: {				
@@ -524,6 +543,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 			displayFeedback(feedback.message);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
@@ -531,6 +551,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 
 	function executeMoveForward() {
 		disableInput();
+		RMS.logString('primitive-request', 'move-forward');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -543,12 +564,14 @@ echo $this->Html->css('PuzzleBotClickInterface');
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
 	}
 	function executeMoveBack() {
 		disableInput();
+		RMS.logString('primitive-request', 'move-back');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -561,6 +584,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
@@ -568,6 +592,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 
 	function executeMoveLeft() {
 		disableInput();
+		RMS.logString('primitive-request', 'move-left');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -580,12 +605,14 @@ echo $this->Html->css('PuzzleBotClickInterface');
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
 	}
 	function executeMoveRight() {
 		disableInput();
+		RMS.logString('primitive-request', 'move-right');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -598,6 +625,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
@@ -605,6 +633,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 
 	function executeMoveUp() {
 		disableInput();
+		RMS.logString('primitive-request', 'move-up');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -617,12 +646,14 @@ echo $this->Html->css('PuzzleBotClickInterface');
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
 	}
 	function executeMoveDown() {
 		disableInput();
+		RMS.logString('primitive-request', 'move-down');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -635,6 +666,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
@@ -642,6 +674,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 
 	function executeRotateCW() {
 		disableInput();
+		RMS.logString('primitive-request', 'rotate-cw');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -654,12 +687,14 @@ echo $this->Html->css('PuzzleBotClickInterface');
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
 	}
 	function executeRotateCCW() {
 		disableInput();
+		RMS.logString('primitive-request', 'rotate-ccw');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -672,6 +707,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
@@ -686,7 +722,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 	});
 
 	function switchCamera() {
-		//TODO: Change stream, populate cloudTopic correctly
+		//TODO: Change stream, populate cloudTopic correctly, logging
 		var request = new ROSLIB.ServiceRequest({
 			cloudTopic: "new_cloud_topic"
 		});
@@ -738,6 +774,8 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		$('#moveDown').prop("disabled", true);
 		$('#rotateCW').prop("disabled", true);
 		$('#rotateCCW').prop("disabled", true);
+
+		clickingDisabled = true;
 	}
 
 	function enableInput() {
@@ -779,12 +817,18 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		$('#moveDown').prop("disabled", false);
 		$('#rotateCW').prop("disabled", false);
 		$('#rotateCCW').prop("disabled", false);
+
+		clickingDisabled = false;
 	}
 
 	function displayFeedback(message) {
 		document.getElementById("feedback-text").innerHTML = message;
 	}
 
+
+	/****************************************************************************
+	 *                              Setup                                       *
+	 ****************************************************************************/
 	var size = 500;
 	<?php
 		$streamTopics = '[';
@@ -841,25 +885,34 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		rootObject : viewer.selectableObjects
 	});
 
+	var clickingDisabled = false;
+
+	/****************************************************************************
+	 *                      Manipulation Planning                               *
+	 ****************************************************************************/
 	$('#mjpeg').on('click','canvas',function(event){
-		disableInput();
-		var rect = $(this)[0].getBoundingClientRect();
-		var goal = new ROSLIB.Goal({
-			actionClient: pointCloudClickClient,
-			goalMessage: {
-				x:event.clientX - rect.left,
-				y:event.clientY -rect.top,
-				imageWidth:size,
-				imageHeight:size*0.85
-			}
-		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.message);
-		});
-		goal.on('result', function(result) {
-			enableInput();
-		});
-		goal.send();
+		if (!clickingDisabled) {
+			disableInput();
+			RMS.logString('manipulation-request', 'calculate-grasps');
+			var rect = $(this)[0].getBoundingClientRect();
+			var goal = new ROSLIB.Goal({
+				actionClient: pointCloudClickClient,
+				goalMessage: {
+					x: event.clientX - rect.left,
+					y: event.clientY - rect.top,
+					imageWidth: size,
+					imageHeight: size * 0.85
+				}
+			});
+			goal.on('feedback', function (feedback) {
+				displayFeedback(feedback.message);
+			});
+			goal.on('result', function (result) {
+				RMS.logString('manipulation-result', JSON.stringify(result));
+				enableInput();
+			});
+			goal.send();
+		}
 	})
 
 </script>

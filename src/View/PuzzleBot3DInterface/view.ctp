@@ -75,7 +75,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 					<tr>
 						<td>
 							<div id="camera-controls" style="height=500px; text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
-								<b>View Controls</b>
+								<b>View Controls:</b>
 								<br />
 								<button id='changeView' class='button special' style="width:150px">change view</button>
 							</div>
@@ -435,6 +435,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	 ****************************************************************************/
 	function executeGrasp() {
 		disableInput();
+		RMS.logString('manipulation-request', 'move-arm');
 		var goal = new ROSLIB.Goal({
 			actionClient: graspClient,
 			goalMessage: {
@@ -445,6 +446,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.message);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('manipulation-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
@@ -461,6 +463,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	 ****************************************************************************/
 	function executeResetArm() {
 		disableInput();
+		RMS.logString('primitive-request', 'reset-arm');
 		var goal = new ROSLIB.Goal({
 			actionClient: armClient,
 			goalMessage: {
@@ -471,6 +474,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.message);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			resetMarkerPose();
 			enableInput();
 		});
@@ -479,6 +483,7 @@ foreach ($environment['Urdf'] as $urdf) {
 
 	function executeOpenGripper() {
 		disableInput();
+		RMS.logString('primitive-request', 'open-gripper');
 		var goal = new ROSLIB.Goal({
 			actionClient: gripperClient,
 			goalMessage: {
@@ -489,12 +494,14 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.message);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
 	}
 	function executeCloseGripper() {
 		disableInput();
+		RMS.logString('primitive-request', 'close-gripper');
 		var goal = new ROSLIB.Goal({
 			actionClient: gripperClient,
 			goalMessage: {
@@ -505,6 +512,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.message);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			enableInput();
 		});
 		goal.send();
@@ -512,6 +520,7 @@ foreach ($environment['Urdf'] as $urdf) {
 
 	function executeMoveForward() {
 		disableInput();
+		RMS.logString('primitive-request', 'move-forward');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -524,6 +533,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			resetMarkerPose();
 			enableInput();
 		});
@@ -531,6 +541,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	}
 	function executeMoveBack() {
 		disableInput();
+		RMS.logString('primitive-request', 'move-back');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -543,6 +554,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			resetMarkerPose();
 			enableInput();
 		});
@@ -551,6 +563,7 @@ foreach ($environment['Urdf'] as $urdf) {
 
 	function executeMoveLeft() {
 		disableInput();
+		RMS.logString('primitive-request', 'move-left');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -563,6 +576,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			resetMarkerPose();
 			enableInput();
 		});
@@ -570,6 +584,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	}
 	function executeMoveRight() {
 		disableInput();
+		RMS.logString('primitive-request', 'move-right');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -582,6 +597,8 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
+			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -589,6 +606,7 @@ foreach ($environment['Urdf'] as $urdf) {
 
 	function executeMoveUp() {
 		disableInput();
+		RMS.logString('primitive-request', 'move-up');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -601,6 +619,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			resetMarkerPose();
 			enableInput();
 		});
@@ -608,6 +627,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	}
 	function executeMoveDown() {
 		disableInput();
+		RMS.logString('primitive-request', 'move-down');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -620,6 +640,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			resetMarkerPose();
 			enableInput();
 		});
@@ -628,6 +649,7 @@ foreach ($environment['Urdf'] as $urdf) {
 
 	function executeRotateCW() {
 		disableInput();
+		RMS.logString('primitive-request', 'rotate-cw');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -640,6 +662,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			resetMarkerPose();
 			enableInput();
 		});
@@ -647,6 +670,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	}
 	function executeRotateCCW() {
 		disableInput();
+		RMS.logString('primitive-request', 'rotate-ccw');
 		var goal = new ROSLIB.Goal({
 			actionClient: primitiveClient,
 			goalMessage: {
@@ -659,6 +683,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
+			RMS.logString('primitive-result', JSON.stringify(result));
 			resetMarkerPose();
 			enableInput();
 		});
@@ -667,6 +692,7 @@ foreach ($environment['Urdf'] as $urdf) {
 
 	//changes the stream and the video
 	function changeView(){
+		//TODO: logging
 		current_stream_id=(current_stream_id+1) % streams.length;
 		depthCloud.video.attr('src',current_stream[current_stream_id]);
 	}
