@@ -356,7 +356,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	 *                          Global Variables                                *
 	 ****************************************************************************/
 	 //TODO populate from ROS
-	 var streams=['http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100','http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100'];
+	 var streams=['http://localhost'+ ':9999/stream?topic=/depthcloud_encoded2&type=vp8&bitrate=50000&quality=100','http://localhost'+ ':9999/stream?topic=/depthcloud_encoded1&type=vp8&bitrate=50000&quality=100'];
 	 //points to the current stream being played
 	 var current_stream_id=0;
 	 var canvas=document.getElementById('mjpegcanvas');
@@ -668,7 +668,8 @@ foreach ($environment['Urdf'] as $urdf) {
 	//changes the stream and the video
 	function changeView(){
 		current_stream_id=(current_stream_id+1) % streams.length;
-		depthCloud.video.attr('src',current_stream[current_stream_id]);
+		depthCloud.video.setAttribute('src',streams[current_stream_id]);
+		//change the camera of viewer 2 over here
 	}
 
 	/****************************************************************************
@@ -794,11 +795,25 @@ foreach ($environment['Urdf'] as $urdf) {
 			// rootObject : viewer.selectableObjects
 		});
 
-		new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://localhost/urdf/",param:"robot_description"})
+		var camera2=new ROS3D.ViewerCamera({
+			near:0.01,
+			far:50,
+  			fov:50,
+      		cameraPose:{x:-0.02,y:0.44,z:0.10},
+      		cameraRotation:{x:-0.02,y:0.0,z:3.20},
+      		frame: '/camera_rgb_optical_frame',
+      		tfClient: _TF  //for the asus overhead camera
+		});
+
+		viewer.addCamera(camera2);
+		//viewer.changeCamera(1);
+
+  		//new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://localhost/urdf/",param:"robot_description"});
+
 		//focal length done by hand tuning
 		function register_depth_cloud(){
 			depthCloud = new ROS3D.DepthCloud({
-      			url : 'http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100',
+      			url : 'http://localhost'+ ':9999/stream?topic=/depthcloud_encoded2&type=vp8&bitrate=50000&quality=100',
       			f:1000.0,
       			width: 640,
   				height:480
