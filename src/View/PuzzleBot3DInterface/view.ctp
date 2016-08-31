@@ -695,6 +695,8 @@ foreach ($environment['Urdf'] as $urdf) {
 		//TODO: logging
 		current_stream_id=(current_stream_id+1) % streams.length;
 		depthCloud.video.setAttribute('src',streams[current_stream_id]);
+	    depthCloud.startStream();
+
 		//change the camera of viewer 2 over here
 	}
 
