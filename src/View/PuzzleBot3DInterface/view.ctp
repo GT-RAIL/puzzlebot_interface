@@ -356,7 +356,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	 *                          Global Variables                                *
 	 ****************************************************************************/
 	 //TODO populate from ROS
-	 var streams=['http://localhost'+ ':9999/stream?topic=/depthcloud_encoded2&type=vp8&bitrate=50000&quality=100','http://localhost'+ ':9999/stream?topic=/depthcloud_encoded1&type=vp8&bitrate=50000&quality=100'];
+	 var streams=['http://localhost'+ ':9999/stream?topic=/depthcloud_encoded_side&type=vp8&bitrate=50000&quality=100','http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100'];
 	 //points to the current stream being played
 	 var current_stream_id=0;
 	 var canvas=document.getElementById('mjpegcanvas');
@@ -841,7 +841,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		//focal length done by hand tuning
 		function register_depth_cloud(){
 			depthCloud = new ROS3D.DepthCloud({
-      			url : 'http://localhost'+ ':9999/stream?topic=/depthcloud_encoded2&type=vp8&bitrate=50000&quality=100',
+      			url : streams[0],
       			f:1000.0,
       			width: 640,
   				height:480
