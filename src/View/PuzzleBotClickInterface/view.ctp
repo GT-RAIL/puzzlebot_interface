@@ -64,9 +64,12 @@ echo $this->Html->css('PuzzleBotClickInterface');
 							<div id="tasks" style="text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
 								<b>Your Tasks:</b>
 								<ul style="margin:0">
+									<li>Open the middle plastic drawer</li>
 									<li>Pull the cart across the green line</li>
-									<li>Open the box</li>
-									<li>Open the bottle</li>
+									<li>Open the wooden box</li>
+									<li>Remove the cap from  the bottle</li>
+									<li>Pour the mug into the bowl</li>
+									<li>Turn on the lamp</li>
 								</ul>
 							</div>
 						</td>
@@ -299,6 +302,11 @@ echo $this->Html->css('PuzzleBotClickInterface');
 </body>
 
 <script>
+	/****************************************************************************
+	 *                           Initial Logging                                *
+	 ****************************************************************************/
+	RMS.logString('new-session', 'click-3d')
+
 	var size = Math.min(((window.innerWidth / 2) - 120), window.innerHeight * 0.60);
 	
 
@@ -357,6 +365,14 @@ echo $this->Html->css('PuzzleBotClickInterface');
 </script>
 
 <script type="text/javascript">
+	/****************************************************************************
+	 *                          Global Variables                                *
+	 ****************************************************************************/
+	//TODO populate from ROS
+	var streams=['http://localhost'+ ':9999/stream?topic=/depthcloud_encoded_side&type=vp8&bitrate=50000&quality=100','http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100'];
+	var cloudTopics=['/camera_side/depth_registered/points','/camera/depth_registered/points']
+	//points to the current stream being played
+	var current_stream_id=0;
 
 	/****************************************************************************
 	 *                          Button Callbacks                                *
@@ -722,13 +738,16 @@ echo $this->Html->css('PuzzleBotClickInterface');
 	});
 
 	function switchCamera() {
-		//TODO: Change stream, populate cloudTopic correctly, logging
+		//TODO: Change stream
+		current_stream_id=(current_stream_id+1) % streams.length;
 		var request = new ROSLIB.ServiceRequest({
-			cloudTopic: "new_cloud_topic"
+			cloudTopic: cloudTopics[current_stream_id]
 		});
 		changePointCloudGS.callService(request, function(result) {});
 		changePointCloudPCC.callService(request, function(result) {});
 		changePointCloudRAG.callService(request, function(result) {});
+
+		RMS.logString('change-view', 'camera ' + current_stream_id);
 	}
 
 	/****************************************************************************
