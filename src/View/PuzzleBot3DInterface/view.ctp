@@ -841,14 +841,13 @@ foreach ($environment['Urdf'] as $urdf) {
 			near:0.01,
 			far:50,
   			fov:50,
-  			rootObjectPose : {position:{x:-0.01,y:-0.26,z:0.19},rotation:{x:-1.88,y:0.04,z:0.07}}, //temporary test TODO fix
+  			rootObjectPose : {position:{x:-0.01,y:-0.26,z:0.19},rotation:{x:-1.75,y:0,z:0.07}}, //temporary test TODO fix
       		//cameraRotation:{x:-0.02,y:1.80,z:1.80},
       		frame: '/camera_side_rgb_optical_frame',
       		tfClient: _TF  //for the asus overhead camera
 		});
 
 		viewer.addCamera(camera2);
-
 
 
 		//focal length done by hand tuning

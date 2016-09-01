@@ -415,10 +415,15 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
       var vertex = new THREE.Vector3();
       vertex.x = (i % this.width);
       vertex.y = Math.floor(i / this.width);
-
       this.geometry.vertices.push(vertex);
+
+       //this.geometry.computeVertexNormals(); 
+      //this.geometry.computeBoundingSphere();
     }
 
+
+    this.geometry.computeFaceNormals(); 
+    console.log('hi');
     this.material = new THREE.ShaderMaterial({
       uniforms : {
         'map' : {
@@ -468,11 +473,9 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
     setInterval(function() {
       if (that.isMjpeg || that.video.readyState === that.video.HAVE_ENOUGH_DATA) {
         that.texture.needsUpdate = true;
-        that.geometry.verticesNeedUpdate = true; 
-        that.geometry.normalsNeedUpdate = true; 
-        that.geometry.computeFaceNormals(); 
-        that.geometry.computeVertexNormals(); 
-        that.geometry.computeBoundingSphere();
+        // that.geometry.verticesNeedUpdate = true; 
+        // that.geometry.normalsNeedUpdate = true; 
+
       }
     }, 1000 / 30);
   }
@@ -4371,7 +4374,9 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
   target = this.lastTarget;
   var intersections = [];
   intersections = mouseRaycaster.intersectObject(this.rootObject, true);
+  console.log(intersections.length);
   if (intersections.length > 0) {
+    console.log(target);
     target = intersections[0].object;
     event3D.intersection = this.lastIntersection = intersections[0];
   } else {

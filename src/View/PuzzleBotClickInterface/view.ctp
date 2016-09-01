@@ -747,7 +747,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		var request = new ROSLIB.ServiceRequest({
 			cloudTopic: cloudTopics[current_stream_id]
 		});
-		console.log(cloudTopics[current_stream_id]);
+		viewer.changeCamera(current_stream_id);
 		changePointCloudGS.callService(request, function(result) {});
 		changePointCloudPCC.callService(request, function(result) {});
 		changePointCloudRAG.callService(request, function(result) {});
@@ -904,13 +904,25 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
 		far: 50,
 		fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
-		cameraPose:{x:-0.05,y:0.42,z:-0.05},
-		//cameraPosition:{x:0.25,y:0,z:-0.5}, //kinect 2
-		cameraRotation:{x:-0.34,y:0,z:3.15}, //this is when the interactive markers base frame is set to table instead of jaco
+		cameraPose:{x:-0.02,y:0.44,z:0.10},
+		cameraRotation:{x:-0.02,y:0.0,z:3.20}, //for the asus overhead camera
 		frame: '/camera_rgb_optical_frame',
 		interactive:false,
 		tfClient: _TF
 	});
+
+
+	var camera2=new ROS3D.ViewerCamera({
+		near:0.01,
+		far:50,
+			fov:50,
+			rootObjectPose : {position:{x:-0.01,y:-0.26,z:0.19},rotation:{x:-1.75,y:0,z:0.07}}, //temporary test TODO fix
+  		//cameraRotation:{x:-0.02,y:1.80,z:1.80},
+  		frame: '/camera_side_rgb_optical_frame',
+  		tfClient: _TF  //for the asus overhead camera
+	});
+
+	viewer.addCamera(camera2);
 
 	// Setup the marker client.
 	var imClient = new ROS3D.InteractiveMarkerClient({
