@@ -870,8 +870,8 @@ echo $this->Html->css('PuzzleBotClickInterface');
 
 	var streams=<?php echo  $streamTopics ?>;
 	var canvas=document.getElementById('mjpegcanvas');
-	canvas.width=500;
-	canvas.height=425;
+	canvas.width=size;
+	canvas.height=size * 0.75;
 
 	var videos=[];
 
@@ -886,7 +886,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 
 	videos[0].addEventListener('play',function()	{
 			//TODO fix this width
-		draw(canvas.getContext("2d"),size,size*0.85);
+		draw(canvas.getContext("2d"),size,size*0.75);
     },false);
 
 	function draw(c,w,h) {
@@ -898,25 +898,26 @@ echo $this->Html->css('PuzzleBotClickInterface');
 	var viewer = new ROS3D.Viewer({
 		divID : 'mjpeg',
 		width : size,
-		height : size * 0.85,
+		height : size * 0.75,
 		antialias : true,
 		alpha: 0.1,
 		near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
 		far: 50,
 		fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
-		cameraPose:{x:-0.02,y:0.44,z:0.10},
-		cameraRotation:{x:-0.02,y:0.0,z:3.20}, //for the asus overhead camera
+		cameraPose:{x:-0.022,y:0.33,z:0.0},
 		frame: '/camera_rgb_optical_frame',
+		cameraRotation:{x:-0.1,y:0.0,z:3.2}, //for the asus overhead camera
 		interactive:false,
 		tfClient: _TF
 	});
 
+	new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://localhost/urdf/",param:"robot_description"});
 
 	var camera2=new ROS3D.ViewerCamera({
 		near:0.01,
 		far:50,
 			fov:50,
-  			rootObjectPose : {position:{x:-0.02,y:-0.26,z:0.22},rotation:{x:-1.85,y:0.03,z:0.07}}, //temporary test TODO fix
+  			rootObjectPose : {position:{x:0.0,y:0.0,z:0.0},rotation:{x:0.05,y:0.0,z:0.0}}, //temporary test TODO fix
   		//cameraRotation:{x:-0.02,y:1.80,z:1.80},
   		frame: '/camera_side_rgb_optical_frame',
   		tfClient: _TF  //for the asus overhead camera
@@ -949,7 +950,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 					x: event.clientX - rect.left,
 					y: event.clientY - rect.top,
 					imageWidth: size,
-					imageHeight: size * 0.85
+					imageHeight: size * 0.75
 				}
 			});
 			goal.on('feedback', function (feedback) {
