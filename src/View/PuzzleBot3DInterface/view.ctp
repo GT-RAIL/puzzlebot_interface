@@ -364,12 +364,13 @@ foreach ($environment['Urdf'] as $urdf) {
 	 *                          Global Variables                                *
 	 ****************************************************************************/
 	 //TODO populate from ROS
-	 var streams=[]
+	 var streams=['http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100','http://localhost'+ ':9999/stream?topic=/depthcloud_encoded_side&type=vp8&bitrate=50000&quality=100'];
+	 /*var streams=[]
 	 <?php foreach($environment['Pointcloud'] as $pointClouds){
 	 	echo 'streams.push("'.$pointClouds['stream'].'");';
 
 	 }
-	 ?>
+	 ?>*/
 	 var pointClouds=[];
 	 //points to the current stream being played
 	 var current_stream_id=0;
@@ -870,7 +871,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			//duplicate the scene onto a canvas
 			depthCloud.video.addEventListener('play',function()	{
 				//TODO fix this width
-		        draw(canvas.getContext("2d"),500,550);
+		        draw(canvas.getContext("2d"),size,size*0.85);
     		},false);
 
     		depthCloud.addEventListener("mousedown",function(e){
@@ -896,7 +897,7 @@ foreach ($environment['Urdf'] as $urdf) {
 
     		function draw(c,w,h) {
     			//sx and sy are the points on the original stream RGB is in the bottom right
-    			c.drawImage(pointClouds[current_stream_id],sx=520,sy=520,swidth=500,sheight=550,x=0,y=0,width=w,height=h);
+    			c.drawImage(pointClouds[current_stream_id],sx=520,sy=520,swidth=size,sheight=size*.85,x=0,y=0,width=w,height=h);
     			setTimeout(draw,200,c,w,h);
 			}
 			_VIEWER.addObject(kinectNode,true);

@@ -372,7 +372,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 	 ****************************************************************************/
 	//TODO populate from ROS
 	var streams=['http://localhost'+ ':9999/stream?topic=/depthcloud_encoded_side&type=vp8&bitrate=50000&quality=100','http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100'];
-	var cloudTopics=['/camera_side/depth_registered/points','/camera/depth_registered/points']
+	var cloudTopics=['/camera/depth_registered/points','/camera_side/depth_registered/points']
 	//points to the current stream being played
 	var current_stream_id=0;
 
@@ -452,9 +452,10 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		var request = new ROSLIB.ServiceRequest({
 			forward: false
 		});
-		cycleGraspsClient.callService(request, function(result) {});
-		RMS.logString('manipulation-result', JSON.stringify(result));
-		displayFeedback('Displaying grasp ' + (result.index + 1));
+		cycleGraspsClient.callService(request, function(result) {
+			RMS.logString('manipulation-result', JSON.stringify(result));
+			displayFeedback('Displaying grasp ' + (result.index + 1));
+		});
 		enableInput();
 	}
 
@@ -464,9 +465,10 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		var request = new ROSLIB.ServiceRequest({
 			forward: true
 		});
-		cycleGraspsClient.callService(request, function(result) {});
-		RMS.logString('manipulation-result', JSON.stringify(result));
-		displayFeedback('Displaying grasp ' + (result.index + 1));
+		cycleGraspsClient.callService(request, function(result) {
+			RMS.logString('manipulation-result', JSON.stringify(result));
+			displayFeedback('Displaying grasp ' + (result.index + 1));
+		});
 		enableInput();
 	}
 
@@ -745,6 +747,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		var request = new ROSLIB.ServiceRequest({
 			cloudTopic: cloudTopics[current_stream_id]
 		});
+		console.log(cloudTopics[current_stream_id]);
 		changePointCloudGS.callService(request, function(result) {});
 		changePointCloudPCC.callService(request, function(result) {});
 		changePointCloudRAG.callService(request, function(result) {});
@@ -883,7 +886,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 
 	videos[0].addEventListener('play',function()	{
 			//TODO fix this width
-		draw(canvas.getContext("2d"),500,550);
+		draw(canvas.getContext("2d"),size,size*0.85);
     },false);
 
 	function draw(c,w,h) {
