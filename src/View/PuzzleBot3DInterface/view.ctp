@@ -356,13 +356,20 @@ foreach ($environment['Urdf'] as $urdf) {
 	 *                          Global Variables                                *
 	 ****************************************************************************/
 	 //TODO populate from ROS
-	 var streams=['http://localhost'+ ':9999/stream?topic=/depthcloud_encoded_side&type=vp8&bitrate=50000&quality=100','http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100'];
+	 var streams=[]
+	 <?php foreach($environment['Pointcloud'] as $pointClouds){
+	 	echo 'streams.push("'.$pointClouds['stream'].'");';
+
+	 }
+	 ?>
+	 var pointClouds=[];
 	 //points to the current stream being played
 	 var current_stream_id=0;
 	 var canvas=document.getElementById('mjpegcanvas');
 	 canvas.width=500;
 	 canvas.height=425;
 	 var depthCloud;
+	 var viewer;
 	 //what a lie this is an asus node	 
 	 var kinectNode;
 
@@ -694,10 +701,10 @@ foreach ($environment['Urdf'] as $urdf) {
 	function changeView(){
 		//TODO: logging
 		current_stream_id=(current_stream_id+1) % streams.length;
-		depthCloud.video.setAttribute('src',streams[current_stream_id]);
-	    depthCloud.startStream();
 
 		//change the camera of viewer 2 over here
+		viewer.changeCamera(current_stream_id);
+
 	}
 
 	/****************************************************************************
@@ -798,7 +805,7 @@ foreach ($environment['Urdf'] as $urdf) {
 
 
 		// Create the main viewer
-		var viewer = new ROS3D.Viewer({
+		viewer = new ROS3D.Viewer({
 			divID : 'mjpeg',
 			width : size,
 			height : size * 0.85,
@@ -807,9 +814,9 @@ foreach ($environment['Urdf'] as $urdf) {
 			near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
 			far: 50,
 			fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
-      		cameraPose:{x:-0.02,y:0.44,z:0.10},
-      		cameraRotation:{x:-0.02,y:0.0,z:3.20}, //for the asus overhead camera
-      		frame: '/camera_rgb_optical_frame',
+			cameraPose:{x:-0.02,y:0.44,z:0.10},
+			cameraRotation:{x:-0.02,y:0.0,z:3.20}, //for the asus overhead camera
+			frame: '/camera_rgb_optical_frame',
 			interactive:false,
 			tfClient: _TF 
 		});
@@ -827,16 +834,15 @@ foreach ($environment['Urdf'] as $urdf) {
 			near:0.01,
 			far:50,
   			fov:50,
-      		cameraPose:{x:-0.02,y:0.44,z:0.10},
-      		cameraRotation:{x:-0.02,y:0.0,z:3.20},
-      		frame: '/camera_rgb_optical_frame',
+  			rootObjectPose : {position:{x:-0.01,y:-0.26,z:0.19},rotation:{x:-1.88,y:0.04,z:0.07}}, //temporary test TODO fix
+      		//cameraRotation:{x:-0.02,y:1.80,z:1.80},
+      		frame: '/camera_side_rgb_optical_frame',
       		tfClient: _TF  //for the asus overhead camera
 		});
 
 		viewer.addCamera(camera2);
-		//viewer.changeCamera(1);
 
-  		//new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://localhost/urdf/",param:"robot_description"});
+
 
 		//focal length done by hand tuning
 		function register_depth_cloud(){
@@ -858,18 +864,40 @@ foreach ($environment['Urdf'] as $urdf) {
 			//duplicate the scene onto a canvas
 			depthCloud.video.addEventListener('play',function()	{
 				//TODO fix this width
-		        draw(this,canvas.getContext("2d"),500,550);
+		        draw(canvas.getContext("2d"),500,550);
     		},false);
-    		
-    		function draw(v,c,w,h) {
+
+    		depthCloud.addEventListener("mousedown",function(e){
+    			console.log(e);
+    		})
+    		pointClouds.push(depthCloud.video);
+			depthCloud2 = new ROS3D.DepthCloud({
+      			url : streams[1],
+      			f:1000.0,
+      			width: 640,
+  				height:480 
+    		});
+		    depthCloud2.startStream();
+		    pointClouds.push(depthCloud2.video)
+			// Create Kinect scene node
+			var kinectNode2 = new ROS3D.SceneNode({
+		      frameID : '/camera_side_depth_optical_frame',
+		      tfClient : _TF,
+		      object : depthCloud2,
+		      pose : {position:{x:0.00,y:-0.04,z:0},orientation:{x:0,y:0,z:0}}
+		    });
+			
+
+    		function draw(c,w,h) {
     			//sx and sy are the points on the original stream RGB is in the bottom right
-    			c.drawImage(v,sx=520,sy=520,swidth=500,sheight=550,x=0,y=0,width=w,height=h);
-    			setTimeout(draw,200,v,c,w,h);
+    			c.drawImage(pointClouds[current_stream_id],sx=520,sy=520,swidth=500,sheight=550,x=0,y=0,width=w,height=h);
+    			setTimeout(draw,200,c,w,h);
 			}
-			_VIEWER.scene.add(kinectNode);
+			_VIEWER.addObject(kinectNode,true);
+			_VIEWER.addObject(kinectNode2,true);
 		}
 		//temporary measure to prevent depth cloud mapping from taking all the packets and throttling connection
-		setInterval(register_depth_cloud(),1000);
+		setInterval(register_depth_cloud(),5000);
 
 	}
 	$(document).ready(function(){init();});

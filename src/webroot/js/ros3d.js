@@ -462,7 +462,7 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
     this.mesh.position.x = 0;
     this.mesh.position.y = 0;
     this.add(this.mesh);
-
+    //this.geocomputeFaceNormals
     var that = this;
 
     setInterval(function() {
@@ -3734,7 +3734,7 @@ ROS3D.SceneNode = function(options) {
 
   // save the TF handler so we can remove it later
   this.tfUpdate = function(msg) {
-    console.log('updating based on the transform');
+
     // apply the transform
     var tf = new ROSLIB.Transform(msg);
     var poseTransformed = new ROSLIB.Pose(that.pose);
@@ -3855,13 +3855,6 @@ ROS3D.Viewer = function(options) {
 
   this.scene.add(this.rootObject);
 
-  var cameraPositionCopy;
-  if(frame===undefined){
-    cameraPositionCopy=cameraPosition;
-  }
-  else{
-    cameraPositionCopy={x:0,y:0,z:0};
-  }
   // create the global camera
   this.cameras.push(new ROS3D.ViewerCamera({
     near :near,
@@ -3869,8 +3862,8 @@ ROS3D.Viewer = function(options) {
     fov: fov,
     interactive :interactive,
     aspect : width / height,
-    cameraPosition : cameraPositionCopy,
-    cameraRotation : cameraPositionCopy, //temporary test
+    cameraPosition:cameraPosition,
+    rootObjectPose : {position:cameraPosition,rotation:cameraRotation}, //temporary test TODO fix
     tfClient: tfClient,
     frame: frame
   }));
@@ -3881,11 +3874,11 @@ ROS3D.Viewer = function(options) {
 
   // add controls to the camera
 
-    this.cameraControls = new ROS3D.OrbitControls({
-      scene : this.rootObject,
-      camera : this.camera
-    });
-    this.cameraControls.userZoomSpeed = cameraZoomSpeed;
+this.cameraControls = new ROS3D.OrbitControls({
+  scene : this.rootObject,
+  camera : this.camera
+});
+this.cameraControls.userZoomSpeed = cameraZoomSpeed;
 
 
   // lights
@@ -3900,7 +3893,7 @@ ROS3D.Viewer = function(options) {
     fallbackObject=this.cameraControls;
   }
   this.rootObject.add(this.selectableObjects);
-  var mouseHandler = new ROS3D.MouseHandler({
+  this.mouseHandler = new ROS3D.MouseHandler({
     renderer : this.renderer,
     camera : this.camera,
     rootObject : this.selectableObjects,
@@ -3909,7 +3902,7 @@ ROS3D.Viewer = function(options) {
 
   // highlights the receiver of mouse events
   this.highlighter = new ROS3D.Highlighter({
-    mouseHandler : mouseHandler
+    mouseHandler : this.mouseHandler
   });
 
   /**
@@ -3963,18 +3956,19 @@ ROS3D.Viewer.prototype.addObject = function(object, selectable) {
 ROS3D.Viewer.prototype.changeCamera = function(cameraID) {
   if (cameraID<this.cameras.length && cameraID>=0){
     this.camera = this.cameras[cameraID].camera;
-    var position = this.cameras[cameraID].cameraPosition;
-    var rotation = this.cameras[cameraID].cameraRotation;
+    var position = this.cameras[cameraID].rootObjectPose.position;
+    var rotation = this.cameras[cameraID].rootObjectPose.rotation;
     //move root object rotation to 0,0,0
-    this.rootObject.rotateX(-this.rootObject.rotation.x);
-    this.rootObject.rotateY(-this.rootObject.rotation.y);
-    this.rootObject.rotateZ(-this.rootObject.rotation.z);
+
+    this.rootObject.position.set(0,0,0);
+    this.rootObject.rotation.set(0,0,0);
     this.rootObject.position.setX(position.x);
     this.rootObject.position.setY(position.y);
     this.rootObject.position.setZ(position.z);
     this.rootObject.rotateX(rotation.x);
     this.rootObject.rotateY(rotation.y);
     this.rootObject.rotateZ(rotation.z);
+    this.cameraControls.camera =this.camera;
     }
 };
 
@@ -4026,6 +4020,7 @@ ROS3D.ViewerCamera = function(options) {
   var fov = options.fov || 40;
   var interactive = options.interactive;
   var aspect = options.aspect;
+  var pose = options.pose;
   this.cameraPosition = options.cameraPosition || {
     x : 3,
     y : 3,
@@ -4036,6 +4031,13 @@ ROS3D.ViewerCamera = function(options) {
     y : 0,
     z : 0
   };
+
+  this.rootObjectPose = options.rootObjectPose ||
+  {
+    position:{x:0,y:0,z:0},
+    rotation:{x:0,y:0,z:0}
+  };
+
   this.cameraZoomSpeed = options.cameraZoomSpeed || 0.5;
 
   // create the global camera
@@ -4373,6 +4375,7 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
 
   // if the mouse moves from one object to another (or from/to the 'null' object), notify both
   if (target !== this.lastTarget && domEvent.type.match(/mouse/)) {
+
     var eventAccepted = this.notify(target, 'mouseover', event3D);
     if (eventAccepted) {
       this.notify(this.lastTarget, 'mouseout', event3D);
@@ -4404,6 +4407,7 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
 
   // pass through event
   this.notify(target, domEvent.type, event3D);
+
   if (domEvent.type === 'mousedown' || domEvent.type === 'touchstart' || domEvent.type === 'touchmove') {
     this.dragging = true;
   }
