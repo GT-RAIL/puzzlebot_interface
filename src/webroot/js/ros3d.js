@@ -468,6 +468,11 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
     setInterval(function() {
       if (that.isMjpeg || that.video.readyState === that.video.HAVE_ENOUGH_DATA) {
         that.texture.needsUpdate = true;
+        that.geometry.verticesNeedUpdate = true; 
+        that.geometry.normalsNeedUpdate = true; 
+        that.geometry.computeFaceNormals(); 
+        that.geometry.computeVertexNormals(); 
+        that.geometry.computeBoundingSphere();
       }
     }, 1000 / 30);
   }

@@ -65,9 +65,12 @@ echo $this->Html->css('PuzzleBot3DInterface');
 							<div id="tasks" style="height=500px; text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
 								<b>Your Tasks:</b>
 								<ul style="margin:0">
+									<li>Open the middle plastic drawer</li>
 									<li>Pull the cart across the green line</li>
-									<li>Open the box</li>
-									<li>Open the bottle</li>
+									<li>Open the wooden box</li>
+									<li>Remove the cap from  the bottle</li>
+									<li>Pour the mug into the bowl</li>
+									<li>Turn on the lamp</li>
 								</ul>
 							</div>
 						</td>
@@ -269,6 +272,11 @@ echo $this->Html->css('PuzzleBot3DInterface');
 </body>
 
 <script>
+	/****************************************************************************
+	 *                           Initial Logging                                *
+	 ****************************************************************************/
+	RMS.logString('new-session', 'eef-im-3d')
+
 	var size = Math.min(((window.innerWidth / 2) - 120), window.innerHeight * 0.60);
 	
 	_VIEWER = new ROS3D.Viewer({
@@ -699,11 +707,9 @@ foreach ($environment['Urdf'] as $urdf) {
 
 	//changes the stream and the video
 	function changeView(){
-		//TODO: logging
 		current_stream_id=(current_stream_id+1) % streams.length;
-
-		//change the camera of viewer 2 over here
 		viewer.changeCamera(current_stream_id);
+		RMS.logString('change-view', 'camera ' + current_stream_id);
 
 	}
 
