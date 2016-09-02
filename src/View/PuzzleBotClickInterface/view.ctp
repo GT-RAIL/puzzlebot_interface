@@ -64,12 +64,16 @@ echo $this->Html->css('PuzzleBotClickInterface');
 							<div id="tasks" style="text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
 								<b>Your Tasks:</b>
 								<ul style="margin:0">
+									<!--<li>Move the lemon onto the white plate</li>
+									<li>Reset the arm when you're finished</li>-->
+
 									<li>Open the middle plastic drawer</li>
-									<li>Pull the cart across the green line</li>
+									<li>Pull the yellow cart across the green line</li>
 									<li>Open the wooden box</li>
-									<li>Remove the cap from  the bottle</li>
-									<li>Pour the mug into the bowl</li>
-									<li>Turn on the lamp</li>
+									<li>Remove the black cap from  the white bottle</li>
+									<li>Pour the red mug into the wooden bowl</li>
+									<li>Remove a marker from the blue cup</li>
+
 								</ul>
 							</div>
 						</td>
@@ -307,7 +311,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 	/****************************************************************************
 	 *                           Initial Logging                                *
 	 ****************************************************************************/
-	RMS.logString('new-session', 'click-3d')
+	RMS.logString('new-session', 'click-3d');
 
 	var size = Math.min(((window.innerWidth / 2) - 120), window.innerHeight * 0.60);
 	
@@ -911,16 +915,16 @@ echo $this->Html->css('PuzzleBotClickInterface');
 		tfClient: _TF
 	});
 
-	new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://localhost/urdf/",param:"robot_description"});
+	//new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://localhost/urdf/",param:"robot_description"});
 
 	var camera2=new ROS3D.ViewerCamera({
-		near:0.01,
+		near:0.1,
 		far:50,
-			fov:50,
-  			rootObjectPose : {position:{x:0.0,y:0.0,z:0.0},rotation:{x:0.05,y:0.0,z:0.0}}, //temporary test TODO fix
-  		//cameraRotation:{x:-0.02,y:1.80,z:1.80},
+			fov:45,
   		frame: '/camera_side_rgb_optical_frame',
-  		tfClient: _TF  //for the asus overhead camera
+		rootObjectPose : {position:{x:-0.025,y:-0.4,z:-0.4},rotation:{x:-1.68,y:0.03,z:0.075}}, //temporary test TODO fix
+		//cameraRotation:{x:-0.02,y:1.80,z:1.80},
+		tfClient: _TF  //for the asus overhead camera
 	});
 
 	viewer.addCamera(camera2);
