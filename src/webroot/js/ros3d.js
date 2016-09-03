@@ -423,7 +423,7 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
 
 
     this.geometry.computeFaceNormals(); 
-    console.log('hi');
+    
     this.material = new THREE.ShaderMaterial({
       uniforms : {
         'map' : {
@@ -651,7 +651,7 @@ ROS3D.InteractiveMarker.prototype.rotateAxis = function(control, origOrientation
 
     var currentControlOri = control.currentControlOri;
     var orientation = currentControlOri.clone().multiply(origOrientation.clone());
-
+    console.log(orientation);
     var normal = (new THREE.Vector3(1, 0, 0)).applyQuaternion(orientation);
 
     // get plane params in world coords
@@ -4027,9 +4027,9 @@ ROS3D.ViewerCamera = function(options) {
   var aspect = options.aspect;
   var pose = options.pose;
   this.cameraPosition = options.cameraPosition || {
-    x : 3,
-    y : 3,
-    z : 3
+    x : 0,
+    y : 0,
+    z : 0
   };
   this.cameraRotation = options.cameraRotation || {
     x : 0,
@@ -4096,9 +4096,9 @@ ROS3D.ViewerHandle = function(options) {
   this.frame = options.frame;
   this.tfTransform = new ROSLIB.Transform();
   this.cameraPosition = options.cameraPosition || {
-    x : 3,
-    y : 3,
-    z : 3
+    x : 0,
+    y : 0,
+    z : 0
   };
   this.cameraRotation = options.cameraRotation || {
     x : 0,
@@ -4132,14 +4132,22 @@ ROS3D.ViewerHandle.prototype.unsubscribeTf = function() {
  */
 ROS3D.ViewerHandle.prototype.emitServerPoseUpdate = function() {
   var inv = this.tfTransform.clone();
+  console.log(inv);
+  console.log(this.frame);
   inv.rotation.invert();
   inv.translation.multiplyQuaternion(inv.rotation);
   inv.translation.x *= -1;
   inv.translation.y *= -1;
   inv.translation.z *= -1;
-  this.camera.quaternion.set(inv.rotation.x,inv.rotation.y,inv.rotation.z,inv.rotation.w);
-  this.camera.position.set(inv.translation.x ,inv.translation.y  ,inv.translation.z);
+
+  var pose=new ROSLIB.Pose();
+  pose.applyTransform(inv);
+  pose.orientation.normalize();
+  this.camera.quaternion.set(pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w);
+  this.camera.position.set(pose.position.x ,pose.position.y  ,pose.position.z);
   this.camera.updateMatrix();
+  this.camera.updateMatrixWorld();
+
 };
 
 /**
@@ -4371,9 +4379,9 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
   target = this.lastTarget;
   var intersections = [];
   intersections = mouseRaycaster.intersectObject(this.rootObject, true);
-  console.log(intersections.length);
+  //console.log(intersections.length);
   if (intersections.length > 0) {
-    console.log(target);
+    //console.log(target);
     target = intersections[0].object;
     event3D.intersection = this.lastIntersection = intersections[0];
   } else {

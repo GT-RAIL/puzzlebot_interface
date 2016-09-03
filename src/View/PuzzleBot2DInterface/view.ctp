@@ -783,23 +783,24 @@ echo $this->Html->css('PuzzleBot2DInterface');
 		fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
 		cameraPose:{x:-0.022,y:0.33,z:0.0},
 		frame: '/camera_rgb_optical_frame',
-		cameraRotation:{x:-0.1,y:0.0,z:3.2}, //for the asus overhead camera
+		cameraRotation:{x:0.1,y:0.0,z:0.0},  //for the asus overhead camera
 		interactive:false,
 		tfClient: _TF
 	});
+	new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://localhost/urdf/",param:"robot_description"});
 
 	var camera2=new ROS3D.ViewerCamera({
 		near:0.1,
 		far:50,
 		fov:45,
 		frame: '/camera_side_rgb_optical_frame',
-		rootObjectPose : {position:{x:-0.025,y:-0.4,z:-0.4},rotation:{x:-1.68,y:0.03,z:0.075}}, //temporary test TODO fix
+		rootObjectPose : {position:{x:-0.025,y:-0.4,z:-0.4},rotation:{x:-1.68,y:0.03,z:-3.2}}, //temporary test TODO fix
 		//cameraRotation:{x:-0.02,y:1.80,z:1.80},
 		tfClient: _TF  //for the asus overhead camera
 	});
 
 	viewer.addCamera(camera2);
-	
+
 	// Setup the marker client.
 	var imClient = new ROS3D.InteractiveMarkerClient({
 		ros : _ROS,
