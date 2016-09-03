@@ -849,7 +849,7 @@ foreach ($environment['Urdf'] as $urdf) {
 
 		viewer.addCamera(camera2);
 
-
+		
 		//focal length done by hand tuning
 		function register_depth_cloud(){
 			depthCloud = new ROS3D.DepthCloud({

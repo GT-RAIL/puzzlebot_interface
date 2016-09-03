@@ -799,7 +799,7 @@ echo $this->Html->css('PuzzleBot2DInterface');
 	});
 
 	viewer.addCamera(camera2);
-
+	
 	// Setup the marker client.
 	var imClient = new ROS3D.InteractiveMarkerClient({
 		ros : _ROS,

@@ -3970,13 +3970,10 @@ ROS3D.Viewer.prototype.changeCamera = function(cameraID) {
 
     this.rootObject.position.set(0,0,0);
     this.rootObject.rotation.set(0,0,0);
-    this.rootObject.position.setX(position.x);
-    this.rootObject.position.setY(position.y);
-    this.rootObject.position.setZ(position.z);
-    this.rootObject.rotateX(rotation.x);
-    this.rootObject.rotateY(rotation.y);
-    this.rootObject.rotateZ(rotation.z);
+    this.rootObject.position.set(position.x,position.y,position.z);
+    this.rootObject.rotation.set(rotation.x,rotation.y,rotation.z);
     this.cameraControls.camera =this.camera;
+    this.mouseHandler.camera=this.camera;
     }
 };
 
