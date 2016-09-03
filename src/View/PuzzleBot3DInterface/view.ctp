@@ -277,12 +277,13 @@ echo $this->Html->css('PuzzleBot3DInterface');
 	 ****************************************************************************/
 	RMS.logString('new-session', 'eef-im-3d')
 
-	var size = Math.min(((window.innerWidth / 2) - 120), window.innerHeight * 0.60);
-	
+	//var size = Math.min(((window.innerWidth / 2) - 120), window.innerHeight * 0.60);
+	var size=500;
+
 	_VIEWER = new ROS3D.Viewer({
 		divID: 'viewer',
-		width: 500,
-		height: 425,
+		width: size,
+		height: size*0.75,
 		antialias: true,
 		background: '#50817b',
 		intensity: 0.660000
@@ -363,8 +364,8 @@ foreach ($environment['Urdf'] as $urdf) {
 	/****************************************************************************
 	 *                          Global Variables                                *
 	 ****************************************************************************/
-	 //TODO populate from ROS
-	 var streams=['http://localhost'+ ':9999/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100','http://localhost'+ ':9999/stream?topic=/depthcloud_encoded_side&type=vp8&bitrate=50000&quality=100'];
+	//TODO populate from ROS
+	 var streams=['http://rail-engine.cc.gatech.edu'+ ':8080/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100','http://rail-engine.cc.gatech.edu'+ ':8080/stream?topic=/depthcloud_encoded_side&type=vp8&bitrate=50000&quality=100'];
 	 /*var streams=[]
 	 <?php foreach($environment['Pointcloud'] as $pointClouds){
 	 	echo 'streams.push("'.$pointClouds['stream'].'");';
@@ -375,8 +376,8 @@ foreach ($environment['Urdf'] as $urdf) {
 	 //points to the current stream being played
 	 var current_stream_id=0;
 	 var canvas=document.getElementById('mjpegcanvas');
-	 canvas.width=500;
-	 canvas.height=425;
+	 canvas.width=size;
+	 canvas.height=size*0.75;
 	 var depthCloud;
 	 var viewer;
 	 //what a lie this is an asus node	 
@@ -794,8 +795,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		document.getElementById("feedback-text").innerHTML = message;
 	}
 	function init() {
-		var size=500;
-
 		<?php
 			$streamTopics = '[';
 			$streamNames = '[';
@@ -810,19 +809,44 @@ foreach ($environment['Urdf'] as $urdf) {
 			$streamNames .= ']';
 		?>
 
+		var streams2=<?php echo  $streamTopics ?>;
+
+		var videos=[];
+
+
+		for(var i =0;i<streams2.length;i++){
+			videos.push(document.createElement('video'));
+			videos[i].src='http://rail-engine.cc.gatech.edu:8080/stream?topic='+streams2[i]+'&type=vp8&bitrate=50000&quality=10';
+			videos[i].crossOrigin = 'Anonymous';
+			videos[i].setAttribute('crossorigin', 'Anonymous');
+			videos[i].play();
+		}
+
+		videos[0].addEventListener('play',function()	{
+			//TODO fix this width
+			draw(canvas.getContext("2d"),size,size*0.75);
+		},false);
+
+		function draw(c,w,h) {
+			c.drawImage(videos[current_stream_id],x=0,y=0,width=w,height=h);
+			setTimeout(draw,200,c,w,h);
+		}
 
 		// Create the main viewer
 		viewer = new ROS3D.Viewer({
 			divID : 'mjpeg',
 			width : size,
-			height : size * 0.85,
+			height : size * 0.75,
 			antialias : true,
 			alpha: 0.1,
 			near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
 			far: 50,
 			fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
-			cameraPose:{x:-0.02,y:0.44,z:0.10},
-			cameraRotation:{x:-0.02,y:0.0,z:3.20}, //for the asus overhead camera
+//			cameraPose:{x:-0.02,y:0.44,z:0.10},
+//			cameraRotation:{x:-0.02,y:0.0,z:3.20}, //for the asus overhead camera
+//			frame: '/camera_rgb_optical_frame',
+			cameraPose:{x:-0.022,y:0.33,z:0.0},
+			cameraRotation:{x:-0.1,y:0.0,z:3.2},  //for the asus overhead camera
 			frame: '/camera_rgb_optical_frame',
 			interactive:false,
 			tfClient: _TF 
@@ -841,8 +865,9 @@ foreach ($environment['Urdf'] as $urdf) {
 			near:0.01,
 			far:50,
   			fov:50,
-  			rootObjectPose : {position:{x:-0.02,y:-0.26,z:0.22},rotation:{x:-1.85,y:0.03,z:0.07}}, //temporary test TODO fix
-      		//cameraRotation:{x:-0.02,y:1.80,z:1.80},
+  			//rootObjectPose : {position:{x:-0.02,y:-0.26,z:0.22},rotation:{x:-1.85,y:0.03,z:0.07}}, //temporary test TODO fix
+			rootObjectPose : {position:{x:-0.025,y:-0.4,z:-0.4},rotation:{x:-1.68,y:0.03,z:0.075}}, //temporary test TODO fix
+			//cameraRotation:{x:-0.02,y:1.80,z:1.80},
       		frame: '/camera_side_rgb_optical_frame',
       		tfClient: _TF  //for the asus overhead camera
 		});
@@ -867,21 +892,21 @@ foreach ($environment['Urdf'] as $urdf) {
 		      pose : {position:{x:0,y:0,z:0},orientation:{x:0,y:0,z:0}}
 		    });
 			
-			//duplicate the scene onto a canvas
-			depthCloud.video.addEventListener('play',function()	{
-				//TODO fix this width
-		        draw(canvas.getContext("2d"),size,size*0.85);
-    		},false);
-
-    		depthCloud.addEventListener("mousedown",function(e){
-    			console.log(e);
-    		})
+//			//duplicate the scene onto a canvas
+//			depthCloud.video.addEventListener('play',function()	{
+//				//TODO fix this width
+//		        draw(canvas.getContext("2d"),size,size*0.75);
+//    		},false);
+//
+//    		depthCloud.addEventListener("mousedown",function(e){
+//    			console.log(e);
+//    		})
     		pointClouds.push(depthCloud.video);
 			depthCloud2 = new ROS3D.DepthCloud({
       			url : streams[1],
       			f:1000.0,
       			width: 640,
-  				height:480 
+  				height:480
     		});
 		    depthCloud2.startStream();
 		    pointClouds.push(depthCloud2.video)
@@ -894,11 +919,11 @@ foreach ($environment['Urdf'] as $urdf) {
 		    });
 			
 
-    		function draw(c,w,h) {
-    			//sx and sy are the points on the original stream RGB is in the bottom right
-    			c.drawImage(pointClouds[current_stream_id],sx=520,sy=520,swidth=size,sheight=size*.85,x=0,y=0,width=w,height=h);
-    			setTimeout(draw,200,c,w,h);
-			}
+//    		function draw(c,w,h) {
+//    			//sx and sy are the points on the original stream RGB is in the bottom right
+//    			c.drawImage(pointClouds[current_stream_id],sx=520,sy=520,swidth=size,sheight=size*.75,x=0,y=0,width=w,height=h);
+//    			setTimeout(draw,200,c,w,h);
+//			}
 			_VIEWER.addObject(kinectNode,true);
 			_VIEWER.addObject(kinectNode2,true);
 		}

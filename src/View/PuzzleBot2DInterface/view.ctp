@@ -787,7 +787,7 @@ echo $this->Html->css('PuzzleBot2DInterface');
 		interactive:false,
 		tfClient: _TF
 	});
-	new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://localhost/urdf/",param:"robot_description"});
+	//new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://localhost/urdf/",param:"robot_description"});
 
 	var camera2=new ROS3D.ViewerCamera({
 		near:0.1,
