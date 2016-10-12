@@ -24,12 +24,6 @@ echo $this->Html->css('PuzzleBot3DInterface');
 	#mjpeg canvas{
 		position: absolute;
 	}
-	#mjpeg2{
-		position: relative;
-	}
-	#mjpeg2 canvas{
-		position: absolute;
-	}
 </style>
 
 <html>
@@ -71,15 +65,8 @@ echo $this->Html->css('PuzzleBot3DInterface');
 							<div id="tasks" style="height=500px; text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
 								<b>Your Tasks:</b>
 								<ul style="margin:0">
-									<!--<li>Move the lemon onto the white plate</li>
-									<li>Reset the arm when you're finished</li>-->
-									
-									<li>Open the middle plastic drawer</li>
-									<li>Slide open the wooden box</li>
-									<li>Remove the black cap from  the white bottle</li>
-									<li>Pour out the red mug into the wooden bowl</li>
-									<li>Remove a marker from the blue cup</li>
-									<li>Pull the yellow cart onto the green line</li>
+									<li>Move the lemon onto the white plate</li>
+									<li>Reset the arm when you're finished</li>
 								</ul>
 							</div>
 						</td>
@@ -104,7 +91,6 @@ echo $this->Html->css('PuzzleBot3DInterface');
 								<td>
 									<!-- <div id="mjpeg" style="text-align:center"></div> -->
 									<div id='mjpeg' style=" width:500px;"><canvas id='mjpegcanvas'></canvas>  </div>
-									<div id='mjpeg2'></div>
 								</td>
 								<td>
 									<div id="viewer" style="text-align:center"></div>
@@ -285,7 +271,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 	/****************************************************************************
 	 *                           Initial Logging                                *
 	 ****************************************************************************/
-	RMS.logString('new-session', 'eef-im-3d')
+	RMS.logString('new-session', 'eef-im-3d-training')
 
 	//var size = Math.min(((window.innerWidth / 2) - 120), window.innerHeight * 0.60);
 	var size=500;
@@ -296,12 +282,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 		height: size*0.75,
 		antialias: true,
 		background: '#50817b',
-		intensity: 0.660000,
-		//cameraPose: {x:0,y:0.106,z:1.201},
-		cameraPose: {x:-0.059,y:-0.888,z:0.253},
-		//center: {x:0.006538, y:0.316884, z:0.005329},
-		center: {x:0.020235, y:0.042263, z:0.231021},
-		fov: 45
+		intensity: 0.660000
 	});
 
 	_VIEWER.addObject(
@@ -725,7 +706,6 @@ foreach ($environment['Urdf'] as $urdf) {
 	//changes the stream and the video
 	function changeView(){
 		current_stream_id=(current_stream_id+1) % streams.length;
-		console.log(viewer.camera.projectionMatrix);
 		viewer.changeCamera(current_stream_id);
 		RMS.logString('change-view', 'camera ' + current_stream_id);
 
@@ -850,21 +830,22 @@ foreach ($environment['Urdf'] as $urdf) {
 
 		// Create the main viewer
 		viewer = new ROS3D.Viewer({
-			divID : 'mjpeg2',
-			width: size,
-			height: size*0.75,
-			antialias: true,
-			intensity: 0.660000,
-			cameraPose : {x:-0.131,y:-1.122,z:0.291}, //hand-tuned
-			//cameraPose : {x:-0.131,y:-1.022,z:0.291}, //original
-			center: {x:-0.02738, y:0.107073, z:0.393366}, //hand-tuned
-			//center: {x:-0.01738, y:0.107073, z:0.393366}, //original
-			fov: 45,
+			divID : 'mjpeg',
+			width : size,
+			height : size * 0.75,
+			antialias : true,
 			alpha: 0.1,
 			near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
 			far: 50,
+			fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
+//			cameraPose:{x:-0.02,y:0.44,z:0.10},
+//			cameraRotation:{x:-0.02,y:0.0,z:3.20}, //for the asus overhead camera
+//			frame: '/camera_rgb_optical_frame',
+			cameraPose:{x:-0.022,y:0.33,z:0.0},
+			cameraRotation:{x:-0.1,y:0.0,z:3.2},  //for the asus overhead camera
+			frame: '/camera_rgb_optical_frame',
 			interactive:false,
-			tfClient: _TF
+			tfClient: _TF 
 		});
 		// Setup the marker client.
 		var imClient = new ROS3D.InteractiveMarkerClient({
@@ -877,23 +858,19 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 
 		var camera2=new ROS3D.ViewerCamera({
-			near:0.1,
+			near:0.01,
 			far:50,
-			fov:45,
-			aspect:size/(size*0.75),
-			rootObjectPose : {position:{x:0.002,y:0.120,z:1.329},rotation:{x:0,y:0,z:0}}, //hand-tuned
-			//rootObjectPose : {position:{x:0.002,y:0.120,z:1.199},rotation:{x:0,y:0,z:0}}, //original
-			cameraPosition : {x:0.002,y:0.120,z:1.329}, //hand-tuned
-			//cameraPosition : {x:0.002,y:0.120,z:1.199}, //original
-			center: {x:0.0176, y:0.378509, z:0.00168}, //hand-tuned
-			//center: {x:0.0156, y:0.388509, z:0.00168}, //original
-			tfClient: _TF  //for the asus overhead camera
+  			fov:50,
+  			//rootObjectPose : {position:{x:-0.02,y:-0.26,z:0.22},rotation:{x:-1.85,y:0.03,z:0.07}}, //temporary test TODO fix
+			rootObjectPose : {position:{x:-0.025,y:-0.4,z:-0.4},rotation:{x:-1.68,y:0.03,z:0.075}}, //temporary test TODO fix
+			//cameraRotation:{x:-0.02,y:1.80,z:1.80},
+      		frame: '/camera_side_rgb_optical_frame',
+      		tfClient: _TF  //for the asus overhead camera
 		});
 
 		viewer.addCamera(camera2);
 
-		//new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://rail-engine.cc.gatech.edu/urdf/",param:"robot_description"});
-
+		
 		//focal length done by hand tuning
 		function register_depth_cloud(){
 			depthCloud = new ROS3D.DepthCloud({
@@ -920,8 +897,7 @@ foreach ($environment['Urdf'] as $urdf) {
 //    		depthCloud.addEventListener("mousedown",function(e){
 //    			console.log(e);
 //    		})
-
-			pointClouds.push(depthCloud.video);
+    		pointClouds.push(depthCloud.video);
 			depthCloud2 = new ROS3D.DepthCloud({
       			url : streams[1],
       			f:1000.0,
@@ -935,24 +911,20 @@ foreach ($environment['Urdf'] as $urdf) {
 		      frameID : '/camera_side_depth_optical_frame',
 		      tfClient : _TF,
 		      object : depthCloud2,
-		      pose : {position:{x:0.07,y:-0.02,z:0.0},orientation:{x:0,y:0,z:0}}
+		      pose : {position:{x:0.07,y:-0.04,z:0},orientation:{x:0,y:0,z:0}}
 		    });
-
+			
 
 //    		function draw(c,w,h) {
 //    			//sx and sy are the points on the original stream RGB is in the bottom right
 //    			c.drawImage(pointClouds[current_stream_id],sx=520,sy=520,swidth=size,sheight=size*.75,x=0,y=0,width=w,height=h);
 //    			setTimeout(draw,200,c,w,h);
 //			}
-
 			_VIEWER.addObject(kinectNode,true);
 			_VIEWER.addObject(kinectNode2,true);
-			
 		}
 		//temporary measure to prevent depth cloud mapping from taking all the packets and throttling connection
-
 		setInterval(register_depth_cloud(),5000);
-
 
 	}
 	$(document).ready(function(){init();});

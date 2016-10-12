@@ -756,7 +756,7 @@ echo $this->Html->css('PuzzleBot2DInterface');
 
 	for(var i =0;i<streams.length;i++){
 		videos.push(document.createElement('video'));
-		videos[i].src='http://localhost:9999/stream?topic='+streams[i]+'&type=vp8&bitrate=50000&quality=10';
+		videos[i].src='http://rail-engine.cc.gatech.edu:8080/stream?topic='+streams[i]+'&type=vp8&bitrate=50000&quality=10';
 		videos[i].crossOrigin = 'Anonymous';
 		videos[i].setAttribute('crossorigin', 'Anonymous');
 		videos[i].play();
@@ -772,34 +772,46 @@ echo $this->Html->css('PuzzleBot2DInterface');
 		setTimeout(draw,200,c,w,h);
 	}
 
-	var viewer = new ROS3D.Viewer({
-		divID: 'mjpeg',
+	// Create the main viewer
+	viewer = new ROS3D.Viewer({
+		divID : 'mjpeg',
 		width: size,
-		height: size * 0.75,
+		height: size*0.75,
 		antialias: true,
+		intensity: 0.660000,
+		cameraPose : {x:-0.059,y:-0.888,z:0.253},
+		//cameraPose: {x:0,y:0.106,z:1.201},
+		//center: {x:0.006538, y:0.316884, z:0.005329},
+		center: {x:0.020235, y:0.042263, z:0.231021},
+		fov: 45,
 		alpha: 0.1,
 		near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
 		far: 50,
-		fov: 50,//50, //from ASUS documentation -https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/specifications/
-		cameraPose:{x:-0.022,y:0.33,z:0.0},
-		frame: '/camera_rgb_optical_frame',
-		cameraRotation:{x:0.1,y:0.0,z:0.0},  //for the asus overhead camera
 		interactive:false,
 		tfClient: _TF
 	});
-	//new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://localhost/urdf/",param:"robot_description"});
 
 	var camera2=new ROS3D.ViewerCamera({
 		near:0.1,
 		far:50,
 		fov:45,
-		frame: '/camera_side_rgb_optical_frame',
-		rootObjectPose : {position:{x:-0.025,y:-0.4,z:-0.4},rotation:{x:-1.68,y:0.03,z:-3.2}}, //temporary test TODO fix
+		aspect:size/(size*0.75),
+		//rootObjectPose : {position:{x:-0.02,y:-0.26,z:0.22},rotation:{x:-1.85,y:0.03,z:0.07}}, //temporary test TODO fix
+		//rootObjectPose : {position:{x:-0.059,y:-0.888,z:0.253},rotation:{x:0,y:0,z:0}}, //temporary test TODO fix
+		//cameraPosition : {x:-0.059,y:-0.888,z:0.253},
+		rootObjectPose : {position:{x:0,y:0.106,z:1.201},rotation:{x:0,y:0,z:0}}, //temporary test TODO fix
+		cameraPosition : {x:0,y:0.106,z:1.201},
+		//cameraPose: {x:0,y:0.106,z:1.201},
+		//center: {x:0.006538, y:0.316884, z:0.005329},
 		//cameraRotation:{x:-0.02,y:1.80,z:1.80},
+		//frame: '/table_base_link',
+		//center: {x:0.020235, y:0.042263, z:0.231021},
+		center: {x:0.006538, y:0.316884, z:0.005329},
 		tfClient: _TF  //for the asus overhead camera
 	});
 
 	viewer.addCamera(camera2);
+	//new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://localhost/urdf/",param:"robot_description"});
 
 	// Setup the marker client.
 	var imClient = new ROS3D.InteractiveMarkerClient({

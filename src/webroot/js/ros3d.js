@@ -4,8 +4,8 @@
  */
 
 var ROS3D = ROS3D || {
-  REVISION : '0.17.0-SNAPSHOT'
-};
+      REVISION : '0.17.0-SNAPSHOT'
+    };
 
 // Marker types
 ROS3D.MARKER_ARROW = 0;
@@ -61,6 +61,7 @@ ROS3D.makeColorMaterial = function(r, g, b, a) {
   var color = new THREE.Color();
   color.setRGB(r, g, b);
   if (a <= 0.99) {
+    /*
     return new THREE.MeshBasicMaterial({
       color : color.getHex(),
       opacity : a + 0.1,
@@ -70,7 +71,32 @@ ROS3D.makeColorMaterial = function(r, g, b, a) {
       blendDst : THREE.OneMinusSrcAlphaFactor,
       blendEquation : THREE.ReverseSubtractEquation,
       blending : THREE.NormalBlending
+    });*/
+    return new THREE.MeshPhongMaterial({
+      color : color.getHex(),
+      specular : 0x666666,
+      emissive : color.getHex(),
+      shininess : 10,
+      shading: THREE.FlatShading,
+      opacity : a,
+      transparent : true,
+      depthWrite : false,
+      depthTest : true,
+      //polygonOffset : true,
+      //polygonOffsetUnits : -1,
+      //side : THREE.DoubleSide
     });
+    /*return new THREE.MeshBasicMaterial({
+      color : color.getHex(),
+      fog : false,
+      opacity : a,
+      transparent : true,
+      depthTest : true,
+      depthWrite : false,
+      polygonOffset : true,
+      polygonOffsetUnits : -1,
+      side : THREE.DoubleSide
+    });*/
   } else {
     return new THREE.MeshPhongMaterial({
       color : color.getHex(),
@@ -349,7 +375,7 @@ ROS3D.DepthCloud = function(options) {
     '  gl_Position = projectionMatrix * modelViewMatrix * pos;',
     '  ',
     '}'
-    ].join('\n');
+  ].join('\n');
 
   this.fragment_shader = [
     'uniform sampler2D map;',
@@ -389,7 +415,7 @@ ROS3D.DepthCloud = function(options) {
     '  gl_FragColor = vec4( color.r, color.g, color.b, color.a );',
     '  ',
     '}'
-    ].join('\n');
+  ].join('\n');
 };
 ROS3D.DepthCloud.prototype.__proto__ = THREE.Object3D.prototype;
 
@@ -417,13 +443,13 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
       vertex.y = Math.floor(i / this.width);
       this.geometry.vertices.push(vertex);
 
-       //this.geometry.computeVertexNormals(); 
+      //this.geometry.computeVertexNormals();
       //this.geometry.computeBoundingSphere();
     }
 
 
-    this.geometry.computeFaceNormals(); 
-    
+    this.geometry.computeFaceNormals();
+
     this.material = new THREE.ShaderMaterial({
       uniforms : {
         'map' : {
@@ -651,7 +677,7 @@ ROS3D.InteractiveMarker.prototype.rotateAxis = function(control, origOrientation
 
     var currentControlOri = control.currentControlOri;
     var orientation = currentControlOri.clone().multiply(origOrientation.clone());
-    console.log(orientation);
+    //console.log(orientation);
     var normal = (new THREE.Vector3(1, 0, 0)).applyQuaternion(orientation);
 
     // get plane params in world coords
@@ -709,6 +735,21 @@ ROS3D.InteractiveMarker.prototype.feedbackEvent = function(type, control) {
 };
 
 /**
+ * Dispatch the given event type.
+ *
+ * @param type - the type of event
+ * @param control - the control to use
+ */
+ROS3D.InteractiveMarker.prototype.feedbackEventWithPoint = function(type, control, point) {
+  this.dispatchEvent({
+    type : type,
+    position : point,
+    orientation : this.quaternion.clone(),
+    controlName : control.name
+  });
+};
+
+/**
  * Start a drag action.
  *
  * @param control - the control to use
@@ -756,7 +797,7 @@ ROS3D.InteractiveMarker.prototype.stopDrag = function(control, event3d) {
  */
 ROS3D.InteractiveMarker.prototype.buttonClick = function(control, event3d) {
   event3d.stopPropagation();
-  this.feedbackEvent('user-button-click', control);
+  this.feedbackEventWithPoint('user-button-click', control, event3d.intersection.point);
 };
 
 /**
@@ -1024,7 +1065,7 @@ ROS3D.InteractiveMarkerClient.prototype.eraseIntMarker = function(intMarkerName)
     targetIntMarker.removeEventListener('user-mouseup', handle.onMouseUpBound);
     targetIntMarker.removeEventListener('user-button-click', handle.onButtonClickBound);
     targetIntMarker.removeEventListener('menu-select', handle.onMenuSelectBound);
-    
+
     // remove the handle from the map - after leaving this function's scope, there should be no references to the handle
     delete this.interactiveMarkers[intMarkerName];
     targetIntMarker.dispose();
@@ -1218,7 +1259,7 @@ ROS3D.InteractiveMarkerControl = function(options) {
         path : that.path,
         loader : that.loader
       });
-      
+
       // if transformMsg isn't null, this was called by TFClient
       if (transformMsg !== null) {
         // get the current pose as a ROSLIB.Pose...
@@ -1228,8 +1269,8 @@ ROS3D.InteractiveMarkerControl = function(options) {
         });
         // so we can apply the transform provided by the TFClient
         newPose.applyTransform(new ROSLIB.Transform(transformMsg));
- 
-         // get transform between parent marker's location and its frame
+
+        // get transform between parent marker's location and its frame
         // apply it to sub-marker position to get sub-marker position
         // relative to parent marker
         var transformMarker = new ROS3D.Marker({
@@ -1246,7 +1287,7 @@ ROS3D.InteractiveMarkerControl = function(options) {
           orientation : transformMarker.quaternion
         });
 
-         // apply that transform too
+        // apply that transform too
         newPose.applyTransform(transform);
         markerHelper.setPose(newPose);
 
@@ -1258,7 +1299,7 @@ ROS3D.InteractiveMarkerControl = function(options) {
       // add the marker
       that.add(markerHelper);
     };
-    
+
     // If the marker lives in a separate TF Frame, ask the *local* TFClient
     // for the transformation from the InteractiveMarker frame to the
     // sub-Marker frame
@@ -1399,7 +1440,7 @@ ROS3D.InteractiveMarkerHandle.prototype.setPoseFromClient = function(event) {
  * @param event - the event associated with the button click
  */
 ROS3D.InteractiveMarkerHandle.prototype.onButtonClick = function(event) {
-  this.sendFeedback(ROS3D.INTERACTIVE_MARKER_BUTTON_CLICK, event.clickPosition, 0,
+  this.sendFeedback(ROS3D.INTERACTIVE_MARKER_BUTTON_CLICK, event.position, 0,
       event.controlName);
 };
 
@@ -1444,15 +1485,14 @@ ROS3D.InteractiveMarkerHandle.prototype.onMenuSelect = function(event) {
  * @param controlName - the name of the control
  */
 ROS3D.InteractiveMarkerHandle.prototype.sendFeedback = function(eventType, clickPosition,
-    menuEntryID, controlName) {
-
+                                                                menuEntryID, controlName) {
   // check for the click position
   var mousePointValid = clickPosition !== undefined;
   clickPosition = clickPosition || {
-    x : 0,
-    y : 0,
-    z : 0
-  };
+        x : 0,
+        y : 0,
+        z : 0
+      };
 
   var feedback = {
     header : this.header,
@@ -1678,7 +1718,7 @@ ROS3D.Marker = function(options) {
   }
 
   THREE.Object3D.call(this);
-  
+
   if(message.scale) {
     this.msgScale = [message.scale.x, message.scale.y, message.scale.z];
   }
@@ -1736,7 +1776,7 @@ ROS3D.Marker = function(options) {
       break;
     case ROS3D.MARKER_SPHERE:
       // set the sphere dimensions
-      var sphereGeom = new THREE.SphereGeometry(0.5);
+      var sphereGeom = new THREE.SphereGeometry(0.5, 16, 8);
       var sphereMesh = new THREE.Mesh(sphereGeom, colorMaterial);
       sphereMesh.scale.x = message.scale.x;
       sphereMesh.scale.y = message.scale.y;
@@ -1816,13 +1856,13 @@ ROS3D.Marker = function(options) {
     case ROS3D.MARKER_CUBE_LIST:
       // holds the main object
       var object = new THREE.Object3D();
-      
+
       // check if custom colors should be used
       var numPoints = message.points.length;
       var createColors = (numPoints === message.colors.length);
       // do not render giant lists
       var stepSize = Math.ceil(numPoints / 1250);
-        
+
       // add the points
       var p, cube, curColor, newMesh;
       for (p = 0; p < numPoints; p+=stepSize) {
@@ -1847,25 +1887,25 @@ ROS3D.Marker = function(options) {
     case ROS3D.MARKER_SPHERE_LIST:
       // holds the main object
       var sphereObject = new THREE.Object3D();
-      
+
       // check if custom colors should be used
       var numSpherePoints = message.points.length;
       var createSphereColors = (numSpherePoints === message.colors.length);
       // do not render giant lists
       var sphereStepSize = Math.ceil(numSpherePoints / 1250);
-        
+
       // add the points
       var q, sphere, curSphereColor, newSphereMesh;
       for (q = 0; q < numSpherePoints; q+=sphereStepSize) {
         sphere = new THREE.SphereGeometry(0.5, 8, 8);
-        
+
         // check the color
         if(createSphereColors) {
           curSphereColor = ROS3D.makeColorMaterial(message.colors[q].r, message.colors[q].g, message.colors[q].b, message.colors[q].a);
         } else {
           curSphereColor = colorMaterial;
         }
-        
+
         newSphereMesh = new THREE.Mesh(sphere, curSphereColor);
         newSphereMesh.scale.x = message.scale.x;
         newSphereMesh.scale.y = message.scale.y;
@@ -1932,10 +1972,10 @@ ROS3D.Marker = function(options) {
         // this does need to be set again
         context.font = fontString;
         context.fillStyle = 'rgba('
-          + textColor.r + ', '
-          + textColor.g + ', '
-          + textColor.b + ', '
-          + textColor.a + ')';
+            + textColor.r + ', '
+            + textColor.g + ', '
+            + textColor.b + ', '
+            + textColor.a + ')';
         context.textAlign = 'left';
         context.textBaseline = 'middle';
         context.fillText( message.text, 0, canvas.height/2);
@@ -1957,7 +1997,7 @@ ROS3D.Marker = function(options) {
       // load and add the mesh
       var meshColorMaterial = null;
       if(message.color.r !== 0 || message.color.g !== 0 ||
-         message.color.b !== 0 || message.color.a !== 0) {
+          message.color.b !== 0 || message.color.a !== 0) {
         meshColorMaterial = colorMaterial;
       }
       this.msgMesh = message.mesh_resource.substr(10);
@@ -2015,86 +2055,86 @@ ROS3D.Marker.prototype.setPose = function(pose) {
 ROS3D.Marker.prototype.update = function(message) {
   // set the pose and get the color
   this.setPose(message.pose);
-  
+
   // Update color
   if(message.color.r !== this.msgColor.r ||
-     message.color.g !== this.msgColor.g ||
-     message.color.b !== this.msgColor.b ||
-     message.color.a !== this.msgColor.a)
+      message.color.g !== this.msgColor.g ||
+      message.color.b !== this.msgColor.b ||
+      message.color.a !== this.msgColor.a)
   {
-      var colorMaterial = ROS3D.makeColorMaterial(
-          message.color.r, message.color.g,
-          message.color.b, message.color.a);
-  
-      switch (message.type) {
+    var colorMaterial = ROS3D.makeColorMaterial(
+        message.color.r, message.color.g,
+        message.color.b, message.color.a);
+
+    switch (message.type) {
       case ROS3D.MARKER_LINE_STRIP:
       case ROS3D.MARKER_LINE_LIST:
       case ROS3D.MARKER_POINTS:
-          break;
+        break;
       case ROS3D.MARKER_ARROW:
       case ROS3D.MARKER_CUBE:
       case ROS3D.MARKER_SPHERE:
       case ROS3D.MARKER_CYLINDER:
       case ROS3D.MARKER_TRIANGLE_LIST:
       case ROS3D.MARKER_TEXT_VIEW_FACING:
-          this.traverse (function (child){
-              if (child instanceof THREE.Mesh) {
-                  child.material = colorMaterial;
-              }
-          });
-          break;
-      case ROS3D.MARKER_MESH_RESOURCE:
-          var meshColorMaterial = null;
-          if(message.color.r !== 0 || message.color.g !== 0 ||
-             message.color.b !== 0 || message.color.a !== 0) {
-              meshColorMaterial = this.colorMaterial;
+        this.traverse (function (child){
+          if (child instanceof THREE.Mesh) {
+            child.material = colorMaterial;
           }
-          this.traverse (function (child){
-              if (child instanceof THREE.Mesh) {
-                  child.material = meshColorMaterial;
-              }
-          });
-          break;
+        });
+        break;
+      case ROS3D.MARKER_MESH_RESOURCE:
+        var meshColorMaterial = null;
+        if(message.color.r !== 0 || message.color.g !== 0 ||
+            message.color.b !== 0 || message.color.a !== 0) {
+          meshColorMaterial = this.colorMaterial;
+        }
+        this.traverse (function (child){
+          if (child instanceof THREE.Mesh) {
+            child.material = meshColorMaterial;
+          }
+        });
+        break;
       case ROS3D.MARKER_CUBE_LIST:
       case ROS3D.MARKER_SPHERE_LIST:
-          // TODO Support to update color for MARKER_CUBE_LIST & MARKER_SPHERE_LIST
-          return false;
+        // TODO Support to update color for MARKER_CUBE_LIST & MARKER_SPHERE_LIST
+        return false;
       default:
-          return false;
-      }
-      
-      this.msgColor = message.color;
+        return false;
+    }
+
+    this.msgColor = message.color;
   }
-  
+
   // Update geometry
   var scaleChanged =
-        Math.abs(this.msgScale[0] - message.scale.x) > 1.0e-6 ||
-        Math.abs(this.msgScale[1] - message.scale.y) > 1.0e-6 ||
-        Math.abs(this.msgScale[2] - message.scale.z) > 1.0e-6;
+      Math.abs(this.msgScale[0] - message.scale.x) > 1.0e-6 ||
+      Math.abs(this.msgScale[1] - message.scale.y) > 1.0e-6 ||
+      Math.abs(this.msgScale[2] - message.scale.z) > 1.0e-6;
   this.msgScale = [message.scale.x, message.scale.y, message.scale.z];
-  
+
   switch (message.type) {
     case ROS3D.MARKER_CUBE:
     case ROS3D.MARKER_SPHERE:
     case ROS3D.MARKER_CYLINDER:
-        if(scaleChanged) {
-            return false;
-        }
-        break;
+      if(scaleChanged) {
+        return false;
+      }
+      break;
     case ROS3D.MARKER_TEXT_VIEW_FACING:
-        if(scaleChanged || this.text !== message.text) {
-            return false;
-        }
-        break;
+      if(scaleChanged || this.text !== message.text) {
+        return false;
+      }
+      break;
     case ROS3D.MARKER_MESH_RESOURCE:
-        var meshResource = message.mesh_resource.substr(10);
-        if(meshResource !== this.msgMesh) {
-            return false;
-        }
-        if(scaleChanged) {
-            return false;
-        }
-        break;
+      var meshResource = message.mesh_resource.substr(10);
+      if(meshResource !== this.msgMesh) {
+        return false;
+      }
+      if(scaleChanged) {
+        return false;
+      }
+      break;
     case ROS3D.MARKER_ARROW:
     case ROS3D.MARKER_LINE_STRIP:
     case ROS3D.MARKER_LINE_LIST:
@@ -2102,12 +2142,12 @@ ROS3D.Marker.prototype.update = function(message) {
     case ROS3D.MARKER_SPHERE_LIST:
     case ROS3D.MARKER_POINTS:
     case ROS3D.MARKER_TRIANGLE_LIST:
-        // TODO: Check if geometry changed
-        return false;
+      // TODO: Check if geometry changed
+      return false;
     default:
-        break;
+      break;
   }
-  
+
   return true;
 };
 
@@ -2134,10 +2174,10 @@ ROS3D.Marker.prototype.dispose = function() {
       });
     } else {
       if (element.geometry !== undefined) {
-          element.geometry.dispose();
+        element.geometry.dispose();
       }
       if (element.material !== undefined) {
-          element.material.dispose();
+        element.material.dispose();
       }
     }
     element.parent.remove(element);
@@ -2187,7 +2227,7 @@ ROS3D.MarkerArrayClient = function(options) {
     messageType : 'visualization_msgs/MarkerArray',
     compression : 'png'
   });
-  
+
   arrayTopic.subscribe(function(arrayMessage) {
 
     arrayMessage.markers.forEach(function(message) {
@@ -2233,7 +2273,7 @@ ROS3D.MarkerArrayClient = function(options) {
         console.warn('Received marker message with unknown action identifier "'+message.action+'"');
       }
     });
-    
+
     that.emit('change');
   });
 };
@@ -2494,13 +2534,13 @@ ROS3D.Grid = function(options) {
     var position = edge - (i * cellSize);
     var geometryH = new THREE.Geometry();
     geometryH.vertices.push(
-      new THREE.Vector3( -edge, position, 0 ),
-      new THREE.Vector3( edge, position, 0 )
+        new THREE.Vector3( -edge, position, 0 ),
+        new THREE.Vector3( edge, position, 0 )
     );
     var geometryV = new THREE.Geometry();
     geometryV.vertices.push(
-      new THREE.Vector3( position, -edge, 0 ),
-      new THREE.Vector3( position, edge, 0 )
+        new THREE.Vector3( position, -edge, 0 ),
+        new THREE.Vector3( position, edge, 0 )
     );
     this.add(new THREE.Line(geometryH, material));
     this.add(new THREE.Line(geometryV, material));
@@ -2885,35 +2925,35 @@ ROS3D.Odometry = function(options) {
   this.sns = [];
 
   var rosTopic = new ROSLIB.Topic({
-      ros : ros,
-      name : topic,
-      messageType : 'nav_msgs/Odometry'
+    ros : ros,
+    name : topic,
+    messageType : 'nav_msgs/Odometry'
   });
 
   rosTopic.subscribe(function(message) {
-      if(that.sns.length >= that.keep) {
-          that.sns[0].unsubscribeTf();
-          that.rootObject.remove(that.sns[0]);
-          that.sns.shift();
-      }
+    if(that.sns.length >= that.keep) {
+      that.sns[0].unsubscribeTf();
+      that.rootObject.remove(that.sns[0]);
+      that.sns.shift();
+    }
 
-      that.options.origin = new THREE.Vector3( message.pose.pose.position.x, message.pose.pose.position.y,
-                                               message.pose.pose.position.z);
+    that.options.origin = new THREE.Vector3( message.pose.pose.position.x, message.pose.pose.position.y,
+        message.pose.pose.position.z);
 
-      var rot = new THREE.Quaternion(message.pose.pose.orientation.x, message.pose.pose.orientation.y,
-                                     message.pose.pose.orientation.z, message.pose.pose.orientation.w);
-      that.options.direction = new THREE.Vector3(1,0,0);
-      that.options.direction.applyQuaternion(rot);
-      that.options.material = new THREE.MeshBasicMaterial({color: that.color});
-      var arrow = new ROS3D.Arrow(that.options);
+    var rot = new THREE.Quaternion(message.pose.pose.orientation.x, message.pose.pose.orientation.y,
+        message.pose.pose.orientation.z, message.pose.pose.orientation.w);
+    that.options.direction = new THREE.Vector3(1,0,0);
+    that.options.direction.applyQuaternion(rot);
+    that.options.material = new THREE.MeshBasicMaterial({color: that.color});
+    var arrow = new ROS3D.Arrow(that.options);
 
-      that.sns.push(new ROS3D.SceneNode({
-            frameID : message.header.frame_id,
-            tfClient : that.tfClient,
-            object : arrow
-      }));
+    that.sns.push(new ROS3D.SceneNode({
+      frameID : message.header.frame_id,
+      tfClient : that.tfClient,
+      object : arrow
+    }));
 
-      that.rootObject.add(that.sns[ that.sns.length - 1]);
+    that.rootObject.add(that.sns[ that.sns.length - 1]);
   });
 };
 ROS3D.Odometry.prototype.__proto__ = THREE.Object3D.prototype;
@@ -2948,35 +2988,35 @@ ROS3D.Path = function(options) {
   this.line = null;
 
   var rosTopic = new ROSLIB.Topic({
-      ros : ros,
-      name : topic,
-      messageType : 'nav_msgs/Path'
+    ros : ros,
+    name : topic,
+    messageType : 'nav_msgs/Path'
   });
 
   rosTopic.subscribe(function(message) {
-      if(that.sn!==null){
-          that.sn.unsubscribeTf();
-          that.rootObject.remove(that.sn);
-      }
+    if(that.sn!==null){
+      that.sn.unsubscribeTf();
+      that.rootObject.remove(that.sn);
+    }
 
-      var lineGeometry = new THREE.Geometry();
-      for(var i=0; i<message.poses.length;i++){
-          var v3 = new THREE.Vector3( message.poses[i].pose.position.x, message.poses[i].pose.position.y,
-                                      message.poses[i].pose.position.z);
-          lineGeometry.vertices.push(v3);
-      }
+    var lineGeometry = new THREE.Geometry();
+    for(var i=0; i<message.poses.length;i++){
+      var v3 = new THREE.Vector3( message.poses[i].pose.position.x, message.poses[i].pose.position.y,
+          message.poses[i].pose.position.z);
+      lineGeometry.vertices.push(v3);
+    }
 
-      lineGeometry.computeLineDistances();
-      var lineMaterial = new THREE.LineBasicMaterial( { color: that.color } );
-      var line = new THREE.Line( lineGeometry, lineMaterial );
+    lineGeometry.computeLineDistances();
+    var lineMaterial = new THREE.LineBasicMaterial( { color: that.color } );
+    var line = new THREE.Line( lineGeometry, lineMaterial );
 
-      that.sn = new ROS3D.SceneNode({
-          frameID : message.header.frame_id,
-          tfClient : that.tfClient,
-          object : line
-      });
+    that.sn = new ROS3D.SceneNode({
+      frameID : message.header.frame_id,
+      tfClient : that.tfClient,
+      object : line
+    });
 
-      that.rootObject.add(that.sn);
+    that.rootObject.add(that.sn);
   });
 };
 ROS3D.Path.prototype.__proto__ = THREE.Object3D.prototype;
@@ -3012,29 +3052,29 @@ ROS3D.Point = function(options) {
   this.sn = null;
 
   var rosTopic = new ROSLIB.Topic({
-      ros : ros,
-      name : topic,
-      messageType : 'geometry_msgs/PointStamped'
+    ros : ros,
+    name : topic,
+    messageType : 'geometry_msgs/PointStamped'
   });
 
   rosTopic.subscribe(function(message) {
-      if(that.sn!==null){
-          that.sn.unsubscribeTf();
-          that.rootObject.remove(that.sn);
-      }
+    if(that.sn!==null){
+      that.sn.unsubscribeTf();
+      that.rootObject.remove(that.sn);
+    }
 
-      var sphereGeometry = new THREE.SphereGeometry( that.radius );
-      var sphereMaterial = new THREE.MeshBasicMaterial( {color: that.color} );
-      var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-      sphere.position.set(message.point.x, message.point.y, message.point.z);
+    var sphereGeometry = new THREE.SphereGeometry( that.radius );
+    var sphereMaterial = new THREE.MeshBasicMaterial( {color: that.color} );
+    var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    sphere.position.set(message.point.x, message.point.y, message.point.z);
 
-      that.sn = new ROS3D.SceneNode({
-          frameID : message.header.frame_id,
-          tfClient : that.tfClient,
-          object : sphere
-      });
+    that.sn = new ROS3D.SceneNode({
+      frameID : message.header.frame_id,
+      tfClient : that.tfClient,
+      object : sphere
+    });
 
-      that.rootObject.add(that.sn);
+    that.rootObject.add(that.sn);
   });
 };
 ROS3D.Point.prototype.__proto__ = THREE.Object3D.prototype;
@@ -3069,38 +3109,38 @@ ROS3D.Polygon = function(options) {
   this.line = null;
 
   var rosTopic = new ROSLIB.Topic({
-      ros : ros,
-      name : topic,
-      messageType : 'geometry_msgs/PolygonStamped'
+    ros : ros,
+    name : topic,
+    messageType : 'geometry_msgs/PolygonStamped'
   });
 
   rosTopic.subscribe(function(message) {
-      if(that.sn!==null){
-          that.sn.unsubscribeTf();
-          that.rootObject.remove(that.sn);
-      }
+    if(that.sn!==null){
+      that.sn.unsubscribeTf();
+      that.rootObject.remove(that.sn);
+    }
 
-      var lineGeometry = new THREE.Geometry();
-      var v3;
-      for(var i=0; i<message.polygon.points.length;i++){
-          v3 = new THREE.Vector3( message.polygon.points[i].x, message.polygon.points[i].y,
-                                  message.polygon.points[i].z);
-          lineGeometry.vertices.push(v3);
-      }
-      v3 = new THREE.Vector3( message.polygon.points[0].x, message.polygon.points[0].y,
-                              message.polygon.points[0].z);
+    var lineGeometry = new THREE.Geometry();
+    var v3;
+    for(var i=0; i<message.polygon.points.length;i++){
+      v3 = new THREE.Vector3( message.polygon.points[i].x, message.polygon.points[i].y,
+          message.polygon.points[i].z);
       lineGeometry.vertices.push(v3);
-      lineGeometry.computeLineDistances();
-      var lineMaterial = new THREE.LineBasicMaterial( { color: that.color } );
-      var line = new THREE.Line( lineGeometry, lineMaterial );
+    }
+    v3 = new THREE.Vector3( message.polygon.points[0].x, message.polygon.points[0].y,
+        message.polygon.points[0].z);
+    lineGeometry.vertices.push(v3);
+    lineGeometry.computeLineDistances();
+    var lineMaterial = new THREE.LineBasicMaterial( { color: that.color } );
+    var line = new THREE.Line( lineGeometry, lineMaterial );
 
-      that.sn = new ROS3D.SceneNode({
-          frameID : message.header.frame_id,
-          tfClient : that.tfClient,
-          object : line
-      });
+    that.sn = new ROS3D.SceneNode({
+      frameID : message.header.frame_id,
+      tfClient : that.tfClient,
+      object : line
+    });
 
-      that.rootObject.add(that.sn);
+    that.rootObject.add(that.sn);
   });
 };
 ROS3D.Polygon.prototype.__proto__ = THREE.Object3D.prototype;
@@ -3138,34 +3178,34 @@ ROS3D.Pose = function(options) {
   this.sn = null;
 
   var rosTopic = new ROSLIB.Topic({
-      ros : ros,
-      name : topic,
-      messageType : 'geometry_msgs/PoseStamped'
+    ros : ros,
+    name : topic,
+    messageType : 'geometry_msgs/PoseStamped'
   });
 
   rosTopic.subscribe(function(message) {
-      if(that.sn!==null){
-          that.sn.unsubscribeTf();
-          that.rootObject.remove(that.sn);
-      }
+    if(that.sn!==null){
+      that.sn.unsubscribeTf();
+      that.rootObject.remove(that.sn);
+    }
 
-      that.options.origin = new THREE.Vector3( message.pose.position.x, message.pose.position.y,
-                                               message.pose.position.z);
+    that.options.origin = new THREE.Vector3( message.pose.position.x, message.pose.position.y,
+        message.pose.position.z);
 
-      var rot = new THREE.Quaternion(message.pose.orientation.x, message.pose.orientation.y,
-                                     message.pose.orientation.z, message.pose.orientation.w);
-      that.options.direction = new THREE.Vector3(1,0,0);
-      that.options.direction.applyQuaternion(rot);
-      that.options.material = new THREE.MeshBasicMaterial({color: that.color});
-      var arrow = new ROS3D.Arrow(that.options);
+    var rot = new THREE.Quaternion(message.pose.orientation.x, message.pose.orientation.y,
+        message.pose.orientation.z, message.pose.orientation.w);
+    that.options.direction = new THREE.Vector3(1,0,0);
+    that.options.direction.applyQuaternion(rot);
+    that.options.material = new THREE.MeshBasicMaterial({color: that.color});
+    var arrow = new ROS3D.Arrow(that.options);
 
-      that.sn = new ROS3D.SceneNode({
-          frameID : message.header.frame_id,
-          tfClient : that.tfClient,
-          object : arrow
-      });
+    that.sn = new ROS3D.SceneNode({
+      frameID : message.header.frame_id,
+      tfClient : that.tfClient,
+      object : arrow
+    });
 
-      that.rootObject.add(that.sn);
+    that.rootObject.add(that.sn);
   });
 };
 ROS3D.Pose.prototype.__proto__ = THREE.Object3D.prototype;
@@ -3201,56 +3241,56 @@ ROS3D.PoseArray = function(options) {
   this.sn = null;
 
   var rosTopic = new ROSLIB.Topic({
-      ros : ros,
-      name : topic,
-      messageType : 'geometry_msgs/PoseArray'
+    ros : ros,
+    name : topic,
+    messageType : 'geometry_msgs/PoseArray'
   });
 
   rosTopic.subscribe(function(message) {
-      if(that.sn!==null){
-          that.sn.unsubscribeTf();
-          that.rootObject.remove(that.sn);
-      }
+    if(that.sn!==null){
+      that.sn.unsubscribeTf();
+      that.rootObject.remove(that.sn);
+    }
 
-      var group = new THREE.Object3D();
-      var line;
+    var group = new THREE.Object3D();
+    var line;
 
-      for(var i=0;i<message.poses.length;i++){
-          var lineGeometry = new THREE.Geometry();
+    for(var i=0;i<message.poses.length;i++){
+      var lineGeometry = new THREE.Geometry();
 
-          var v3 = new THREE.Vector3( message.poses[i].position.x, message.poses[i].position.y,
-                                      message.poses[i].position.z);
-          lineGeometry.vertices.push(v3);
+      var v3 = new THREE.Vector3( message.poses[i].position.x, message.poses[i].position.y,
+          message.poses[i].position.z);
+      lineGeometry.vertices.push(v3);
 
-          var rot = new THREE.Quaternion(message.poses[i].orientation.x, message.poses[i].orientation.y,
-                                         message.poses[i].orientation.z, message.poses[i].orientation.w);
+      var rot = new THREE.Quaternion(message.poses[i].orientation.x, message.poses[i].orientation.y,
+          message.poses[i].orientation.z, message.poses[i].orientation.w);
 
-          var tip = new THREE.Vector3(that.length,0,0);
-          var side1 = new THREE.Vector3(that.length*0.8, that.length*0.2, 0);
-          var side2 = new THREE.Vector3(that.length*0.8, -that.length*0.2, 0);
-          tip.applyQuaternion(rot);
-          side1.applyQuaternion(rot);
-          side2.applyQuaternion(rot);
+      var tip = new THREE.Vector3(that.length,0,0);
+      var side1 = new THREE.Vector3(that.length*0.8, that.length*0.2, 0);
+      var side2 = new THREE.Vector3(that.length*0.8, -that.length*0.2, 0);
+      tip.applyQuaternion(rot);
+      side1.applyQuaternion(rot);
+      side2.applyQuaternion(rot);
 
-          lineGeometry.vertices.push(tip.add(v3));
-          lineGeometry.vertices.push(side1.add(v3));
-          lineGeometry.vertices.push(side2.add(v3));
-          lineGeometry.vertices.push(tip);
+      lineGeometry.vertices.push(tip.add(v3));
+      lineGeometry.vertices.push(side1.add(v3));
+      lineGeometry.vertices.push(side2.add(v3));
+      lineGeometry.vertices.push(tip);
 
-          lineGeometry.computeLineDistances();
-          var lineMaterial = new THREE.LineBasicMaterial( { color: that.color } );
-          line = new THREE.Line( lineGeometry, lineMaterial );
+      lineGeometry.computeLineDistances();
+      var lineMaterial = new THREE.LineBasicMaterial( { color: that.color } );
+      line = new THREE.Line( lineGeometry, lineMaterial );
 
-          group.add(line);
-      }
+      group.add(line);
+    }
 
-      that.sn = new ROS3D.SceneNode({
-          frameID : message.header.frame_id,
-          tfClient : that.tfClient,
-          object : group
-      });
+    that.sn = new ROS3D.SceneNode({
+      frameID : message.header.frame_id,
+      tfClient : that.tfClient,
+      object : group
+    });
 
-      that.rootObject.add(that.sn);
+    that.rootObject.add(that.sn);
   });
 };
 ROS3D.PoseArray.prototype.__proto__ = THREE.Object3D.prototype;
@@ -3299,9 +3339,9 @@ ROS3D.LaserScan = function(options) {
       if(range < message.range_min || range > message.range_max){
         that.particles.alpha[i] = 0.0;
       }else{
-          var angle = message.angle_min + i * message.angle_increment;
-          that.particles.points[i] = new THREE.Vector3( range * Math.cos(angle), range * Math.sin(angle), 0.0 );
-          that.particles.alpha[i] = 1.0;
+        var angle = message.angle_min + i * message.angle_increment;
+        that.particles.points[i] = new THREE.Vector3( range * Math.cos(angle), range * Math.sin(angle), 0.0 );
+        that.particles.alpha[i] = 1.0;
       }
       that.particles.colors[ i ] = new THREE.Color( that.color );
     }
@@ -3356,7 +3396,7 @@ ROS3D.Particles = function(options) {
     '    gl_PointSize = ', size, '* ( 300.0 / length( mvPosition.xyz ) );',
     '    gl_Position = projectionMatrix * mvPosition;',
     '}'
-    ].join('\n');
+  ].join('\n');
 
   this.fragment_shader = [
     'uniform sampler2D texture;',
@@ -3369,74 +3409,74 @@ ROS3D.Particles = function(options) {
     '    // sets particle texture to desired color',
     '    gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );',
     '}'
-    ].join('\n');
+  ].join('\n');
 
-    this.geom = new THREE.Geometry();
-    for(var i=0;i<this.max_pts;i++){
-        this.geom.vertices.push(new THREE.Vector3( ));
-    }
+  this.geom = new THREE.Geometry();
+  for(var i=0;i<this.max_pts;i++){
+    this.geom.vertices.push(new THREE.Vector3( ));
+  }
 
-    var customUniforms =
-    {
-        texture:   { type: 't', value: THREE.ImageUtils.loadTexture( texture ) },
-    };
+  var customUniforms =
+  {
+    texture:   { type: 't', value: THREE.ImageUtils.loadTexture( texture ) },
+  };
 
-    this.attribs =
-    {
-        customColor:   { type: 'c', value: [] },
-        alpha:         { type: 'f', value: [] }
-    };
+  this.attribs =
+  {
+    customColor:   { type: 'c', value: [] },
+    alpha:         { type: 'f', value: [] }
+  };
 
-    this.shaderMaterial = new THREE.ShaderMaterial(
-    {
+  this.shaderMaterial = new THREE.ShaderMaterial(
+      {
         uniforms:          customUniforms,
         attributes:        this.attribs,
         vertexShader:      this.vertex_shader,
         fragmentShader:    this.fragment_shader,
         transparent: true, alphaTest: 0.5
-    });
+      });
 
-    this.ps = new THREE.ParticleSystem( this.geom, this.shaderMaterial );
-    this.sn = null;
+  this.ps = new THREE.ParticleSystem( this.geom, this.shaderMaterial );
+  this.sn = null;
 
-    this.points = this.geom.vertices;
-    this.colors = this.attribs.customColor.value;
-    this.alpha =  this.attribs.alpha.value;
+  this.points = this.geom.vertices;
+  this.colors = this.attribs.customColor.value;
+  this.alpha =  this.attribs.alpha.value;
 
 };
 
 function setFrame(particles, frame)
 {
-    if(particles.sn===null){
-        particles.sn = new ROS3D.SceneNode({
-            frameID : frame,
-            tfClient : particles.tfClient,
-            object : particles.ps
-        });
+  if(particles.sn===null){
+    particles.sn = new ROS3D.SceneNode({
+      frameID : frame,
+      tfClient : particles.tfClient,
+      object : particles.ps
+    });
 
-        particles.rootObject.add(particles.sn);
-    }
+    particles.rootObject.add(particles.sn);
+  }
 }
 
 function finishedUpdate(particles, n)
 {
-    if(particles.first_size === null){
-        particles.first_size = n;
-        particles.max_pts = Math.max(particles.max_pts, n);
-    }
+  if(particles.first_size === null){
+    particles.first_size = n;
+    particles.max_pts = Math.max(particles.max_pts, n);
+  }
 
-    for(var i=n; i<particles.prev_pts; i++){
-        particles.alpha[i] = 0.0;
-    }
-    particles.prev_pts = n;
+  for(var i=n; i<particles.prev_pts; i++){
+    particles.alpha[i] = 0.0;
+  }
+  particles.prev_pts = n;
 
-    particles.geom.verticesNeedUpdate = true;
-    particles.attribs.customColor.needsUpdate = true;
-    particles.attribs.alpha.needsUpdate = true;
+  particles.geom.verticesNeedUpdate = true;
+  particles.attribs.customColor.needsUpdate = true;
+  particles.attribs.alpha.needsUpdate = true;
 
-    if(n>particles.max_pts){
-        throw 'Attempted to draw more points than max_pts allows';
-    }
+  if(n>particles.max_pts){
+    throw 'Attempted to draw more points than max_pts allows';
+  }
 }
 
 /**
@@ -3444,36 +3484,36 @@ function finishedUpdate(particles, n)
  */
 
 function read_point(msg, index, data_view){
-    var pt = [];
-    var base = msg.point_step * index;
-    var n = 4;
-    for(var fi=0; fi<msg.fields.length; fi++){
-        var si = base + msg.fields[fi].offset;
+  var pt = [];
+  var base = msg.point_step * index;
+  var n = 4;
+  for(var fi=0; fi<msg.fields.length; fi++){
+    var si = base + msg.fields[fi].offset;
 
-        if( msg.fields[fi].name === 'rgb' ){
-            pt[ 'rgb' ] = data_view.getInt32(si, 1);
-        }else{
-            pt[ msg.fields[fi].name ] = data_view.getFloat32(si, 1);
-        }
+    if( msg.fields[fi].name === 'rgb' ){
+      pt[ 'rgb' ] = data_view.getInt32(si, 1);
+    }else{
+      pt[ msg.fields[fi].name ] = data_view.getFloat32(si, 1);
     }
-    return pt;
+  }
+  return pt;
 }
 
 var BASE64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 function decode64(x) {
-    var a = [], z = 0, bits = 0;
+  var a = [], z = 0, bits = 0;
 
-    for (var i = 0, len = x.length; i < len; i++) {
-      z += BASE64.indexOf( x[i] );
-      bits += 6;
-      if(bits>=8){
-          bits -= 8;
-          a.push(z >> bits);
-          z = z & (Math.pow(2, bits)-1);
-      }
-      z = z << 6;
+  for (var i = 0, len = x.length; i < len; i++) {
+    z += BASE64.indexOf( x[i] );
+    bits += 6;
+    if(bits>=8){
+      bits -= 8;
+      a.push(z >> bits);
+      z = z & (Math.pow(2, bits)-1);
     }
-    return a;
+    z = z << 6;
+  }
+  return a;
 }
 
 /**
@@ -3595,15 +3635,15 @@ ROS3D.Urdf = function(options) {
                   visual.geometry.scale.x,
                   visual.geometry.scale.y,
                   visual.geometry.scale.z
-                  );
+              );
             }
 
             // create a scene node with the model
             var sceneNode = new ROS3D.SceneNode({
               frameID : frameID,
-                pose : visual.origin,
-                tfClient : tfClient,
-                object : mesh
+              pose : visual.origin,
+              tfClient : tfClient,
+              object : mesh
             });
             this.add(sceneNode);
           } else {
@@ -3636,9 +3676,9 @@ ROS3D.Urdf = function(options) {
           // Create a scene node with the shape
           var scene = new ROS3D.SceneNode({
             frameID: frameID,
-              pose: visual.origin,
-              tfClient: tfClient,
-              object: shapeMesh
+            pose: visual.origin,
+            tfClient: tfClient,
+            object: shapeMesh
           });
           this.add(scene);
         }
@@ -3781,8 +3821,8 @@ ROS3D.SceneNode.prototype.unsubscribeTf = function() {
  */
 
 /**
-TODO: change where TFClient comes. Retrofit for working stuff
-**/
+ TODO: change where TFClient comes. Retrofit for working stuff
+ **/
 
 /**
  * A Viewer can be used to render an interactive 3D scene to a HTML5 canvas.
@@ -3800,6 +3840,7 @@ TODO: change where TFClient comes. Retrofit for working stuff
  *  * cameraPosition (optional) - the starting position of the camera
  *  * cameraRotation (optional) - the rotation of the origin with respect to the scene
  *  * interactive (optional) - specifies whether the user can interact with the camera
+ *  * center (optional) - specifies the starting center for the orbit
  */
 ROS3D.Viewer = function(options) {
   var that = this;
@@ -3817,21 +3858,25 @@ ROS3D.Viewer = function(options) {
   var interactive = options.interactive;
   var tfClient = options.tfClient;
   var frame = options.frame;
-  if (interactive===undefined){ 
+  if (interactive===undefined){
     interactive=true;
   }
+  var center = options.center || {
+        x : 0,
+        y : 0,
+        z : 0};
 
   var cameraRotation = options.cameraRotation || {
-    x : 0,
-    y : 0,
-    z : 0 
-  };
+        x : 0,
+        y : 0,
+        z : 0
+      };
 
   var cameraPosition = options.cameraPose || {
-    x : 3,
-    y : 3,
-    z : 3
-  };
+        x : 3,
+        y : 3,
+        z : 3
+      };
   var cameraZoomSpeed = options.cameraZoomSpeed || 0.5;
 
   this.cameras = [];
@@ -3853,9 +3898,9 @@ ROS3D.Viewer = function(options) {
   this.rootObject = new THREE.Object3D();
   //only if the frame is set can we move the root object
   if (frame!==undefined){
-   	this.rootObject.translateX(cameraPosition.x);
-   	this.rootObject.translateY(cameraPosition.y);
-   	this.rootObject.translateZ(cameraPosition.z);
+    this.rootObject.translateX(cameraPosition.x);
+    this.rootObject.translateY(cameraPosition.y);
+    this.rootObject.translateZ(cameraPosition.z);
     this.rootObject.rotateX(cameraRotation.x);
     this.rootObject.rotateY(cameraRotation.y);
     this.rootObject.rotateZ(cameraRotation.z);
@@ -3873,7 +3918,8 @@ ROS3D.Viewer = function(options) {
     cameraPosition:cameraPosition,
     rootObjectPose : {position:cameraPosition,rotation:cameraRotation}, //temporary test TODO fix
     tfClient: tfClient,
-    frame: frame
+    frame: frame,
+    center: center
   }));
 
   this.camera= this.cameras[0].camera;
@@ -3882,11 +3928,12 @@ ROS3D.Viewer = function(options) {
 
   // add controls to the camera
 
-this.cameraControls = new ROS3D.OrbitControls({
-  scene : this.rootObject,
-  camera : this.camera
-});
-this.cameraControls.userZoomSpeed = cameraZoomSpeed;
+  this.cameraControls = new ROS3D.OrbitControls({
+    scene : this.rootObject,
+    camera : this.camera,
+    center : center
+  });
+  this.cameraControls.userZoomSpeed = cameraZoomSpeed;
 
 
   // lights
@@ -3961,6 +4008,7 @@ ROS3D.Viewer.prototype.addObject = function(object, selectable) {
  *
  * @param cameraID The ID of the camera from cameras
  */
+/*
 ROS3D.Viewer.prototype.changeCamera = function(cameraID) {
   if (cameraID<this.cameras.length && cameraID>=0){
     this.camera = this.cameras[cameraID].camera;
@@ -3974,7 +4022,31 @@ ROS3D.Viewer.prototype.changeCamera = function(cameraID) {
     this.rootObject.rotation.set(rotation.x,rotation.y,rotation.z);
     this.cameraControls.camera =this.camera;
     this.mouseHandler.camera=this.camera;
-    }
+  }
+};
+*/
+ROS3D.Viewer.prototype.changeCamera = function(cameraID) {
+  if (cameraID<this.cameras.length && cameraID>=0){
+    this.camera = this.cameras[cameraID].camera;
+    var position = this.cameras[cameraID].cameraPosition;
+    //var rotation = this.cameras[cameraID].rootObjectPose.rotation;
+    //move root object rotation to 0,0,0
+
+    //this.rootObject.position.set(0,0,0);
+    //this.rootObject.rotation.set(0,0,0);
+    //this.rootObject.position.set(position.x,position.y,position.z);
+    //this.rootObject.rotation.set(rotation.x,rotation.y,rotation.z);
+
+    this.cameraControls.camera = this.camera;
+    this.cameraControls.camera.position.x = position.x;
+    this.cameraControls.camera.position.y = position.y;
+    this.cameraControls.camera.position.z = position.z;
+    this.cameraControls.center.x = this.cameras[cameraID].center.x;
+    this.cameraControls.center.y = this.cameras[cameraID].center.y;
+    this.cameraControls.center.z = this.cameras[cameraID].center.z;
+    //this.cameraControls.camera.lookAt(this.cameraControls.center);
+    this.mouseHandler.camera=this.camera;
+  }
 };
 
 /**
@@ -3984,7 +4056,7 @@ ROS3D.Viewer.prototype.changeCamera = function(cameraID) {
  * @param viewerCamera A ViewerCamera
  */
 ROS3D.Viewer.prototype.addCamera = function(viewerCamera){
-    this.cameras.push(viewerCamera);
+  this.cameras.push(viewerCamera);
 };
 
 /**
@@ -4026,22 +4098,23 @@ ROS3D.ViewerCamera = function(options) {
   var interactive = options.interactive;
   var aspect = options.aspect;
   var pose = options.pose;
+  this.center = options.center || {x:0, y:0, z:0};
   this.cameraPosition = options.cameraPosition || {
-    x : 0,
-    y : 0,
-    z : 0
-  };
+        x : 0,
+        y : 0,
+        z : 0
+      };
   this.cameraRotation = options.cameraRotation || {
-    x : 0,
-    y : 0,
-    z : 0
-  };
+        x : 0,
+        y : 0,
+        z : 0
+      };
 
   this.rootObjectPose = options.rootObjectPose ||
-  {
-    position:{x:0,y:0,z:0},
-    rotation:{x:0,y:0,z:0}
-  };
+      {
+        position:{x:0,y:0,z:0},
+        rotation:{x:0,y:0,z:0}
+      };
 
   this.cameraZoomSpeed = options.cameraZoomSpeed || 0.5;
 
@@ -4059,7 +4132,7 @@ ROS3D.ViewerCamera = function(options) {
       camera:this.camera,
       frame:options.frame,
       cameraPosition: this.cameraPosition,
-      cameraRotation: this.cameraRotation,
+      cameraRotation: this.cameraRotation
     });
   }
 
@@ -4071,11 +4144,11 @@ ROS3D.ViewerCamera = function(options) {
  */
 
 /*
-@TODO
-change the name of method emitServerPosUpdate
-remove extra variables
-update set camera pose from client
-*/
+ @TODO
+ change the name of method emitServerPosUpdate
+ remove extra variables
+ update set camera pose from client
+ */
 
 /**
  * Handle with signals for the camera
@@ -4087,7 +4160,7 @@ update set camera pose from client
  * @constructor
  * @param options - object with following keys:
  *
-  *  * tfClient - a handle to the TF client to use
+ *  * tfClient - a handle to the TF client to use
  */
 ROS3D.ViewerHandle = function(options) {
   options = options || {};
@@ -4096,23 +4169,23 @@ ROS3D.ViewerHandle = function(options) {
   this.frame = options.frame;
   this.tfTransform = new ROSLIB.Transform();
   this.cameraPosition = options.cameraPosition || {
-    x : 0,
-    y : 0,
-    z : 0
-  };
+        x : 0,
+        y : 0,
+        z : 0
+      };
   this.cameraRotation = options.cameraRotation || {
-    x : 0,
-    y : 0,
-    z : 0
-  };
+        x : 0,
+        y : 0,
+        z : 0
+      };
   //this.camera.zoom = 1.25;
 
   // start by setting the pose
   this.tfUpdateBound = this.tfUpdate.bind(this);
 
   //if there is a frame
-   this.subscribeTf();
-  
+  this.subscribeTf();
+
 };
 
 /**
@@ -4132,8 +4205,8 @@ ROS3D.ViewerHandle.prototype.unsubscribeTf = function() {
  */
 ROS3D.ViewerHandle.prototype.emitServerPoseUpdate = function() {
   var inv = this.tfTransform.clone();
-  console.log(inv);
-  console.log(this.frame);
+  //console.log(inv);
+  //console.log(this.frame);
   inv.rotation.invert();
   inv.translation.multiplyQuaternion(inv.rotation);
   inv.translation.x *= -1;
@@ -4284,8 +4357,8 @@ ROS3D.MouseHandler = function(options) {
 
   // listen to DOM events
   var eventNames = [ 'contextmenu', 'click', 'dblclick', 'mouseout', 'mousedown', 'mouseup',
-      'mousemove', 'mousewheel', 'DOMMouseScroll', 'touchstart', 'touchend', 'touchcancel',
-      'touchleave', 'touchmove' ];
+    'mousemove', 'mousewheel', 'DOMMouseScroll', 'touchstart', 'touchend', 'touchcancel',
+    'touchleave', 'touchmove' ];
   this.listeners = {};
 
   // add event listeners for the associated mouse events
@@ -4312,15 +4385,15 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
     pos_x = 0;
     pos_y = 0;
     for(var i=0; i<domEvent.touches.length; ++i) {
-        pos_x += domEvent.touches[i].clientX;
-        pos_y += domEvent.touches[i].clientY;
+      pos_x += domEvent.touches[i].clientX;
+      pos_y += domEvent.touches[i].clientY;
     }
     pos_x /= domEvent.touches.length;
     pos_y /= domEvent.touches.length;
   }
   else {
-	pos_x = domEvent.clientX;
-	pos_y = domEvent.clientY;
+    pos_x = domEvent.clientX;
+    pos_y = domEvent.clientY;
   }
   var left = pos_x - rect.left - target.clientLeft + target.scrollLeft;
   var top = pos_y - rect.top - target.clientTop + target.scrollTop;
@@ -4483,6 +4556,7 @@ THREE.EventDispatcher.prototype.apply( ROS3D.MouseHandler.prototype );
  * @param userRotateSpeed (optional) - the speed for rotating
  * @param autoRotate (optional) - if the orbit should auto rotate
  * @param autoRotate (optional) - the speed for auto rotating
+ * @param center (optional) - initial center position
  */
 ROS3D.OrbitControls = function(options) {
   THREE.EventDispatcher.call(this);
@@ -4490,7 +4564,8 @@ ROS3D.OrbitControls = function(options) {
   options = options || {};
   var scene = options.scene;
   this.camera = options.camera;
-  this.center = new THREE.Vector3();
+  var center = options.center || {x:0, y:0, z:0};
+  this.center = new THREE.Vector3(center.x, center.y, center.z);
   this.userZoom = true;
   this.userZoomSpeed = options.userZoomSpeed || 1.0;
   this.userRotate = true;
@@ -4565,8 +4640,8 @@ ROS3D.OrbitControls = function(options) {
         moveStartCenter = that.center.clone();
         moveStartPosition = that.camera.position.clone();
         moveStartIntersection = intersectViewPlane(event3D.mouseRay,
-                                                   moveStartCenter,
-                                                   moveStartNormal);
+            moveStartCenter,
+            moveStartNormal);
         break;
       case 2:
         state = STATE.ZOOM;
@@ -4704,7 +4779,7 @@ ROS3D.OrbitControls = function(options) {
       case 1:
         state = STATE.ROTATE;
         rotateStart.set(event.touches[0].pageX - window.scrollX,
-                        event.touches[0].pageY - window.scrollY);
+            event.touches[0].pageY - window.scrollY);
         break;
       case 2:
         state = STATE.NONE;
@@ -4715,12 +4790,12 @@ ROS3D.OrbitControls = function(options) {
         moveStartCenter = that.center.clone();
         moveStartPosition = that.camera.position.clone();
         moveStartIntersection = intersectViewPlane(event3D.mouseRay,
-                                                   moveStartCenter,
-                                                   moveStartNormal);
+            moveStartCenter,
+            moveStartNormal);
         touchStartPosition[0] = new THREE.Vector2(event.touches[0].pageX,
-                                                  event.touches[0].pageY);
+            event.touches[0].pageY);
         touchStartPosition[1] = new THREE.Vector2(event.touches[1].pageX,
-                                                  event.touches[1].pageY);
+            event.touches[1].pageY);
         touchMoveVector[0] = new THREE.Vector2(0, 0);
         touchMoveVector[1] = new THREE.Vector2(0, 0);
         break;
@@ -4750,44 +4825,44 @@ ROS3D.OrbitControls = function(options) {
       this.showAxes();
     } else {
       touchMoveVector[0].set(touchStartPosition[0].x - event.touches[0].pageX,
-                             touchStartPosition[0].y - event.touches[0].pageY);
+          touchStartPosition[0].y - event.touches[0].pageY);
       touchMoveVector[1].set(touchStartPosition[1].x - event.touches[1].pageX,
-                             touchStartPosition[1].y - event.touches[1].pageY);
+          touchStartPosition[1].y - event.touches[1].pageY);
       if (touchMoveVector[0].lengthSq() > touchMoveThreshold &&
           touchMoveVector[1].lengthSq() > touchMoveThreshold) {
         touchStartPosition[0].set(event.touches[0].pageX,
-                                  event.touches[0].pageY);
+            event.touches[0].pageY);
         touchStartPosition[1].set(event.touches[1].pageX,
-                                  event.touches[1].pageY);
+            event.touches[1].pageY);
         if (touchMoveVector[0].dot(touchMoveVector[1]) > 0 &&
             state !== STATE.ZOOM) {
           state = STATE.MOVE;
         } else if (touchMoveVector[0].dot(touchMoveVector[1]) < 0 &&
-                   state !== STATE.MOVE) {
+            state !== STATE.MOVE) {
           state = STATE.ZOOM;
         }
         if (state === STATE.ZOOM) {
           var tmpVector = new THREE.Vector2();
           tmpVector.subVectors(touchStartPosition[0],
-                               touchStartPosition[1]);
+              touchStartPosition[1]);
           if (touchMoveVector[0].dot(tmpVector) < 0 &&
               touchMoveVector[1].dot(tmpVector) > 0) {
             that.zoomOut();
           } else if (touchMoveVector[0].dot(tmpVector) > 0 &&
-                     touchMoveVector[1].dot(tmpVector) < 0) {
+              touchMoveVector[1].dot(tmpVector) < 0) {
             that.zoomIn();
           }
         }
       }
       if (state === STATE.MOVE) {
         var intersection = intersectViewPlane(event3D.mouseRay,
-                                              that.center,
-                                              moveStartNormal);
+            that.center,
+            moveStartNormal);
         if (!intersection) {
           return;
         }
         var delta = new THREE.Vector3().subVectors(moveStartIntersection.clone(),
-                                                   intersection.clone());
+            intersection.clone());
         that.center.addVectors(moveStartCenter.clone(), delta.clone());
         that.camera.position.addVectors(moveStartPosition.clone(), delta.clone());
         that.update();
@@ -4806,10 +4881,10 @@ ROS3D.OrbitControls = function(options) {
         state !== STATE.ROTATE) {
       state = STATE.ROTATE;
       rotateStart.set(event.touches[0].pageX - window.scrollX,
-                      event.touches[0].pageY - window.scrollY);
+          event.touches[0].pageY - window.scrollY);
     }
     else {
-        state = STATE.NONE;
+      state = STATE.NONE;
     }
   }
 
