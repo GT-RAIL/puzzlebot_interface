@@ -4,7 +4,7 @@ App::uses('InterfaceController', 'Controller');
 /**
  * Puzzle Bot Interface Controller 
  *
- * The is a merged interface for the mjpegcavnas and 3d parts of the canvas. on Puzzlebot
+ * The Crowd Manipulation Interface controller. This interface will allow for navigation and manipulation controls.
  *
  * @author		Carl Saldanha - csaldanha3@gatech.edu
  * @copyright	2016 Georgia Institute Of Technology
@@ -13,7 +13,7 @@ App::uses('InterfaceController', 'Controller');
  * @version		0.0.1
  * @package		app.Controller
  */
-class PuzzleBotInteractiveOverlayInterfaceController extends InterfaceController {
+class PuzzleBotClick3DInterfaceController extends InterfaceController {
 /**
  * The basic view action. All necessary variables are set in the main interface controller.
  *
@@ -22,7 +22,7 @@ class PuzzleBotInteractiveOverlayInterfaceController extends InterfaceController
 	public function view() {
 		
 		// set the title of the HTML page
-		$this->set('title_for_layout', 'Nimbus Learning from demonstration Study');
+		$this->set('title_for_layout', 'Nimbus Robot Study');
 
 		// we will need some RWT libraries
 		$this->set('rwt',
@@ -33,7 +33,7 @@ class PuzzleBotInteractiveOverlayInterfaceController extends InterfaceController
 				'ros3djs' => 'current',
 				'keyboardteleopjs' => 'current',
 				'mjpegcanvasjs' => 'current',
-				'rosqueuejs' => 'current'
+				'rosqueuejs' => 'current' 
 			)
 		);
 
@@ -42,7 +42,7 @@ class PuzzleBotInteractiveOverlayInterfaceController extends InterfaceController
 
 	public function admin(){
 		// set the title of the HTML page
-		$this->set('title_for_layout', 'Nimbus Learning from demonstration Study');
+		$this->set('title_for_layout', 'Nimbus Robot Study');
 
 		// we will need some RWT libraries
 		$this->set('rwt',
