@@ -341,11 +341,10 @@ echo $this->Html->css('PuzzleBot3DInterface');
 		})
 	);
 
-	
 
 	//add IMs
 	<?php foreach ($environment['Im'] as $im): ?>
-		if ('<?php echo h($im['topic']); ?>' == '/nimbus_6dof_planning') {	//TODO: replace topic with clickable marker
+		if ('<?php echo h($im['topic']); ?>' == '/point_cloud_clicker') {
 			new ROS3D.InteractiveMarkerClient({
 				ros: _ROS,
 				tfClient: _TF,
@@ -430,7 +429,8 @@ foreach ($environment['Urdf'] as $urdf) {
 	 ****************************************************************************/
 	//TODO populate from ROS
 	 var streams=['http://rail-engine.cc.gatech.edu'+ ':8080/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100','http://rail-engine.cc.gatech.edu'+ ':8080/stream?topic=/depthcloud_encoded_side&type=vp8&bitrate=50000&quality=100'];
-	 /*var streams=[]
+	 var cloudTopics=['/camera_side/depth_registered/points', '/camera/depth_registered/points'];
+	/*var streams=[]
 	 <?php foreach($environment['Pointcloud'] as $pointClouds){
 	 	echo 'streams.push("'.$pointClouds['stream'].'");';
 
@@ -967,10 +967,10 @@ foreach ($environment['Urdf'] as $urdf) {
 			height: size*0.75,
 			antialias: true,
 			intensity: 0.660000,
-			cameraPose : {x:-0.131,y:-1.122,z:0.291}, //hand-tuned
-			//cameraPose : {x:-0.131,y:-1.022,z:0.291}, //original
-			center: {x:-0.02738, y:0.107073, z:0.393366}, //hand-tuned
-			//center: {x:-0.01738, y:0.107073, z:0.393366}, //original
+			cameraPose : {x:-0.107,y:-1.227,z:0.329}, //hand-tuned
+			//cameraPose : {x:-0.107,y:-1.177,z:0.329}, //original
+			center: {x:0.005608, y:0.042784, z:0.262058}, //hand-tuned
+			//center: {x:0.015608, y:0.042784, z:0.247058}, //original
 			fov: 45,
 			alpha: 0.1,
 			near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
@@ -993,77 +993,18 @@ foreach ($environment['Urdf'] as $urdf) {
 			far:50,
 			fov:45,
 			aspect:size/(size*0.75),
-			rootObjectPose : {position:{x:0.002,y:0.120,z:1.329},rotation:{x:0,y:0,z:0}}, //hand-tuned
-			//rootObjectPose : {position:{x:0.002,y:0.120,z:1.199},rotation:{x:0,y:0,z:0}}, //original
-			cameraPosition : {x:0.002,y:0.120,z:1.329}, //hand-tuned
-			//cameraPosition : {x:0.002,y:0.120,z:1.199}, //original
-			center: {x:0.0176, y:0.378509, z:0.00168}, //hand-tuned
-			//center: {x:0.0156, y:0.388509, z:0.00168}, //original
+			rootObjectPose : {position:{x:0.025,y:0.118,z:1.287},rotation:{x:0,y:0,z:0}}, //hand-tuned
+			//rootObjectPose : {position:{x:0.025,y:0.118,z:1.197},rotation:{x:0,y:0,z:0}}, //original
+			cameraPosition : {x:0.025,y:0.118,z:1.287}, //hand-tuned
+			//cameraPosition : {x:0.025,y:0.118,z:1.197}, //original
+			center: {x:0.021832, y:0.368916, z:0.000150}, //hand-tuned
+			//center: {x:0.021832, y:0.388916, z:0.000150}, //original
 			tfClient: _TF  //for the asus overhead camera
 		});
 
 		viewer.addCamera(camera2);
 
 		//new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://rail-engine.cc.gatech.edu/urdf/",param:"robot_description"});
-
-		//focal length done by hand tuning
-		function register_depth_cloud(){
-			depthCloud = new ROS3D.DepthCloud({
-      			url : streams[0],
-      			f:1000.0,
-      			width: 640,
-  				height:480
-    		});
-		    depthCloud.startStream();
-			// Create Kinect scene node
-			var kinectNode = new ROS3D.SceneNode({
-		      frameID : '/camera_depth_optical_frame',
-		      tfClient : _TF,
-		      object : depthCloud,
-		      pose : {position:{x:0,y:0,z:0},orientation:{x:0,y:0,z:0}}
-		    });
-			
-//			//duplicate the scene onto a canvas
-//			depthCloud.video.addEventListener('play',function()	{
-//				//TODO fix this width
-//		        draw(canvas.getContext("2d"),size,size*0.75);
-//    		},false);
-//
-//    		depthCloud.addEventListener("mousedown",function(e){
-//    			console.log(e);
-//    		})
-
-			pointClouds.push(depthCloud.video);
-			depthCloud2 = new ROS3D.DepthCloud({
-      			url : streams[1],
-      			f:1000.0,
-      			width: 640,
-  				height:480
-    		});
-		    depthCloud2.startStream();
-		    pointClouds.push(depthCloud2.video)
-			// Create Kinect scene node
-			var kinectNode2 = new ROS3D.SceneNode({
-		      frameID : '/camera_side_depth_optical_frame',
-		      tfClient : _TF,
-		      object : depthCloud2,
-		      pose : {position:{x:0.07,y:-0.02,z:0.0},orientation:{x:0,y:0,z:0}}
-		    });
-
-
-//    		function draw(c,w,h) {
-//    			//sx and sy are the points on the original stream RGB is in the bottom right
-//    			c.drawImage(pointClouds[current_stream_id],sx=520,sy=520,swidth=size,sheight=size*.75,x=0,y=0,width=w,height=h);
-//    			setTimeout(draw,200,c,w,h);
-//			}
-
-			_VIEWER.addObject(kinectNode,true);
-			_VIEWER.addObject(kinectNode2,true);
-			
-		}
-		//temporary measure to prevent depth cloud mapping from taking all the packets and throttling connection
-
-		setInterval(register_depth_cloud(),5000);
 
 		var clickingDisabled = false;
 

@@ -779,10 +779,10 @@ echo $this->Html->css('PuzzleBot2DInterface');
 		height: size*0.75,
 		antialias: true,
 		intensity: 0.660000,
-		cameraPose : {x:-0.059,y:-0.888,z:0.253},
-		//cameraPose: {x:0,y:0.106,z:1.201},
-		//center: {x:0.006538, y:0.316884, z:0.005329},
-		center: {x:0.020235, y:0.042263, z:0.231021},
+		cameraPose : {x:-0.107,y:-1.227,z:0.329}, //hand-tuned
+		//cameraPose : {x:-0.107,y:-1.177,z:0.329}, //original
+		center: {x:0.005608, y:0.042784, z:0.262058}, //hand-tuned
+		//center: {x:0.015608, y:0.042784, z:0.247058}, //original
 		fov: 45,
 		alpha: 0.1,
 		near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
@@ -796,17 +796,12 @@ echo $this->Html->css('PuzzleBot2DInterface');
 		far:50,
 		fov:45,
 		aspect:size/(size*0.75),
-		//rootObjectPose : {position:{x:-0.02,y:-0.26,z:0.22},rotation:{x:-1.85,y:0.03,z:0.07}}, //temporary test TODO fix
-		//rootObjectPose : {position:{x:-0.059,y:-0.888,z:0.253},rotation:{x:0,y:0,z:0}}, //temporary test TODO fix
-		//cameraPosition : {x:-0.059,y:-0.888,z:0.253},
-		rootObjectPose : {position:{x:0,y:0.106,z:1.201},rotation:{x:0,y:0,z:0}}, //temporary test TODO fix
-		cameraPosition : {x:0,y:0.106,z:1.201},
-		//cameraPose: {x:0,y:0.106,z:1.201},
-		//center: {x:0.006538, y:0.316884, z:0.005329},
-		//cameraRotation:{x:-0.02,y:1.80,z:1.80},
-		//frame: '/table_base_link',
-		//center: {x:0.020235, y:0.042263, z:0.231021},
-		center: {x:0.006538, y:0.316884, z:0.005329},
+		rootObjectPose : {position:{x:0.025,y:0.118,z:1.287},rotation:{x:0,y:0,z:0}}, //hand-tuned
+		//rootObjectPose : {position:{x:0.025,y:0.118,z:1.197},rotation:{x:0,y:0,z:0}}, //original
+		cameraPosition : {x:0.025,y:0.118,z:1.287}, //hand-tuned
+		//cameraPosition : {x:0.025,y:0.118,z:1.197}, //original
+		center: {x:0.021832, y:0.368916, z:0.000150}, //hand-tuned
+		//center: {x:0.021832, y:0.388916, z:0.000150}, //original
 		tfClient: _TF  //for the asus overhead camera
 	});
 

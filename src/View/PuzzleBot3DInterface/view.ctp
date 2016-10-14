@@ -855,10 +855,10 @@ foreach ($environment['Urdf'] as $urdf) {
 			height: size*0.75,
 			antialias: true,
 			intensity: 0.660000,
-			cameraPose : {x:-0.131,y:-1.122,z:0.291}, //hand-tuned
-			//cameraPose : {x:-0.131,y:-1.022,z:0.291}, //original
-			center: {x:-0.02738, y:0.107073, z:0.393366}, //hand-tuned
-			//center: {x:-0.01738, y:0.107073, z:0.393366}, //original
+			cameraPose : {x:-0.107,y:-1.227,z:0.329}, //hand-tuned
+			//cameraPose : {x:-0.107,y:-1.177,z:0.329}, //original
+			center: {x:0.005608, y:0.042784, z:0.262058}, //hand-tuned
+			//center: {x:0.015608, y:0.042784, z:0.247058}, //original
 			fov: 45,
 			alpha: 0.1,
 			near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
@@ -881,12 +881,12 @@ foreach ($environment['Urdf'] as $urdf) {
 			far:50,
 			fov:45,
 			aspect:size/(size*0.75),
-			rootObjectPose : {position:{x:0.002,y:0.120,z:1.329},rotation:{x:0,y:0,z:0}}, //hand-tuned
-			//rootObjectPose : {position:{x:0.002,y:0.120,z:1.199},rotation:{x:0,y:0,z:0}}, //original
-			cameraPosition : {x:0.002,y:0.120,z:1.329}, //hand-tuned
-			//cameraPosition : {x:0.002,y:0.120,z:1.199}, //original
-			center: {x:0.0176, y:0.378509, z:0.00168}, //hand-tuned
-			//center: {x:0.0156, y:0.388509, z:0.00168}, //original
+			rootObjectPose : {position:{x:0.025,y:0.118,z:1.287},rotation:{x:0,y:0,z:0}}, //hand-tuned
+			//rootObjectPose : {position:{x:0.025,y:0.118,z:1.197},rotation:{x:0,y:0,z:0}}, //original
+			cameraPosition : {x:0.025,y:0.118,z:1.287}, //hand-tuned
+			//cameraPosition : {x:0.025,y:0.118,z:1.197}, //original
+			center: {x:0.021832, y:0.368916, z:0.000150}, //hand-tuned
+			//center: {x:0.021832, y:0.388916, z:0.000150}, //original
 			tfClient: _TF  //for the asus overhead camera
 		});
 
