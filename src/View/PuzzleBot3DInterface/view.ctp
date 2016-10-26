@@ -12,6 +12,7 @@
  */
 ?>
 
+
 <?php
 //custom styling
 echo $this->Html->css('PuzzleBot3DInterface');
@@ -34,6 +35,9 @@ echo $this->Html->css('PuzzleBot3DInterface');
 
 <html>
 <head>
+<!-- 	<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js'></script>
+	<?php echo $this->Html->script('ColladaLoader.js');?>
+ -->
 
 	<?php
 		echo $this->Html->script('bootstrap.min');
@@ -46,8 +50,8 @@ echo $this->Html->css('PuzzleBot3DInterface');
 	<script type='text/javascript' src='http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.1/fabric.min.js'></script>
 	
 	<?php echo $this->Html->script('mjpegcanvas.js');?>
-	<?php echo $this->Html->script('ros3d.js');?>
-
+	<?php echo $this->Html->script('ros3d_old.js');?>
+ 
 
 	<?php
 		echo $this->Rms->tf(
@@ -57,6 +61,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
     		$environment['Tf']['rate']
 		);
 	?>
+
 
 </head>
 
