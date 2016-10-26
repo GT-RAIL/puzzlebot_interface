@@ -30,7 +30,6 @@ class PuzzleBot3DInterfaceController extends InterfaceController {
 				'roslibjs' => 'current',
 				'ros2djs' => 'current',
 				'nav2djs' => 'current',
-				'ros3djs' => 'current',
 				'keyboardteleopjs' => 'current',
 				'mjpegcanvasjs' => 'current',
 				'rosqueuejs' => 'current' 

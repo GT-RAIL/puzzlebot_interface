@@ -570,7 +570,6 @@ ROS3D.InteractiveMarker = function(options) {
     orientationWorld : new THREE.Quaternion(),
     event3d : {}
   };
-  console.log(handle.controls);
   // add each control message
   handle.controls.forEach(function(controlMessage) {
     that.add(new ROS3D.InteractiveMarkerControl({
@@ -1109,7 +1108,7 @@ ROS3D.InteractiveMarkerControl = function(options) {
   this.dragging = false;
   this.startMousePos = new THREE.Vector2();
 
-  console.log(message.orientation);
+
   // orientation for the control
   var controlOri = new THREE.Quaternion(message.orientation.x, message.orientation.y,
       message.orientation.z, message.orientation.w);
@@ -1195,7 +1194,6 @@ ROS3D.InteractiveMarkerControl = function(options) {
   } 
   // rotation behavior
   var rotInv = new THREE.Quaternion();
-  console.log(message.orientation_mode);
   var posInv = this.parent.position.clone().multiplyScalar(-1);
   switch (message.orientation_mode) {
     case ROS3D.INTERACTIVE_MARKER_INHERIT:
@@ -1294,11 +1292,12 @@ ROS3D.InteractiveMarkerControl = function(options) {
         // apply that transform too
         newPose.applyTransform(transform);
         markerHelper.setPose(newPose);
-
+        console.log('asd');
         markerHelper.updateMatrixWorld();
         // we only need to set the pose once - at least, this is what RViz seems to be doing, might change in the future
         localTfClient.unsubscribe(markerMsg.header.frame_id);
       }
+
 
       // add the marker
       that.add(markerHelper);
@@ -1761,6 +1760,8 @@ ROS3D.Marker = function(options) {
           headLength = message.scale.z;
         }
       }
+      console.log('arrow');
+      console.log(p1);
       // add the marker
       this.add(new ROS3D.Arrow({
         direction : direction,
@@ -2041,13 +2042,15 @@ ROS3D.Marker.prototype.setPose = function(pose) {
   this.position.x = pose.position.x;
   this.position.y = pose.position.y;
   this.position.z = pose.position.z;
-
   // set the rotation
-  this.quaternion = new THREE.Quaternion(pose.orientation.x, pose.orientation.y,
+  this.quaternion.set(pose.orientation.x, pose.orientation.y,
       pose.orientation.z, pose.orientation.w);
-  this.quaternion.normalize();
-
+  // this.quaternion.normalize();
+    // console.log(this.quaternion);
+  // this.rotation=new THREE.Euler().setFromQuaternion(this.quaternion);
+  // this.rotateX(this.quaternion[0]);
   // update the world
+  // this.updateMatrix();
   this.updateMatrixWorld();
 };
 
@@ -2399,7 +2402,7 @@ ROS3D.Arrow = function(options) {
 
   THREE.Mesh.call(this, geometry, material);
 
-  this.position = origin;
+  this.position.set(origin.x,origin.y,origin.z);
   this.setDirection(direction);
 };
 ROS3D.Arrow.prototype.__proto__ = THREE.Mesh.prototype;
