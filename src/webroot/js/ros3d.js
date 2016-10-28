@@ -47,7 +47,6 @@ ROS3D.INTERACTIVE_MARKER_VIEW_FACING = 2;
 ROS3D.COLLADA_LOADER = 1;
 ROS3D.COLLADA_LOADER_2 = 2;
 
-
 /**
  * Create a THREE material based on the given RGBA values.
  *
@@ -451,10 +450,8 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
       this.geometry.vertices.push(vertex);
      
     }
-    this.geometry.computeBoundingBox();
     this.geometry.computeVertexNormals();
     this.geometry.computeFaceNormals();
-    this.geometry.computeBoundingSphere();
 
     this.material = new THREE.ShaderMaterial({
       uniforms : {
@@ -492,10 +489,80 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
         }
       },
       vertexShader : this.vertex_shader,
-      fragmentShader : this.fragment_shader
+      fragmentShader : this.fragment_shader,
+      side : THREE.DoubleSide
     });
+  
 
     this.mesh = new THREE.Points(this.geometry, this.material);
+    this.mesh.raycast= (function () {
+        var inverseMatrix = new THREE.Matrix4();
+        var ray = new THREE.Ray();
+        var sphere = new THREE.Sphere();
+        return function raycast( raycaster, intersects ) {
+
+        var object = this;
+        var geometry = this.geometry;
+        var matrixWorld = this.matrixWorld;
+        var threshold = raycaster.params.Points.threshold;
+
+        // Checking boundingSphere distance to ray
+
+        if ( geometry.boundingSphere === null ){
+          geometry.computeBoundingSphere();
+        } 
+
+        sphere.copy( geometry.boundingSphere );
+        sphere.applyMatrix4( matrixWorld );
+
+        if ( raycaster.ray.intersectsSphere( sphere ) === false ){
+            return;
+        } 
+
+        //
+
+        inverseMatrix.getInverse( matrixWorld );
+        ray.copy( raycaster.ray ).applyMatrix4( inverseMatrix );
+
+        var localThreshold = threshold / ( ( this.scale.x + this.scale.y + this.scale.z ) / 3 );
+        var localThresholdSq = localThreshold * localThreshold;
+        var position = new THREE.Vector3();
+
+        function testPoint( point, index ) {
+
+          var rayPointDistanceSq = ray.distanceSqToPoint( point );
+
+          if ( rayPointDistanceSq < localThresholdSq ) {
+
+            var intersectPoint = ray.closestPointToPoint( point );
+            intersectPoint.applyMatrix4( matrixWorld );
+
+            var distance = raycaster.ray.origin.distanceTo( intersectPoint );
+
+            if ( distance < raycaster.near || distance > raycaster.far ){
+                return;
+            } 
+
+            intersects.push( {
+
+              distance: distance,
+              distanceToRay: Math.sqrt( rayPointDistanceSq ),
+              point: intersectPoint.clone(),
+              index: index,
+              face: null,
+              object: object
+
+            } );
+
+          }
+      }
+
+      var vertices = geometry.vertices;
+      for ( var i = 0, l = vertices.length; i < l; i ++ ) {
+          testPoint( vertices[ i ], i );
+      }
+      };
+  }());
     this.mesh.position.x = 0;
     this.mesh.position.y = 0;
 
@@ -505,7 +572,8 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
     // };
     //this.geocomputeFaceNormals
     if (this.clickable){
-        this.mesh.addEventListener('click',this.click);
+        this.mesh.addEventListener('click',this.click.bind(this));
+        this.mesh.addEventListener('dblclick',this.click.bind(this));
     }
     var that = this;
 
@@ -514,7 +582,7 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
         that.texture.needsUpdate = true;
 
       }
-    }, 1000 / 30);
+    }, 1000 / 10);
   }
 };
 
@@ -604,7 +672,7 @@ ROS3D.InteractiveMarker = function(options) {
     });
   }
 
-  console.log(this.children);
+  
 };
 ROS3D.InteractiveMarker.prototype.__proto__ = THREE.Object3D.prototype;
 
@@ -691,7 +759,7 @@ ROS3D.InteractiveMarker.prototype.rotateAxis = function(control, origOrientation
 
     var currentControlOri = control.currentControlOri;
     var orientation = currentControlOri.clone().multiply(origOrientation.clone());
-    //console.log(orientation);
+    
     var normal = (new THREE.Vector3(1, 0, 0)).applyQuaternion(orientation);
 
     // get plane params in world coords
@@ -1268,7 +1336,7 @@ ROS3D.InteractiveMarkerControl = function(options) {
   // create visuals (markers)
   message.markers.forEach(function(markerMsg) {
     var addMarker = function(transformMsg) {
-      // console.log(markerMsg);
+      
 
       var markerHelper = new ROS3D.Marker({
         message : markerMsg,
@@ -4222,8 +4290,6 @@ ROS3D.ViewerHandle.prototype.unsubscribeTf = function() {
  */
 ROS3D.ViewerHandle.prototype.emitServerPoseUpdate = function() {
   var inv = this.tfTransform.clone();
-  //console.log(inv);
-  //console.log(this.frame);
   inv.rotation.invert();
   inv.translation.multiplyQuaternion(inv.rotation);
   inv.translation.x *= -1;
@@ -4420,7 +4486,7 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
   // use the THREE raycaster
   var mouseRaycaster = new THREE.Raycaster(); 
   mouseRaycaster.linePrecision = 0.001;
-  mouseRaycaster.params.Points.threshold = 1;
+  mouseRaycaster.params.Points.threshold = 0.6;
   mouseRaycaster.setFromCamera(new THREE.Vector2(deviceX,deviceY),this.camera);
   var mouseRay = mouseRaycaster.ray;
 
@@ -4477,11 +4543,10 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
     //Temp code to do todo
 
     if (target instanceof THREE.Points){
-  console.log(intersections.length);
+      console.log(intersections.length);
 
       // console.log(intersections[0].point);
-      // sphere.position.copy( intersections[0].point );
-      // sphere.scale.set( 1, 1, 1 );
+       
 
     }
     event3D.intersection = this.lastIntersection = intersections[0];

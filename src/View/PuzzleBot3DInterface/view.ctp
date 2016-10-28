@@ -906,12 +906,14 @@ foreach ($environment['Urdf'] as $urdf) {
       			f:1000.0,
       			width: 640,
   				height:480,
-  				pointSize:5,
+  				pointSize:7,
   				clickable:true
     		});
 		    depthCloud.startStream();
+		    //DAVE  CONNECTION TO AGILE IS TO BE MADE HERE
     		depthCloud.click=function(event3d){
-    			console.log("sdsd");
+    			console.log(event3d);
+    			console.log(this.mesh.localToWorld(event3d.intersection.point));
     		}  			
 
 			// Create Kinect scene node
@@ -928,11 +930,13 @@ foreach ($environment['Urdf'] as $urdf) {
       			f:1000.0,
       			width: 640,
   				height:480,
-  				pointSize:5,
+  				pointSize:7,
   				clickable:true
     		});
+    		//DAVE  CONNECTION TO AGILE IS TO BE MADE HERE
     		depthCloud2.click=function(event3d){
-    			console.log("SAdAD");
+    			console.log(event3d);
+    			console.log(this.mesh.localToWorld(event3d.intersection.point));
     		}
 		    depthCloud2.startStream();
 
