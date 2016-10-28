@@ -905,11 +905,15 @@ foreach ($environment['Urdf'] as $urdf) {
       			url : streams[0],
       			f:1000.0,
       			width: 640,
-
   				height:480,
-  				pointSize:5
+  				pointSize:5,
+  				clickable:true
     		});
 		    depthCloud.startStream();
+    		depthCloud.click=function(event3d){
+    			console.log("sdsd");
+    		}  			
+
 			// Create Kinect scene node
 			var kinectNode = new ROS3D.SceneNode({
 		      frameID : '/camera_depth_optical_frame',
@@ -924,9 +928,14 @@ foreach ($environment['Urdf'] as $urdf) {
       			f:1000.0,
       			width: 640,
   				height:480,
-  				pointSize:5
+  				pointSize:5,
+  				clickable:true
     		});
+    		depthCloud2.click=function(event3d){
+    			console.log("SAdAD");
+    		}
 		    depthCloud2.startStream();
+
 		    pointClouds.push(depthCloud2.video)
 			// Create Kinect scene node
 			var kinectNode2 = new ROS3D.SceneNode({
@@ -938,7 +947,7 @@ foreach ($environment['Urdf'] as $urdf) {
 
 			_VIEWER.addObject(kinectNode,true);
 			_VIEWER.addObject(kinectNode2,true);
-			
+		
 		}
 		//temporary measure to prevent depth cloud mapping from taking all the packets and throttling connection
 		setInterval(register_depth_cloud(),5000);

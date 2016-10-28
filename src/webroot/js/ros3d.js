@@ -229,6 +229,7 @@ ROS3D.DepthCloud = function(options) {
   this.width = options.width || 1024;
   this.height = options.height || 1024;
   this.whiteness = options.whiteness || 0;
+  this.clickable = options.clickable || false;
   this.varianceThreshold = options.varianceThreshold || 0.000016667;
 
   var metaLoaded = false;
@@ -241,6 +242,10 @@ ROS3D.DepthCloud = function(options) {
   if (!this.isMjpeg) {
     this.video.loop = true;
   }
+
+  this.click=function(event3d){
+
+  };
 
   this.video.src = this.url;
   this.video.crossOrigin = 'Anonymous';
@@ -416,6 +421,7 @@ ROS3D.DepthCloud = function(options) {
     '  ',
     '}'
   ].join('\n');
+
 };
 ROS3D.DepthCloud.prototype.__proto__ = THREE.Object3D.prototype;
 
@@ -498,6 +504,9 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
     //    that.geometry.computeBoundingSphere();
     // };
     //this.geocomputeFaceNormals
+    if (this.clickable){
+        this.mesh.addEventListener('click',this.click);
+    }
     var that = this;
 
     setInterval(function() {
@@ -1762,8 +1771,7 @@ ROS3D.Marker = function(options) {
           headLength = message.scale.z;
         }
       }
-      console.log('arrow');
-      console.log(p1);
+
       // add the marker
       this.add(new ROS3D.Arrow({
         direction : direction,
@@ -4412,7 +4420,7 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
   // use the THREE raycaster
   var mouseRaycaster = new THREE.Raycaster(); 
   mouseRaycaster.linePrecision = 0.001;
-  mouseRaycaster.params.Points.threshold = 2;
+  mouseRaycaster.params.Points.threshold = 1;
   mouseRaycaster.setFromCamera(new THREE.Vector2(deviceX,deviceY),this.camera);
   var mouseRay = mouseRaycaster.ray;
 
@@ -4533,7 +4541,7 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
 ROS3D.MouseHandler.prototype.notify = function(target, type, event3D) {
   // ensure the type is set
   event3D.type = type;
-
+  // console.log()
   // make the event cancelable
   event3D.cancelBubble = false;
   event3D.stopPropagation = function() {
