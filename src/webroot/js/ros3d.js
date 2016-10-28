@@ -225,7 +225,7 @@ ROS3D.DepthCloud = function(options) {
   this.url = options.url;
   this.streamType = options.streamType || 'vp8';
   this.f = options.f || 526;
-  this.pointSize = options.pointSize || 5;
+  this.pointSize = options.pointSize || 3;
   this.width = options.width || 1024;
   this.height = options.height || 1024;
   this.whiteness = options.whiteness || 0;
@@ -3914,13 +3914,8 @@ ROS3D.Viewer = function(options) {
     this.rootObject.rotateZ(cameraRotation.z);
   }
 
-
-//temp todo remove
-  var sphereGeometry = new THREE.SphereGeometry( 0.1, 32, 32 );
-  var sphereMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, shading: THREE.FlatShading } );
-  var sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
   this.scene.add(this.rootObject);
-  this.scene.add(sphere);
+
   // create the global camera
   this.cameras.push(new ROS3D.ViewerCamera({
     near :near,
@@ -4417,7 +4412,7 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
   // use the THREE raycaster
   var mouseRaycaster = new THREE.Raycaster(); 
   mouseRaycaster.linePrecision = 0.001;
-  mouseRaycaster.params.Points.threshold = 1;
+  mouseRaycaster.params.Points.threshold = 2;
   mouseRaycaster.setFromCamera(new THREE.Vector2(deviceX,deviceY),this.camera);
   var mouseRay = mouseRaycaster.ray;
 

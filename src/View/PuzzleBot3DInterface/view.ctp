@@ -905,7 +905,9 @@ foreach ($environment['Urdf'] as $urdf) {
       			url : streams[0],
       			f:1000.0,
       			width: 640,
-  				height:480
+
+  				height:480,
+  				pointSize:5
     		});
 		    depthCloud.startStream();
 			// Create Kinect scene node
@@ -916,22 +918,13 @@ foreach ($environment['Urdf'] as $urdf) {
 		      pose : {position:{x:0,y:0,z:0},orientation:{x:0,y:0,z:0}}
 		    });
 			
-//			//duplicate the scene onto a canvas
-//			depthCloud.video.addEventListener('play',function()	{
-//				//TODO fix this width
-//		        draw(canvas.getContext("2d"),size,size*0.75);
-//    		},false);
-//
-//    		depthCloud.addEventListener("mousedown",function(e){
-//    			console.log(e);
-//    		})
-
 			pointClouds.push(depthCloud.video);
 			depthCloud2 = new ROS3D.DepthCloud({
       			url : streams[1],
       			f:1000.0,
       			width: 640,
-  				height:480
+  				height:480,
+  				pointSize:5
     		});
 		    depthCloud2.startStream();
 		    pointClouds.push(depthCloud2.video)
@@ -943,19 +936,11 @@ foreach ($environment['Urdf'] as $urdf) {
 		      pose : {position:{x:0.07,y:-0.02,z:0.0},orientation:{x:0,y:0,z:0}}
 		    });
 
-
-//    		function draw(c,w,h) {
-//    			//sx and sy are the points on the original stream RGB is in the bottom right
-//    			c.drawImage(pointClouds[current_stream_id],sx=520,sy=520,swidth=size,sheight=size*.75,x=0,y=0,width=w,height=h);
-//    			setTimeout(draw,200,c,w,h);
-//			}
-
 			_VIEWER.addObject(kinectNode,true);
 			_VIEWER.addObject(kinectNode2,true);
 			
 		}
 		//temporary measure to prevent depth cloud mapping from taking all the packets and throttling connection
-
 		setInterval(register_depth_cloud(),5000);
 
 
