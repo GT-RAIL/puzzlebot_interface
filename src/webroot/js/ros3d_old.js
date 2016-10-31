@@ -4452,9 +4452,7 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
   target = this.lastTarget;
   var intersections = [];
   intersections = mouseRaycaster.intersectObject(this.rootObject, true);
-  //console.log(intersections.length);
   if (intersections.length > 0) {
-    //console.log(target);
     target = intersections[0].object;
     event3D.intersection = this.lastIntersection = intersections[0];
   } else {

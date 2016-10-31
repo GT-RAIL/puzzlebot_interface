@@ -230,7 +230,8 @@ ROS3D.DepthCloud = function(options) {
   this.whiteness = options.whiteness || 0;
   this.clickable = options.clickable || false;
   this.varianceThreshold = options.varianceThreshold || 0.000016667;
-
+  this.viewer= options.viewer;
+  this.frame = options.frame || '';
   var metaLoaded = false;
 
   this.isMjpeg = this.streamType.toLowerCase() === 'mjpeg';
@@ -421,6 +422,34 @@ ROS3D.DepthCloud = function(options) {
     '}'
   ].join('\n');
 
+  this.picking_shader = [
+    'uniform sampler2D map;',
+    'uniform float varianceThreshold;',
+    'uniform float whiteness;',
+    '',
+    'varying vec2 vUvP;',
+    'varying vec2 colorP;',
+    '',
+    'varying float depthVariance;',
+    'varying float maskVal;',
+    '',
+    'void main() {',
+    '  ',
+    '  vec4 color;',
+    '    ',
+    '    color.r =  position.x;',
+    '    ',
+    '    color.g = 0.5;',
+    '    ',
+    '    color.b = 0.0;',
+    '    ',
+    '    color.a = 1.0;',
+    '  ',
+    '  gl_FragColor = vec4( color.r, color.g, color.b, color.a );',
+    '  ',
+    '}'
+  ].join('\n');
+
 };
 ROS3D.DepthCloud.prototype.__proto__ = THREE.Object3D.prototype;
 
@@ -440,18 +469,26 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
   if (this.metaLoaded) {
     this.texture = new THREE.Texture(this.video);
     this.texture.minFilter = THREE.LinearFilter;
-    this.geometry = new THREE.Geometry();
-
+    this.geometry = new THREE.BufferGeometry();
+    this.vertices=[];
     for (var i = 0, l = this.width * this.height; i < l; i++) {
 
-      var vertex = new THREE.Vector3();
-      vertex.x = (i % this.width);
-      vertex.y = Math.floor(i / this.width);
-      this.geometry.vertices.push(vertex);
-     
+      // var vertex = new THREE.Vector3();
+      // vertex.x = (i % this.width);
+      // vertex.y = Math.floor(i / this.width);
+
+      this.vertices.push((i % this.width));
+      this.vertices.push(Math.floor(i / this.width));
+      this.vertices.push(-1);
+      
+      //this.geometry.computeVertexNormals();
+      //this.geometry.computeBoundingSphere();
     }
-    this.geometry.computeVertexNormals();
-    this.geometry.computeFaceNormals();
+
+    var vertices = new Float32Array(this.vertices);
+    this.geometry.addAttribute('position',new THREE.BufferAttribute(vertices,3));
+
+
 
     this.material = new THREE.ShaderMaterial({
       uniforms : {
@@ -490,9 +527,51 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
       },
       vertexShader : this.vertex_shader,
       fragmentShader : this.fragment_shader,
+      vertexColors: THREE.VertexColors,
       side : THREE.DoubleSide
     });
   
+
+    this.picking_material = new THREE.ShaderMaterial({
+      uniforms : {
+        'map' : {
+          type : 't',
+          value : this.texture
+        },
+        'width' : {
+          type : 'f',
+          value : this.width
+        },
+        'height' : {
+          type : 'f',
+          value : this.height
+        },
+        'focallength' : {
+          type : 'f',
+          value : this.f
+        },
+        'pointSize' : {
+          type : 'f',
+          value : this.pointSize
+        },
+        'zOffset' : {
+          type : 'f',
+          value : 0
+        },
+        'whiteness' : {
+          type : 'f',
+          value : this.whiteness
+        },
+        'varianceThreshold' : {
+          type : 'f',
+          value : this.varianceThreshold
+        }
+      },
+      vertexShader : this.vertex_shader,
+      fragmentShader : this.picking_shader,
+      side : THREE.DoubleSide
+    });
+    var size=this.viewer.renderer.getSize();
 
     this.mesh = new THREE.Points(this.geometry, this.material);
     this.mesh.raycast= (function () {
@@ -500,7 +579,6 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
         var ray = new THREE.Ray();
         var sphere = new THREE.Sphere();
         return function raycast( raycaster, intersects ) {
-
         var object = this;
         var geometry = this.geometry;
         var matrixWorld = this.matrixWorld;
@@ -557,10 +635,24 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
           }
       }
 
-      var vertices = geometry.vertices;
-      for ( var i = 0, l = vertices.length; i < l; i ++ ) {
-          testPoint( vertices[ i ], i );
-      }
+      // var vertices = geometry.vertices;
+      // for ( var i = 0, l = vertices.length; i < l; i ++ ) {
+      //     testPoint( vertices[ i ], i );
+      // }
+    // console.log(raycaster);
+
+    that.renderer.render( that.pickingScene, that.viewer.camera, that.renderTarget );
+
+    //create buffer for reading single pixel
+    var pixelBuffer = new Uint8Array( 4 );
+    console.log(pixelBuffer);
+    //read the pixel under the mouse from the texture
+    console.log(that.viewer.mouseHandler.deviceY);
+    that.renderer.readRenderTargetPixels(that.renderTarget, that.viewer.mouseHandler.deviceX, that.viewer.mouseHandler.deviceY, 1, 1, pixelBuffer);
+    console.log(that.texture.height -that.viewer.mouseHandler.deviceY);
+    console.log(pixelBuffer);
+      // console.log(this.material.vertexShader);
+      // console.log(vertices[1]);
       };
   }());
     this.mesh.position.x = 0;
@@ -575,11 +667,27 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
         this.mesh.addEventListener('click',this.click.bind(this));
         this.mesh.addEventListener('dblclick',this.click.bind(this));
     }
+
+    this.pickingScene = new ROS3D.SceneNode({
+          frameID : this.frame.frameID,
+          tfClient : this.frame.tfClient,
+          object : new THREE.Points(this.geometry, this.picking_material),
+          pose : this.frame.pose
+        });
+    this.renderTarget = new THREE.WebGLRenderTarget(size.width , size.height );
+
+    this.renderer = new THREE.WebGLRenderer( { antialias: true } );
+    this.renderer.setClearColor( 0xffffff );
+    this.renderer.setPixelRatio( window.devicePixelRatio );
+    this.renderer.setSize( window.innerWidth, window.innerHeight );
+    this.renderer.sortObjects = false;
+
     var that = this;
 
     setInterval(function() {
       if (that.isMjpeg || that.video.readyState === that.video.HAVE_ENOUGH_DATA) {
         that.texture.needsUpdate = true;
+        // that.geometry.verticesNeedUpdate=true;
 
       }
     }, 1000 / 10);
@@ -4482,6 +4590,9 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
   var top = pos_y - rect.top - target.clientTop + target.scrollTop;
   var deviceX = left / target.clientWidth * 2 - 1;
   var deviceY = -top / target.clientHeight * 2 + 1;
+
+  this.deviceX=left;
+  this.deviceY=top;
   var vector = new THREE.Vector3(deviceX, deviceY, 0.5);
   // use the THREE raycaster
   var mouseRaycaster = new THREE.Raycaster(); 
@@ -4527,14 +4638,13 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
     // for check for right or left mouse button
     if ((domEvent.type === 'mouseup' && domEvent.button === 2) || domEvent.type === 'click' || domEvent.type === 'touchend') {
       this.dragging = false;
-    }
+    } 
     return;
   }
 
   // in the normal case, we need to check what is under the mouse 
   target = this.lastTarget;
   var intersections = [];
-
   intersections = mouseRaycaster.intersectObject(this.rootObject, true);
   
   if (intersections.length > 0) {
@@ -4542,12 +4652,11 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
     target = intersections[0].object;
     //Temp code to do todo
 
-    if (target instanceof THREE.Points){
-      console.log(intersections.length);
-
-      // console.log(intersections[0].point);
-       
-
+    for (var q=0;q<intersections.length;q++){
+      if (intersections[q].object instanceof THREE.Points){
+        // console.log(intersections[q].point); 
+        
+      }      
     }
     event3D.intersection = this.lastIntersection = intersections[0];
   } else {

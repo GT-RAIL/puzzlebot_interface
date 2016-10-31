@@ -907,7 +907,8 @@ foreach ($environment['Urdf'] as $urdf) {
       			width: 640,
   				height:480,
   				pointSize:7,
-  				clickable:true
+  				clickable:true,
+  				viewer:_VIEWER
     		});
 		    depthCloud.startStream();
 		    //DAVE  CONNECTION TO AGILE IS TO BE MADE HERE
@@ -931,7 +932,8 @@ foreach ($environment['Urdf'] as $urdf) {
       			width: 640,
   				height:480,
   				pointSize:7,
-  				clickable:true
+  				clickable:true,
+  				viewer:_VIEWER,
     		});
     		//DAVE  CONNECTION TO AGILE IS TO BE MADE HERE
     		depthCloud2.click=function(event3d){
@@ -948,7 +950,8 @@ foreach ($environment['Urdf'] as $urdf) {
 		      object : depthCloud2,
 		      pose : {position:{x:0.07,y:-0.02,z:0.0},orientation:{x:0,y:0,z:0}}
 		    });
-
+			depthCloud.frame=kinectNode;
+			depthCloud2.frame=kinectNode2;
 			_VIEWER.addObject(kinectNode,true);
 			_VIEWER.addObject(kinectNode2,true);
 		
