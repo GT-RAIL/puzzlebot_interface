@@ -480,12 +480,12 @@ ROS3D.DepthCloud = function(options) {
     '',
     '',
     'void main() {',
-    '  ',
+    '  vec4 P;',
     '  vUvP = vec2( position.x / (width*2.0), position.y / (height*2.0)+0.5 );',
     '  colorP = vec2( position.x / (width*2.0)+0.5 , position.y / (height*2.0)  );',
-    '  ',
     '  vec4 pos = vec4(0.0,0.0,0.0,0.0);',
     '  depthVariance = 0.0;',
+    '  P = vec4(0.0,0.0,0.0,0.0);' ,
     '  ',
     '  if ( (vUvP.x<0.0)|| (vUvP.x>0.5) || (vUvP.y<0.5) || (vUvP.y>0.0))',
     '  {',
@@ -504,6 +504,21 @@ ROS3D.DepthCloud = function(options) {
     '    vec2 maskP = vec2( position.x / (width*2.0), position.y / (height*2.0)  );',
     '    vec4 maskColor = texture2D( map, maskP );',
     '    maskVal = ( maskColor.r + maskColor.g + maskColor.b ) / 3.0 ;',
+    '    if (position.x> (width/2.0)){',
+    '       P.r+=0.25;',
+    '       P.g=(position.x- (width/2.0))/(width/2.0);',
+    '    }',
+    '    else{',
+    '       P.g=(position.x/(width/2.0));',
+    '    }',
+    '    if (position.y> (height/2.0)){',
+    '       P.r+=0.50;',
+    '       P.b=(position.y- (height/2.0))/(height/2.0);',
+    '    }',
+    '    else{',
+    '       P.b=(position.y/(height/2.0));',
+    '    }',
+    '    P.a= (- z + zOffset / 1000.0);',
     '  }',
     '  ',
     '  gl_PointSize = pointSize;',
@@ -557,6 +572,7 @@ ROS3D.DepthCloud = function(options) {
     'uniform float varianceThreshold;',
     'uniform float whiteness;',
     '',
+    'varying vec4 P;',
     'varying vec2 vUvP;',
     'varying vec2 colorP;',
     '',
@@ -568,9 +584,9 @@ ROS3D.DepthCloud = function(options) {
     '  ',
     '  vec4 color;',
     '    ',
-    '    color.r = vUvP.x;',
+    '    color.r = 1.0;',
     '    ',
-    '    color.g = vUvP.y;',
+    '    color.g = 1.0;',
     '    ',
     '    color.b = 1.0;',
     '    ',
@@ -700,6 +716,7 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
       },
       vertexShader : this.picking_vertex_shader,
       fragmentShader : this.picking_shader,
+      vertexColors: THREE.VertexColors,
       side : THREE.DoubleSide
     });
     var size=this.viewer.renderer.getSize();
@@ -710,95 +727,46 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
         var ray = new THREE.Ray();
         var sphere = new THREE.Sphere();
         return function raycast( raycaster, intersects ) {
-        var object = this;
-        var geometry = this.geometry;
-        var matrixWorld = this.matrixWorld;
-        var threshold = raycaster.params.Points.threshold;
+          var object = this;
+          var geometry = this.geometry;
+          var matrixWorld = this.matrixWorld;
 
-        // Checking boundingSphere distance to ray
+          that.renderer.clear(true, true, true);
+          that.viewer.cameraControls.update();
+          that.renderer.render( that.pickingScene, that.viewer.camera, that.renderTarget );
 
-        if ( geometry.boundingSphere === null ){
-          geometry.computeBoundingSphere();
-        } 
+          var size=1;
+          //create buffer for reading single pixel
+          var pixelBuffer = new Uint8Array(4);
+          // console.log(pixelBuffer);
+          //read the pixel under the mouse from the texture
+          that.renderer.readRenderTargetPixels(that.renderTarget, that.viewer.mouseHandler.deviceX, that.viewer.mouseHandler.deviceY, 1,1, pixelBuffer);
+ 
+          // object.localToWorld ( vector )
+          console.log(pixelBuffer);
+          if(!(JSON.stringify(pixelBuffer)==='{"0":255,"1":255,"2":255,"3":255}' || JSON.stringify(pixelBuffer)==='{"0":0,"1":0,"2":0,"3":0}')){
+            var x_position=pixelBuffer[1]*(that.width/2)/255;
+            x_position+=((pixelBuffer[0]===64 || pixelBuffer[0]===191 )?(that.width/2):0);
+            var y_position=pixelBuffer[2]*(that.height/2)/255;
+            y_position+=((pixelBuffer[0]===191 || pixelBuffer[0]===127)?(that.height/2):0); 
+            var z_position = (pixelBuffer[3]/255)*1000;
 
-        sphere.copy( geometry.boundingSphere );
-        sphere.applyMatrix4( matrixWorld );
-
-        if ( raycaster.ray.intersectsSphere( sphere ) === false ){
-            return;
-        } 
-
-        //
-
-        inverseMatrix.getInverse( matrixWorld );
-        ray.copy( raycaster.ray ).applyMatrix4( inverseMatrix );
-
-        var localThreshold = threshold / ( ( this.scale.x + this.scale.y + this.scale.z ) / 3 );
-        var localThresholdSq = localThreshold * localThreshold;
-        var position = new THREE.Vector3();
-
-        function testPoint( point, index ) {
-
-          var rayPointDistanceSq = ray.distanceSqToPoint( point );
-
-          if ( rayPointDistanceSq < localThresholdSq ) {
-
-            var intersectPoint = ray.closestPointToPoint( point );
-            intersectPoint.applyMatrix4( matrixWorld );
-
-            var distance = raycaster.ray.origin.distanceTo( intersectPoint );
-
-            if ( distance < raycaster.near || distance > raycaster.far ){
-                return;
-            } 
-
+            var world_position=that.mesh.localToWorld(new THREE.Vector3( x_position, y_position, z_position ));
             intersects.push( {
-
-              distance: distance,
-              distanceToRay: Math.sqrt( rayPointDistanceSq ),
-              point: intersectPoint.clone(),
-              index: index,
-              face: null,
-              object: object
-
+                    distance: Math.sqrt(ray.distanceSqToPoint(world_position)),
+                    distanceToRay:Math.sqrt(ray.distanceSqToPoint(world_position)),
+                    point: new THREE.Vector3(x_position,y_position,0.0),
+                    index: 0,
+                    face: null,
+                    object: object
             } );
 
           }
-      }
-
-      // var vertices = geometry.vertices;
-      // for ( var i = 0, l = vertices.length; i < l; i ++ ) {
-      //     testPoint( vertices[ i ], i );
-      // }
-    // console.log(raycaster);
-
-    that.renderer.render( that.pickingScene, that.viewer.camera, that.renderTarget );
-
-    //create buffer for reading single pixel
-    var pixelBuffer = new Uint8Array( 4 );
-    // console.log(pixelBuffer);
-    //read the pixel under the mouse from the texture
-
-    that.renderer.readRenderTargetPixels(that.renderTarget, that.viewer.mouseHandler.deviceX, that.viewer.mouseHandler.deviceY, 1, 1, pixelBuffer);
-    if(!(pixelBuffer ===[0,0,0,0] || pixelBuffer === [255,255,255,255])){
-      intersects.push( {
-              distance: 0,
-              distanceToRay:0,
-              point: new THREE.Vector3(pixelBuffer[0],pixelBuffer[1],0.0),
-              index: pixelBuffer[0]+this.width +pixelBuffer[1],
-              face: null,
-              object: object
-      } );
-
-    }
-      // console.log(this.material.vertexShader);
-      // console.log(vertices[1]);
       };
   }());
     this.mesh.position.x = 0;
     this.mesh.position.y = 0;
 
-    this.add(this.mesh);
     // this.texture.onUpdate=function(){
     //    that.geometry.computeBoundingSphere();
     // };
@@ -808,25 +776,24 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
         this.mesh.addEventListener('dblclick',this.click.bind(this));
     }
 
-    this.pickingScene = new ROS3D.SceneNode({
-          frameID : this.frame.frameID,
-          tfClient : this.frame.tfClient,
-          object : new THREE.Points(this.geometry, this.picking_material),
-          pose : this.frame.pose
-        });
-    this.renderTarget = new THREE.WebGLRenderTarget(size.width , size.height );
+    this.pickingScene =    new THREE.Scene();
+    this.pickingScene.add(new THREE.Points(this.geometry, this.picking_material));
+    this.add(this.pickingScene);
+    this.renderTarget = new THREE.WebGLRenderTarget(this.viewer.width , this.viewer.height );
+    this.add(this.mesh);
 
-    this.renderer = new THREE.WebGLRenderer( { antialias: true } );
+    this.renderer = new THREE.WebGLRenderer( { antialias: true,alpha:true} );
     this.renderer.setClearColor( 0xffffff );
-    this.renderer.setPixelRatio( window.devicePixelRatio );
-    this.renderer.setSize( window.innerWidth, window.innerHeight );
+    this.renderer.setSize(this.viewer.width,this.viewer.height);
     this.renderer.sortObjects = false;
-
+    this.renderer.shadowMap.enabled = false;
+    this.renderer.autoClear = false;
     var that = this;
 
     setInterval(function() {
       if (that.isMjpeg || that.video.readyState === that.video.HAVE_ENOUGH_DATA) {
         that.texture.needsUpdate = true;
+        // console.log('needs update');
         // that.geometry.verticesNeedUpdate=true;
 
       }
@@ -4101,6 +4068,12 @@ ROS3D.SceneNode = function(options) {
   this.frameID = options.frameID;
   var object = options.object;
   this.pose = options.pose || new ROSLIB.Pose();
+  if(!options.mouseSubscription){
+    this.mouseSubscription= false;
+  }
+  else{
+    this.mouseSubscription= true;
+  }
   THREE.Object3D.call(this);
 
   // Do not render this object until we receive a TF update
@@ -4212,7 +4185,8 @@ ROS3D.Viewer = function(options) {
   var cameraZoomSpeed = options.cameraZoomSpeed || 0.5;
 
   this.cameras = [];
-
+  this.width=width;
+  this.height=height;
   // create the canvas to render to
   this.renderer = new THREE.WebGLRenderer({
     antialias : antialias,
@@ -4256,7 +4230,7 @@ ROS3D.Viewer = function(options) {
 
   this.camera= this.cameras[0].camera;
 
-  this.scene.add(this.camera);
+  // this.scene.add(this.camera);
 
   // add controls to the camera
 

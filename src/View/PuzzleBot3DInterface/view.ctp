@@ -378,6 +378,12 @@ foreach ($environment['Urdf'] as $urdf) {
 		serviceType : 'std_srvs/Empty'
 	});
 
+	var pointCloudClickClient = new ROSLIB.ActionClient({
+		ros: _ROS,
+		serverName: '/point_cloud_clicker/click_image_point',
+		actionName: 'rail_agile_grasp_msgs/ClickImagePointAction'
+	});
+
 </script>
 
 <script type="text/javascript">
@@ -901,45 +907,82 @@ foreach ($environment['Urdf'] as $urdf) {
 
 		//focal length done by hand tuning
 		function register_depth_cloud(){
-			depthCloud = new ROS3D.DepthCloud({
-      			url : streams[0],
-      			f:1000.0,
-      			width: 640,
-  				height:480,
-  				pointSize:7,
-  				clickable:true,
-  				viewer:_VIEWER
-    		});
-		    depthCloud.startStream();
-		    //DAVE  CONNECTION TO AGILE IS TO BE MADE HERE
-    		depthCloud.click=function(event3d){
-    			console.log(event3d);
-    			console.log(this.mesh.localToWorld(event3d.intersection.point));
-    		}  			
+			// depthCloud = new ROS3D.DepthCloud({
+   //    			url : streams[0],
+   //    			f:1000.0,
+   //    			width: 640,
+  	// 			height:480,
+  	// 			pointSize:7,
+  	// 			clickable:true,
+  	// 			viewer:_VIEWER
+   //  		});
+		 //    depthCloud.startStream();
+		 //    //DAVE  CONNECTION TO AGILE IS TO BE MADE HERE
+   //  		depthCloud.click=function(event3d){
+   //  			console.log('Wrong Pointcloud')
+			// 	// var goal = new ROSLIB.Goal({
+			// 	// 	actionClient: pointCloudClickClient,
+			// 	// 	goalMessage: {
+			// 	// 		x: event3d.intersection.point.y*640/255,
+			// 	// 		y:  event3d.intersection.point.x*480/255,
+			// 	// 		imageWidth: 640,
+			// 	// 		imageHeight:480
+			// 	// 	}
+			// 	// });
+			// 	// console.log(goal);
+			// 	// goal.on('feedback', function (feedback) {
+			// 	// 	console.log(feedback)
+			// 	// });
+			// 	// goal.on('result', function (result) {
+			// 	// 	// RMS.logString('manipulation-result', JSON.stringify(result));
+			// 	// 	// enableInput();
+			// 	// });
+			// 	// goal.send();
+			// } 			
 
 			// Create Kinect scene node
-			var kinectNode = new ROS3D.SceneNode({
-		      frameID : '/camera_depth_optical_frame',
-		      tfClient : _TF,
-		      object : depthCloud,
-		      pose : {position:{x:0,y:0,z:0},orientation:{x:0,y:0,z:0}}
-		    });
+			// var kinectNode = new ROS3D.SceneNode({
+		 //      frameID : '/camera_depth_optical_frame',
+		 //      tfClient : _TF,
+		 //      object : depthCloud,
+		 //      pose : {position:{x:0,y:0,z:0},orientation:{x:0,y:0,z:0}}
+		 //    });
 			
-			pointClouds.push(depthCloud.video);
+			// pointClouds.push(depthCloud.video);
 			depthCloud2 = new ROS3D.DepthCloud({
+				//side camera
       			url : streams[1],
       			f:1000.0,
       			width: 640,
   				height:480,
-  				pointSize:7,
+  				pointSize:3,
   				clickable:true,
   				viewer:_VIEWER,
     		});
+    		//SIDE CAMERA
     		//DAVE  CONNECTION TO AGILE IS TO BE MADE HERE
     		depthCloud2.click=function(event3d){
-    			console.log(event3d);
-    			console.log(this.mesh.localToWorld(event3d.intersection.point));
-    		}
+    			console.log(event3d.intersection.point);
+			var goal = new ROSLIB.Goal({
+					actionClient: pointCloudClickClient,
+					goalMessage: {
+						x: event3d.intersection.point.x,
+						y:  event3d.intersection.point.y,
+						imageWidth: 640,
+						imageHeight:480
+					}
+				});
+
+				goal.on('feedback', function (feedback) {
+					console.log(feedback)
+				});
+				goal.on('result', function (result) {
+					// RMS.logString('manipulation-result', JSON.stringify(result));
+					// enableInput();
+				});
+				goal.send();
+	    	};
+	    	
 		    depthCloud2.startStream();
 
 		    pointClouds.push(depthCloud2.video)
@@ -950,10 +993,11 @@ foreach ($environment['Urdf'] as $urdf) {
 		      object : depthCloud2,
 		      pose : {position:{x:0.07,y:-0.02,z:0.0},orientation:{x:0,y:0,z:0}}
 		    });
-			depthCloud.frame=kinectNode;
+			//depthCloud.frame=kinectNode;
 			depthCloud2.frame=kinectNode2;
-			_VIEWER.addObject(kinectNode,true);
+
 			_VIEWER.addObject(kinectNode2,true);
+			//_VIEWER.addObject(kinectNode,true);
 		
 		}
 		//temporary measure to prevent depth cloud mapping from taking all the packets and throttling connection
