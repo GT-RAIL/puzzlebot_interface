@@ -232,6 +232,7 @@ ROS3D.DepthCloud = function(options) {
   this.varianceThreshold = options.varianceThreshold || 0.000016667;
   this.viewer= options.viewer;
   this.frame = options.frame || '';
+  this.tfClient= options.tfClient;
   var metaLoaded = false;
 
   this.isMjpeg = this.streamType.toLowerCase() === 'mjpeg';
@@ -396,6 +397,7 @@ ROS3D.DepthCloud = function(options) {
     '',
     'varying vec2 vUvP;',
     'varying vec2 colorP;',
+    'varying vec4 P;',
     '',
     'varying float depthVariance;',
     'varying float maskVal;',
@@ -480,7 +482,7 @@ ROS3D.DepthCloud = function(options) {
     '',
     '',
     'void main() {',
-    '  vec4 P;',
+    '  ',
     '  vUvP = vec2( position.x / (width*2.0), position.y / (height*2.0)+0.5 );',
     '  colorP = vec2( position.x / (width*2.0)+0.5 , position.y / (height*2.0)  );',
     '  vec4 pos = vec4(0.0,0.0,0.0,0.0);',
@@ -511,12 +513,12 @@ ROS3D.DepthCloud = function(options) {
     '    else{',
     '       P.g=(position.x/(width/2.0));',
     '    }',
-    '    if (position.y> (height/2.0)){',
+    '    if ((height -position.y)> (height/2.0)){',
     '       P.r+=0.50;',
-    '       P.b=(position.y- (height/2.0))/(height/2.0);',
+    '       P.b=((height -position.y)- (height/2.0))/(height/2.0);',
     '    }',
     '    else{',
-    '       P.b=(position.y/(height/2.0));',
+    '       P.b=((height -position.y)/(height/2.0));',
     '    }',
     '    P.a= (- z + zOffset / 1000.0);',
     '  }',
@@ -584,13 +586,20 @@ ROS3D.DepthCloud = function(options) {
     '  ',
     '  vec4 color;',
     '    ',
-    '    color.r = 1.0;',
+    '  if ( (depthVariance>varianceThreshold) || (maskVal>0.5) ||(vUvP.x<0.0)|| (vUvP.x>0.5) || (vUvP.y<0.5) || (vUvP.y>1.0))',
+    '  {  ',
+    '    discard;',
+    '  }',
+    '  else ',
+    '  {',
+    '    color.r = P.x;',
     '    ',
-    '    color.g = 1.0;',
+    '    color.g = P.y;',
     '    ',
-    '    color.b = 1.0;',
+    '    color.b = P.z;',
     '    ',
-    '    color.a = 1.0;',
+    '    color.a =P.a/10.0;',
+    '  }',
     '  ',
     '  gl_FragColor = vec4( color.r, color.g, color.b, color.a );',
     '  ',
@@ -625,7 +634,7 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
       // vertex.y = Math.floor(i / this.width);
 
       this.vertices.push((i % this.width)); 
-      this.vertices.push(Math.floor(i / this.width));
+      this.vertices.push(parseInt(Math.floor(i / this.width)));
       this.vertices.push(-1);
       
       //this.geometry.computeVertexNormals();
@@ -716,8 +725,7 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
       },
       vertexShader : this.picking_vertex_shader,
       fragmentShader : this.picking_shader,
-      vertexColors: THREE.VertexColors,
-      side : THREE.DoubleSide
+      vertexColors: THREE.VertexColors
     });
     var size=this.viewer.renderer.getSize();
 
@@ -730,38 +738,56 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
           var object = this;
           var geometry = this.geometry;
           var matrixWorld = this.matrixWorld;
+          var size=3;
+          var test= new Uint8Array(4*size*size);
+          var pixelBuffer= new Uint8Array(4);
+          var min_z_index=-1;
+          var min_z=1000;
 
-          that.renderer.clear(true, true, true);
           that.viewer.cameraControls.update();
-          that.renderer.render( that.pickingScene, that.viewer.camera, that.renderTarget );
+          if (that.viewer.mouseHandler.deviceX>0 && that.viewer.mouseHandler.deviceY>0){
+            that.renderer.clear(true, true, true);
+            that.renderer.render( that.pickingScene, that.viewer.camera, that.renderTarget );
+            that.renderer.readRenderTargetPixels(that.renderTarget, that.viewer.mouseHandler.deviceX, that.viewer.height-that.viewer.mouseHandler.deviceY, size,size, test);      
+            // var t2= new Uint8Array(4*500*375);
+            // that.renderer.readRenderTargetPixels(that.renderTarget, 0,0, 500,375, t2);
+            // console.log(t2); 
+            for (var i=0;i<size*size;i++){
+              if(test[(i*4)+3]!==0){
+                if ( min_z>test[(i*4)+3]){
+                  min_z=test[(i*4)+3];
+                  min_z_index=i;
+                }            
+              }
+            }
+            if(min_z_index!==-1){
+              pixelBuffer[0]=test[min_z_index*4];
+              pixelBuffer[1]=test[(min_z_index*4)+1];
+              pixelBuffer[2]=test[(min_z_index*4)+2];
+              pixelBuffer[3]=test[(min_z_index*4)+3];
 
-          var size=1;
-          //create buffer for reading single pixel
-          var pixelBuffer = new Uint8Array(4);
-          // console.log(pixelBuffer);
-          //read the pixel under the mouse from the texture
-          that.renderer.readRenderTargetPixels(that.renderTarget, that.viewer.mouseHandler.deviceX, that.viewer.mouseHandler.deviceY, 1,1, pixelBuffer);
- 
-          // object.localToWorld ( vector )
-          console.log(pixelBuffer);
-          if(!(JSON.stringify(pixelBuffer)==='{"0":255,"1":255,"2":255,"3":255}' || JSON.stringify(pixelBuffer)==='{"0":0,"1":0,"2":0,"3":0}')){
-            var x_position=pixelBuffer[1]*(that.width/2)/255;
-            x_position+=((pixelBuffer[0]===64 || pixelBuffer[0]===191 )?(that.width/2):0);
-            var y_position=pixelBuffer[2]*(that.height/2)/255;
-            y_position+=((pixelBuffer[0]===191 || pixelBuffer[0]===127)?(that.height/2):0); 
-            var z_position = (pixelBuffer[3]/255)*1000;
-
-            var world_position=that.mesh.localToWorld(new THREE.Vector3( x_position, y_position, z_position ));
-            intersects.push( {
-                    distance: Math.sqrt(ray.distanceSqToPoint(world_position)),
-                    distanceToRay:Math.sqrt(ray.distanceSqToPoint(world_position)),
-                    point: new THREE.Vector3(x_position,y_position,0.0),
-                    index: 0,
-                    face: null,
-                    object: object
-            } );
-
-          }
+              if(pixelBuffer[3]!==0 && pixelBuffer[3]!==255){
+                  var x_position=pixelBuffer[1]*(that.width/2)/255;
+                  x_position+=((pixelBuffer[0]===64 || pixelBuffer[0]===191 )?(that.width/2):0);
+                  var y_position=pixelBuffer[2]*(that.height/2)/255;
+                  y_position+=((pixelBuffer[0]===191 || pixelBuffer[0]===127)?(that.height/2):0); 
+                  // console.log(that.viewer.mouseHandler.deviceX+' X '+that.viewer.mouseHandler.deviceY+' Y');
+                  // console.log(y_position);
+                  // console.log(pixelBuffer);
+                  var z_position = (pixelBuffer[3]/255)*1000;
+                  var world_position=that.mesh.localToWorld(new THREE.Vector3( x_position, y_position, z_position ));
+                  intersects.push({
+                          distance: Math.sqrt(ray.distanceSqToPoint(world_position)),
+                          distanceToRay:Math.sqrt(ray.distanceSqToPoint(world_position)),
+                          point: new THREE.Vector3(x_position,y_position,z_position),
+                          index: 0,
+                          face: null,
+                          object: object
+                  });
+              }
+            }
+        }
+        return intersects;
       };
   }());
     this.mesh.position.x = 0;
@@ -776,11 +802,13 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
         this.mesh.addEventListener('dblclick',this.click.bind(this));
     }
 
-    this.pickingScene =    new THREE.Scene();
-    this.pickingScene.add(new THREE.Points(this.geometry, this.picking_material));
-    this.add(this.pickingScene);
+    this.pickingScene =new ROS3D.SceneNode({
+          frameID : this.frame.frameID,
+          tfClient : this.frame.tfClient,
+          object : new THREE.Points(this.geometry, this.picking_material),
+          pose : {position:{x:0.07,y:-0.02,z:0.0},orientation:{x:0,y:0,z:0}}
+        });    
     this.renderTarget = new THREE.WebGLRenderTarget(this.viewer.width , this.viewer.height );
-    this.add(this.mesh);
 
     this.renderer = new THREE.WebGLRenderer( { antialias: true,alpha:true} );
     this.renderer.setClearColor( 0xffffff );
@@ -788,13 +816,14 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
     this.renderer.sortObjects = false;
     this.renderer.shadowMap.enabled = false;
     this.renderer.autoClear = false;
+
+    this.add(this.mesh);
+    //this.add(new THREE.Points(this.geometry, this.picking_material));
     var that = this;
 
     setInterval(function() {
       if (that.isMjpeg || that.video.readyState === that.video.HAVE_ENOUGH_DATA) {
         that.texture.needsUpdate = true;
-        // console.log('needs update');
-        // that.geometry.verticesNeedUpdate=true;
 
       }
     }, 1000 / 10);
@@ -1835,7 +1864,7 @@ ROS3D.InteractiveMarkerMenu = function(options) {
   allMenus[0] = {
     children : []
   };
-
+ 
   THREE.EventDispatcher.call(this);
 
   // create the CSS for this marker if it has not been created
@@ -4074,6 +4103,11 @@ ROS3D.SceneNode = function(options) {
   else{
     this.mouseSubscription= true;
   }
+
+  if(options.visible===undefined){
+    options.visible=true;
+  }
+
   THREE.Object3D.call(this);
 
   // Do not render this object until we receive a TF update
@@ -4095,8 +4129,9 @@ ROS3D.SceneNode = function(options) {
 
     // update the world
     that.updatePose(poseTransformed);
-    that.visible = true;
+    that.visible = options.visible;
   };
+
 
   // listen for TF updates
   this.tfClient.subscribe(this.frameID, this.tfUpdate);
@@ -4163,13 +4198,19 @@ ROS3D.Viewer = function(options) {
   var interactive = options.interactive;
   var tfClient = options.tfClient;
   var frame = options.frame;
+
+  this.pick=options.pick; 
+  if (this.pick===undefined){
+    this.pick=false;
+  }
   if (interactive===undefined){
     interactive=true;
   }
   var center = options.center || {
         x : 0,
         y : 0,
-        z : 0};
+        z : 0
+  };
 
   var cameraRotation = options.cameraRotation || {
         x : 0,
@@ -4193,6 +4234,7 @@ ROS3D.Viewer = function(options) {
     alpha : true,
   });
   this.renderer.setClearColor(parseInt(background.replace('#', '0x'), 16), alpha);
+  this.renderer.setPixelRatio(window.devicePixelRatio);
   this.renderer.sortObjects = false;
   this.renderer.setSize(width, height);
   this.renderer.shadowMap.enabled = false;
@@ -4231,7 +4273,7 @@ ROS3D.Viewer = function(options) {
   this.camera= this.cameras[0].camera;
 
   // this.scene.add(this.camera);
-
+  this.pixelBuffer= new Uint8Array(4*25);  
   // add controls to the camera
 
   this.cameraControls = new ROS3D.OrbitControls({
@@ -4254,7 +4296,7 @@ ROS3D.Viewer = function(options) {
     fallbackObject=this.cameraControls;
   }
   this.rootObject.add(this.selectableObjects);
-
+  this.selectedPoint=[0,0,0,0];
   this.mouseHandler = new ROS3D.MouseHandler({
     renderer : this.renderer,
     camera : this.camera,
@@ -4273,13 +4315,16 @@ ROS3D.Viewer = function(options) {
   function draw() {
     // update the controls
     that.cameraControls.update();
-
     // put light to the top-left of the camera
     that.directionalLight.position = that.camera.localToWorld(new THREE.Vector3(-1, 1, 0));
     that.directionalLight.position.normalize();
-
-    // set the scene
     that.renderer.clear(true, true, true);
+    if (that.pick){
+        pick();
+    }
+    
+    // set the scene
+    // that.renderer.clear(true, true, true);
     that.renderer.render(that.scene, that.camera);
 
     // render any mouseovers
@@ -4287,6 +4332,15 @@ ROS3D.Viewer = function(options) {
 
     // draw the frame
     requestAnimationFrame(draw);
+  }
+
+ this.renderTarget = new THREE.WebGLRenderTarget(this.width , this.height );
+ this.renderTarget.texture.minFilter = THREE.LinearFilter;
+ this.count=0;
+
+  function pick(){
+    // console.log(tha.camera);
+
   }
 
   // add the renderer to the page
@@ -4829,7 +4883,7 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
 ROS3D.MouseHandler.prototype.notify = function(target, type, event3D) {
   // ensure the type is set
   event3D.type = type;
-  // console.log()
+  
   // make the event cancelable
   event3D.cancelBubble = false;
   event3D.stopPropagation = function() {

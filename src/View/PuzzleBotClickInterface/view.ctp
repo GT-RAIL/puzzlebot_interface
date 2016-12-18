@@ -88,17 +88,6 @@ echo $this->Html->css('PuzzleBotClickInterface');
 						</td>
 					</tr>
 				</table>
-					<!--
-					<hr>
-					<b>Switch Cameras:</b>
-					<ul style="margin:0">
-						<select id='mjpegcanvas_select'>
-							<?php foreach ($environment['Stream'] as $stream):?>
-							<option value='<?php echo $stream['topic']?>'><?php echo $stream['name']?></option>
-							<?php endforeach;?>
-						</select>
-					</ul>
-					-->
 			</td>
 			<td>
 				<table>

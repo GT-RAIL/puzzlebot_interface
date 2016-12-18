@@ -306,7 +306,8 @@ echo $this->Html->css('PuzzleBot3DInterface');
 		cameraPose: {x:-0.059,y:-0.888,z:0.253},
 		//center: {x:0.006538, y:0.316884, z:0.005329},
 		center: {x:0.020235, y:0.042263, z:0.231021},
-		fov: 45
+		fov: 45,
+		pick:true
 	});
 
 	_VIEWER.addObject(
@@ -384,6 +385,23 @@ foreach ($environment['Urdf'] as $urdf) {
 		actionName: 'rail_agile_grasp_msgs/ClickImagePointAction'
 	});
 
+	var changePointCloudGS = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/grasp_sampler/change_point_cloud_topic',
+		serviceType : 'rail_agile_grasp_msgs/ChangePointCloud'
+	});
+	var changePointCloudPCC = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/point_cloud_clicker/change_point_cloud_topic',
+		serviceType : 'rail_agile_grasp_msgs/ChangePointCloud'
+	});
+	var changePointCloudRAG = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/rail_agile_grasp/change_point_cloud_topic',
+		serviceType : 'rail_agile_grasp_msgs/ChangePointCloud'
+	});
+
+
 </script>
 
 <script type="text/javascript">
@@ -392,6 +410,8 @@ foreach ($environment['Urdf'] as $urdf) {
 	 ****************************************************************************/
 	//TODO populate from ROS
 	 var streams=['http://rail-engine.cc.gatech.edu'+ ':8080/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100','http://rail-engine.cc.gatech.edu'+ ':8080/stream?topic=/depthcloud_encoded_side&type=vp8&bitrate=50000&quality=100'];
+ 	var cloudTopics=['/camera_side/depth_registered/points', '/camera/depth_registered/points'];
+
 	 /*var streams=[]
 	 <?php foreach($environment['Pointcloud'] as $pointClouds){
 	 	echo 'streams.push("'.$pointClouds['stream'].'");';
@@ -404,10 +424,8 @@ foreach ($environment['Urdf'] as $urdf) {
 	 var canvas=document.getElementById('mjpegcanvas');
 	 canvas.width=size;
 	 canvas.height=size*0.75;
-	 var depthCloud;
-	 var viewer;
 	 //what a lie this is an asus node	 
-	 var kinectNode;
+	 var kinectNodes=[];
 
 	/****************************************************************************
 	 *                          Button Callbacks                                *
@@ -469,7 +487,7 @@ foreach ($environment['Urdf'] as $urdf) {
 
 	$('#changeView').click(function(e) {
 		e.preventDefault();
-		changeView();
+		switchCamera();
 	})
 
 	
@@ -734,11 +752,25 @@ foreach ($environment['Urdf'] as $urdf) {
 	}
 
 	//changes the stream and the video
-	function changeView(){
+	function switchCamera(){
 		current_stream_id=(current_stream_id+1) % streams.length;
-		console.log(viewer.camera.projectionMatrix);
+		var request = new ROSLIB.ServiceRequest({
+			cloudTopic: cloudTopics[current_stream_id]
+		});
 		viewer.changeCamera(current_stream_id);
+		for (var i=0;i<streams.length;i++){
+			if(i!=current_stream_id){
+				kinectNodes[i].visible=false;
+			}
+			else{
+				kinectNodes[current_stream_id].visible=true;
+			}
+		}
+		
 		RMS.logString('change-view', 'camera ' + current_stream_id);
+		changePointCloudGS.callService(request, function(result) {});
+		changePointCloudPCC.callService(request, function(result) {});
+		changePointCloudRAG.callService(request, function(result) {});
 
 	}
 
@@ -907,50 +939,50 @@ foreach ($environment['Urdf'] as $urdf) {
 
 		//focal length done by hand tuning
 		function register_depth_cloud(){
-			// depthCloud = new ROS3D.DepthCloud({
-   //    			url : streams[0],
-   //    			f:1000.0,
-   //    			width: 640,
-  	// 			height:480,
-  	// 			pointSize:7,
-  	// 			clickable:true,
-  	// 			viewer:_VIEWER
-   //  		});
-		 //    depthCloud.startStream();
-		 //    //DAVE  CONNECTION TO AGILE IS TO BE MADE HERE
-   //  		depthCloud.click=function(event3d){
-   //  			console.log('Wrong Pointcloud')
-			// 	// var goal = new ROSLIB.Goal({
-			// 	// 	actionClient: pointCloudClickClient,
-			// 	// 	goalMessage: {
-			// 	// 		x: event3d.intersection.point.y*640/255,
-			// 	// 		y:  event3d.intersection.point.x*480/255,
-			// 	// 		imageWidth: 640,
-			// 	// 		imageHeight:480
-			// 	// 	}
-			// 	// });
-			// 	// console.log(goal);
-			// 	// goal.on('feedback', function (feedback) {
-			// 	// 	console.log(feedback)
-			// 	// });
-			// 	// goal.on('result', function (result) {
-			// 	// 	// RMS.logString('manipulation-result', JSON.stringify(result));
-			// 	// 	// enableInput();
-			// 	// });
-			// 	// goal.send();
-			// } 			
+			var depthCloud = new ROS3D.DepthCloud({
+      			url : streams[0],
+      			f:1000.0,
+      			width: 640,
+  				height:480,
+  				pointSize:3,
+  				clickable:true,
+  				viewer:_VIEWER
+    		});
+		    depthCloud.startStream();
+    		depthCloud.click=function(event3d){
+    			// console.log('Wrong Pointcloud')
+    			console.log(event3d.intersection.point);
+				var goal = new ROSLIB.Goal({
+					actionClient: pointCloudClickClient,
+					goalMessage: {
+						x: event3d.intersection.point.x,
+						y:  event3d.intersection.point.y,
+						imageWidth: 640,
+						imageHeight:480
+					}
+				});
+				goal.on('feedback', function (feedback) {
+					console.log(feedback)
+				});
+				goal.on('result', function (result) {
+					// RMS.logString('manipulation-result', JSON.stringify(result));
+					// enableInput();
+				});
+				goal.send();
+			} 			
 
 			// Create Kinect scene node
-			// var kinectNode = new ROS3D.SceneNode({
-		 //      frameID : '/camera_depth_optical_frame',
-		 //      tfClient : _TF,
-		 //      object : depthCloud,
-		 //      pose : {position:{x:0,y:0,z:0},orientation:{x:0,y:0,z:0}}
-		 //    });
-			
-			// pointClouds.push(depthCloud.video);
-			depthCloud2 = new ROS3D.DepthCloud({
-				//side camera
+			kinectNode = new ROS3D.SceneNode({
+				frameID : '/camera_depth_optical_frame',
+				tfClient : _TF,
+				object : depthCloud,
+				pose : {position:{x:0,y:0,z:0},orientation:{x:0,y:0,z:-0.02}},
+				visible : false
+		    });
+
+			pointClouds.push(depthCloud.video);
+			var depthCloud2 = new ROS3D.DepthCloud({
+			//side camera
       			url : streams[1],
       			f:1000.0,
       			width: 640,
@@ -959,11 +991,10 @@ foreach ($environment['Urdf'] as $urdf) {
   				clickable:true,
   				viewer:_VIEWER,
     		});
-    		//SIDE CAMERA
-    		//DAVE  CONNECTION TO AGILE IS TO BE MADE HERE
-    		depthCloud2.click=function(event3d){
-    			console.log(event3d.intersection.point);
-			var goal = new ROSLIB.Goal({
+			depthCloud2.click=function(event3d){
+				console.log(event3d.intersection.point);
+				console.log('Side Camera');
+				var goal = new ROSLIB.Goal({
 					actionClient: pointCloudClickClient,
 					goalMessage: {
 						x: event3d.intersection.point.x,
@@ -982,10 +1013,9 @@ foreach ($environment['Urdf'] as $urdf) {
 				});
 				goal.send();
 	    	};
-	    	
+	    	 
 		    depthCloud2.startStream();
 
-		    pointClouds.push(depthCloud2.video)
 			// Create Kinect scene node
 			var kinectNode2 = new ROS3D.SceneNode({
 		      frameID : '/camera_side_depth_optical_frame',
@@ -993,12 +1023,19 @@ foreach ($environment['Urdf'] as $urdf) {
 		      object : depthCloud2,
 		      pose : {position:{x:0.07,y:-0.02,z:0.0},orientation:{x:0,y:0,z:0}}
 		    });
-			//depthCloud.frame=kinectNode;
+
+		    pointClouds.push(depthCloud2.video);
+
+			depthCloud.frame=kinectNode;
 			depthCloud2.frame=kinectNode2;
 
+			kinectNodes.push(kinectNode2);
+			kinectNodes.push(kinectNode);
+
 			_VIEWER.addObject(kinectNode2,true);
-			//_VIEWER.addObject(kinectNode,true);
-		
+			_VIEWER.addObject(kinectNode,true);
+
+			
 		}
 		//temporary measure to prevent depth cloud mapping from taking all the packets and throttling connection
 		setInterval(register_depth_cloud(),5000);
