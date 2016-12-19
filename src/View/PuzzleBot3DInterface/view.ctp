@@ -409,7 +409,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	 *                          Global Variables                                *
 	 ****************************************************************************/
 	//TODO populate from ROS
-	 var streams=['http://rail-engine.cc.gatech.edu'+ ':8080/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100','http://rail-engine.cc.gatech.edu'+ ':8080/stream?topic=/depthcloud_encoded_side&type=vp8&bitrate=50000&quality=100'];
+	var streams=['http://rail-engine.cc.gatech.edu'+ ':8080/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100','http://rail-engine.cc.gatech.edu'+ ':8080/stream?topic=/depthcloud_encoded_side&type=vp8&bitrate=50000&quality=100'];
  	var cloudTopics=['/camera_side/depth_registered/points', '/camera/depth_registered/points'];
 
 	 /*var streams=[]
@@ -418,14 +418,14 @@ foreach ($environment['Urdf'] as $urdf) {
 
 	 }
 	 ?>*/
-	 var pointClouds=[];
+	var pointClouds=[];
 	 //points to the current stream being played
-	 var current_stream_id=0;
-	 var canvas=document.getElementById('mjpegcanvas');
-	 canvas.width=size;
-	 canvas.height=size*0.75;
-	 //what a lie this is an asus node	 
-	 var kinectNodes=[];
+	var current_stream_id=0;
+	var canvas=document.getElementById('mjpegcanvas');
+	canvas.width=size;
+	canvas.height=size*0.75;
+	//what a lie this is an asus node	 
+	var kinectNodes=[];
 
 	/****************************************************************************
 	 *                          Button Callbacks                                *
@@ -944,7 +944,7 @@ foreach ($environment['Urdf'] as $urdf) {
       			f:1000.0,
       			width: 640,
   				height:480,
-  				pointSize:3,
+  				pointSize:5,
   				clickable:true,
   				viewer:_VIEWER
     		});
@@ -987,7 +987,7 @@ foreach ($environment['Urdf'] as $urdf) {
       			f:1000.0,
       			width: 640,
   				height:480,
-  				pointSize:3,
+  				pointSize:5,
   				clickable:true,
   				viewer:_VIEWER,
     		});
@@ -1021,7 +1021,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		      frameID : '/camera_side_depth_optical_frame',
 		      tfClient : _TF,
 		      object : depthCloud2,
-		      pose : {position:{x:0.07,y:-0.02,z:0.0},orientation:{x:0,y:0,z:0}}
+		      pose : {position:{x:0.0,y:0.0,z:0.0},orientation:{x:0,y:0,z:0}}
 		    });
 
 		    pointClouds.push(depthCloud2.video);

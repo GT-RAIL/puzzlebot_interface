@@ -4328,7 +4328,7 @@ ROS3D.Viewer = function(options) {
     that.renderer.render(that.scene, that.camera);
 
     // render any mouseovers
-    // that.highlighter.renderHighlight(that.renderer, that.scene, that.camera);
+    that.highlighter.renderHighlight(that.renderer, that.scene, that.camera);
 
     // draw the frame
     requestAnimationFrame(draw);
@@ -4369,23 +4369,6 @@ ROS3D.Viewer.prototype.addObject = function(object, selectable) {
  *
  * @param cameraID The ID of the camera from cameras
  */
-/*
-ROS3D.Viewer.prototype.changeCamera = function(cameraID) {
-  if (cameraID<this.cameras.length && cameraID>=0){
-    this.camera = this.cameras[cameraID].camera;
-    var position = this.cameras[cameraID].rootObjectPose.position;
-    var rotation = this.cameras[cameraID].rootObjectPose.rotation;
-    //move root object rotation to 0,0,0
-
-    this.rootObject.position.set(0,0,0);
-    this.rootObject.rotation.set(0,0,0);
-    this.rootObject.position.set(position.x,position.y,position.z);
-    this.rootObject.rotation.set(rotation.x,rotation.y,rotation.z);
-    this.cameraControls.camera =this.camera;
-    this.mouseHandler.camera=this.camera;
-  }
-};
-*/
 ROS3D.Viewer.prototype.changeCamera = function(cameraID) {
   if (cameraID<this.cameras.length && cameraID>=0){
     this.camera = this.cameras[cameraID].camera;
@@ -4667,7 +4650,7 @@ ROS3D.Highlighter.prototype.renderHighlight = function(renderer, scene, camera) 
   // get webgl objects
   var renderList = [];
   this.getWebglObjects(scene, this.hoverObjs, renderList);
-
+  console.log(renderList.length);
   // define highlight material
   scene.overrideMaterial = new THREE.MeshBasicMaterial({
     fog : false,
