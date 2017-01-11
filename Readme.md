@@ -2,11 +2,13 @@
 
 This is the Repository of the Puzzlebot Interface. The files in this repository are interfaces for the [Robot Management System](https://github.com/gt-rail/rms).
 
+This repository includes the interfaces used in A Comparison of Remote Robot Teleoperation Interfaces for General Object Manipulation (publication forthcoming in HRI2017).  The interfaces align with the evaluation study conditions as follows:
+
+ * Free Positioning : PuzzleBot3DInterface
+ * Constrained Positioing : PuzzleBotNavidget2DInterface
+ * Point-and-Click : PuzzleBotClickInterface
+
 To install RMS, follow instructions on its' [Github](https://github.com/gt-rail/rms).
-
-###Adding this interface to RMS
-
-In the web view of RMS, go to `Admin>ROS Settings>Interfaces` and create 3 new entries with the names `PuzzleBotClick`,`PuzzleBot` and `PuzzleBot3D`.
 
 ###Developing 
 
