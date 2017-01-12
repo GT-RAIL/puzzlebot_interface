@@ -34,6 +34,8 @@ echo $this->Html->css('PuzzleBot3DInterface');
 
 <html>
 <head>
+	<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js'></script>
+	<?php echo $this->Html->script('ColladaLoader.js');?>
 
 	<?php
 		echo $this->Html->script('bootstrap.min');
@@ -1006,8 +1008,104 @@ foreach ($environment['Urdf'] as $urdf) {
 
 		//new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://rail-engine.cc.gatech.edu/urdf/",param:"robot_description"});
 
-		var clickingDisabled = false;
+		//focal length done by hand tuning
+		function register_depth_cloud(){
+			var depthCloud = new ROS3D.DepthCloud({
+      			url : streams[0],
+      			f:1000.0,
+      			width: 640,
+  				height:480,
+  				pointSize:5,
+  				clickable:true,
+  				viewer:_VIEWER
+    		});
+		    depthCloud.startStream();
+    		depthCloud.click=function(event3d){
+    			// console.log('Wrong Pointcloud')
+    			console.log(event3d.intersection.point);
+				var goal = new ROSLIB.Goal({
+					actionClient: pointCloudClickClient,
+					goalMessage: {
+						x: event3d.intersection.point.x,
+						y:  event3d.intersection.point.y,
+						imageWidth: 640,
+						imageHeight:480
+					}
+				});
+				goal.on('feedback', function (feedback) {
+					console.log(feedback)
+				});
+				goal.on('result', function (result) {
+					// RMS.logString('manipulation-result', JSON.stringify(result));
+					// enableInput();
+				});
+				goal.send();
+			} 			
 
+			// Create Kinect scene node
+			kinectNode = new ROS3D.SceneNode({
+				frameID : '/camera_depth_optical_frame',
+				tfClient : _TF,
+				object : depthCloud,
+				pose : {position:{x:0,y:0,z:0},orientation:{x:0,y:0,z:-0.02}},
+				visible : false
+		    });
+
+			pointClouds.push(depthCloud.video);
+			var depthCloud2 = new ROS3D.DepthCloud({
+			//side camera
+      			url : streams[1],
+      			f:1000.0,
+      			width: 640,
+  				height:480,
+  				pointSize:5,
+  				clickable:true,
+  				viewer:_VIEWER,
+    		});
+			depthCloud2.click=function(event3d){
+				console.log(event3d.intersection.point);
+				console.log('Side Camera');
+				var goal = new ROSLIB.Goal({
+					actionClient: pointCloudClickClient,
+					goalMessage: {
+						x: event3d.intersection.point.x,
+						y:  event3d.intersection.point.y,
+						imageWidth: 640,
+						imageHeight:480
+					}
+				});
+
+				goal.on('feedback', function (feedback) {
+					console.log(feedback)
+				});
+				goal.on('result', function (result) {
+					// RMS.logString('manipulation-result', JSON.stringify(result));
+					// enableInput();
+				});
+				goal.send();
+	    	};
+	    	 
+		    depthCloud2.startStream();
+
+			// Create Kinect scene node
+			var kinectNode2 = new ROS3D.SceneNode({
+		      frameID : '/camera_side_depth_optical_frame',
+		      tfClient : _TF,
+		      object : depthCloud2,
+		      pose : {position:{x:0.0,y:0.0,z:0.0},orientation:{x:0,y:0,z:0}}
+		    });
+
+		    pointClouds.push(depthCloud2.video);
+
+			depthCloud.frame=kinectNode;
+			depthCloud2.frame=kinectNode2;
+
+			kinectNodes.push(kinectNode2);
+			kinectNodes.push(kinectNode);
+
+			_VIEWER.addObject(kinectNode2,true);
+			_VIEWER.addObject(kinectNode,true);
+		}
 	}
 	$(document).ready(function(){init();});
 
@@ -1019,7 +1117,7 @@ foreach ($environment['Urdf'] as $urdf) {
 	})
 	$('#viewer').on('mouseup','canvas',function(event){
 		RMS.logString('manipulation-request', 'canvas-mouseup');
-	})
+	});
 
 </script>
 

@@ -4649,8 +4649,8 @@ ROS3D.Highlighter.prototype.getWebglObjects = function(scene, objects, renderLis
 ROS3D.Highlighter.prototype.renderHighlight = function(renderer, scene, camera) {
   // get webgl objects
   var renderList = [];
-  this.getWebglObjects(scene, this.hoverObjs, renderList);
-  console.log(renderList.length);
+  //this.getWebglObjects(scene, this.hoverObjs, renderList);
+  
   // define highlight material
   scene.overrideMaterial = new THREE.MeshBasicMaterial({
     fog : false,
@@ -4666,7 +4666,10 @@ ROS3D.Highlighter.prototype.renderHighlight = function(renderer, scene, camera) 
   var oldWebglObjects = scene.__webglObjects;
   scene.__webglObjects = renderList;
 
-  renderer.render(scene, camera);
+  for(var i=0;i<this.hoverObjs.length;i++){
+    renderer.render(this.hoverObjs[i], camera);  
+  }
+  
 
   scene.__webglObjects = oldWebglObjects;
   scene.overrideMaterial = null;
