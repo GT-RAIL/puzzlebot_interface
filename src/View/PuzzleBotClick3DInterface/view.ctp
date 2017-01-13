@@ -346,7 +346,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 
 	//add IMs
 	<?php foreach ($environment['Im'] as $im): ?>
-		if ('<?php echo h($im['topic']); ?>' == '/point_cloud_clicker') {
+		if ('<?php echo h($im['topic']); ?>' ==  '/grasp_selector') {
 			new ROS3D.InteractiveMarkerClient({
 				ros: _ROS,
 				tfClient: _TF,
@@ -356,7 +356,6 @@ echo $this->Html->css('PuzzleBot3DInterface');
 				<?php echo isset($im['Resource']['url']) ? __('path:"%s",', h($im['Resource']['url'])) : ''; ?>
 				topic: '<?php echo h($im['topic']); ?>'
 			});
-			console.log('<?php echo h($im['topic']); ?>');
 		}
 	<?php endforeach; ?>
 </script>
@@ -447,7 +446,8 @@ foreach ($environment['Urdf'] as $urdf) {
 	 var depthCloud;
 	 var viewer;
 	 //what a lie this is an asus node	 
-	 var kinectNode;
+	var kinectNodes=[];
+
 
 	/****************************************************************************
 	 *                          Button Callbacks                                *
@@ -817,10 +817,19 @@ foreach ($environment['Urdf'] as $urdf) {
 
 	function switchCamera() {
 		//TODO: Change stream
+		console.log('CAMERA SWITCHING')
 		current_stream_id=(current_stream_id+1) % streams.length;
 		var request = new ROSLIB.ServiceRequest({
 			cloudTopic: cloudTopics[current_stream_id]
 		});
+		for (var i=0;i<streams.length;i++){
+			if(i!=current_stream_id){
+				kinectNodes[i].visible=false;
+			}
+			else{
+				kinectNodes[current_stream_id].visible=true;
+			}
+		}
 		viewer.changeCamera(current_stream_id);
 		changePointCloudGS.callService(request, function(result) {});
 		changePointCloudPCC.callService(request, function(result) {});
@@ -980,14 +989,14 @@ foreach ($environment['Urdf'] as $urdf) {
 			interactive:false,
 			tfClient: _TF
 		});
+
 		// Setup the marker client.
 		var imClient = new ROS3D.InteractiveMarkerClient({
 			ros : _ROS,
 			tfClient : _TF,
-			topic : '/nimbus_6dof_vis',
-			rootObject:viewer.rootObject,
-			camera : viewer.camera
-			// rootObject : viewer.selectableObjects
+			topic : '/grasp_selector',
+			camera : viewer.camera,
+			rootObject : viewer.selectableObjects
 		});
 
 		var camera2=new ROS3D.ViewerCamera({
@@ -1043,7 +1052,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			} 			
 
 			// Create Kinect scene node
-			kinectNode = new ROS3D.SceneNode({
+			var kinectNode = new ROS3D.SceneNode({
 				frameID : '/camera_depth_optical_frame',
 				tfClient : _TF,
 				object : depthCloud,
@@ -1102,22 +1111,15 @@ foreach ($environment['Urdf'] as $urdf) {
 
 			kinectNodes.push(kinectNode2);
 			kinectNodes.push(kinectNode);
-
+ 
 			_VIEWER.addObject(kinectNode2,true);
 			_VIEWER.addObject(kinectNode,true);
 		}
+		setInterval(register_depth_cloud(),5000);
+		clickingDisabled = false;
+
 	}
 	$(document).ready(function(){init();});
-
-	$('#viewer').on('click','canvas',function(event){
-			RMS.logString('manipulation-request', 'canvas-click');
-	})
-	$('#viewer').on('mousedown','canvas',function(event){
-		RMS.logString('manipulation-request', 'canvas-mousedown');
-	})
-	$('#viewer').on('mouseup','canvas',function(event){
-		RMS.logString('manipulation-request', 'canvas-mouseup');
-	});
 
 </script>
 

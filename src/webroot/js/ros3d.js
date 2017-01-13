@@ -2246,7 +2246,7 @@ ROS3D.Marker = function(options) {
     case ROS3D.MARKER_POINTS:
       // for now, use a particle system for the lists
       var geometry = new THREE.Geometry();
-      var material = new THREE.ParticleBasicMaterial({
+      var material = new THREE.PointsMaterial({
         size : message.scale.x
       });
 
@@ -2273,7 +2273,7 @@ ROS3D.Marker = function(options) {
       }
 
       // add the particle system
-      this.add(new THREE.ParticleSystem(geometry, material));
+      this.add(new THREE.Points(geometry, material));
       break;
     case ROS3D.MARKER_TEXT_VIEW_FACING:
       // only work on non-empty text
