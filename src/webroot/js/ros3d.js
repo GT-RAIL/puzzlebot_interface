@@ -1164,11 +1164,9 @@ ROS3D.InteractiveMarker.prototype.onServerSetPose = function(event) {
     } else {
       var pose = event.pose;
 
-      this.position.x = pose.position.x;
-      this.position.y = pose.position.y;
-      this.position.z = pose.position.z;
+      this.position.set(pose.position.x,pose.position.y,pose.position.z);
 
-      this.quaternion = new THREE.Quaternion(pose.orientation.x, pose.orientation.y,
+      this.quaternion.set(pose.orientation.x, pose.orientation.y,
           pose.orientation.z, pose.orientation.w);
 
       this.updateMatrixWorld(true);

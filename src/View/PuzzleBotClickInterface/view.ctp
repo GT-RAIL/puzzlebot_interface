@@ -145,6 +145,7 @@ echo $this->Html->css('PuzzleBotClickInterface');
 					<li>Use the <b>Arm Controls</b> below to manipulate objects.</li>
 				</ol>
 			</div>
+
 			</td>
 		</tr>
 	</table>
