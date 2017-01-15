@@ -40,7 +40,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 	<script type='text/javascript' src='http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.1/fabric.min.js'></script>
 
 	<?php echo $this->Html->script('mjpegcanvas.js');?>
-	<?php echo $this->Html->script('ros3d.js');?>
+	<?php echo $this->Html->script('ros3d.old.js');?>
 
 
 	<?php
@@ -900,6 +900,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 				}
 				enableInput();
 			});
+
 			goal.send();
 			clickingDisabled = true;
 		}
