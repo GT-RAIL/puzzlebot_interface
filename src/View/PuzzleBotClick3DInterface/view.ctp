@@ -1030,8 +1030,7 @@ foreach ($environment['Urdf'] as $urdf) {
     		});
 		    depthCloud.startStream();
     		depthCloud.click=function(event3d){
-    			// console.log('Wrong Pointcloud')
-    			console.log(event3d.intersection.point);
+				RMS.logString('manipulation-request', 'calculate-grasps');
 				var goal = new ROSLIB.Goal({
 					actionClient: pointCloudClickClient,
 					goalMessage: {
@@ -1041,12 +1040,12 @@ foreach ($environment['Urdf'] as $urdf) {
 						imageHeight:480
 					}
 				});
+				displayFeedback('Searching for grasps at clicked point');
 				goal.on('feedback', function (feedback) {
-					console.log(feedback)
+					displayFeedback(feedback.message);
 				});
 				goal.on('result', function (result) {
-					// RMS.logString('manipulation-result', JSON.stringify(result));
-					// enableInput();
+					RMS.logString('manipulation-result', JSON.stringify(result));
 				});
 				goal.send();
 			} 			
@@ -1072,8 +1071,7 @@ foreach ($environment['Urdf'] as $urdf) {
   				viewer:_VIEWER,
     		});
 			depthCloud2.click=function(event3d){
-				console.log(event3d.intersection.point);
-				console.log('Side Camera');
+				RMS.logString('manipulation-request', 'calculate-grasps');
 				var goal = new ROSLIB.Goal({
 					actionClient: pointCloudClickClient,
 					goalMessage: {
@@ -1083,13 +1081,12 @@ foreach ($environment['Urdf'] as $urdf) {
 						imageHeight:480
 					}
 				});
-
+				displayFeedback('Searching for grasps at clicked point');
 				goal.on('feedback', function (feedback) {
-					console.log(feedback)
+					displayFeedback(feedback.message);
 				});
 				goal.on('result', function (result) {
-					// RMS.logString('manipulation-result', JSON.stringify(result));
-					// enableInput();
+					RMS.logString('manipulation-result', JSON.stringify(result));
 				});
 				goal.send();
 	    	};
