@@ -316,7 +316,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 	/****************************************************************************
 	 *                           Initial Logging                                *
 	 ****************************************************************************/
-	RMS.logString('new-session', 'click-3d')
+	RMS.logString('new-session', 'click-3d-im')
 
 	//var size = Math.min(((window.innerWidth / 2) - 120), window.innerHeight * 0.60);
 	var size=500;
@@ -425,6 +425,7 @@ foreach ($environment['Urdf'] as $urdf) {
 </script>
 
 <script type="text/javascript">
+
 	/****************************************************************************
 	 *                          Global Variables                                *
 	 ****************************************************************************/
@@ -1055,7 +1056,7 @@ foreach ($environment['Urdf'] as $urdf) {
 				frameID : '/camera_depth_optical_frame',
 				tfClient : _TF,
 				object : depthCloud,
-				pose : {position:{x:0,y:0,z:0},orientation:{x:0,y:0,z:-0.02}},
+				pose : {position:{x:0,y:0,z:0},orientation:{x:0,y:0,z:-0.00}},
 				visible : false
 		    });
 

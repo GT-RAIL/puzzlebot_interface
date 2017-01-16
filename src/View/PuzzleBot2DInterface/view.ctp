@@ -29,6 +29,9 @@ echo $this->Html->css('PuzzleBot2DInterface');
 <html>
 <head>
 
+	<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js'></script>
+	<?php echo $this->Html->script('ColladaLoader.js');?>
+ 
 	<?php
 	echo $this->Html->script('bootstrap.min');
 	echo $this->Html->css('bootstrap.min');
