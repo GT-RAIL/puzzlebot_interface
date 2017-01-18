@@ -332,7 +332,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 
 	//add IMs
 	<?php foreach ($environment['Im'] as $im): ?>
-		if ('<?php echo h($im['topic']); ?>' ==  '/nimbus_navidget') {
+		if ('<?php echo h($im['topic']); ?>' ==  '/constrained_positioning') {
 			new ROS3D.InteractiveMarkerClient({
 				ros: _ROS,
 				tfClient: _TF,
@@ -344,6 +344,13 @@ echo $this->Html->css('PuzzleBot3DInterface');
 			});
 		}
 	<?php endforeach; ?>
+		new ROS3D.InteractiveMarkerClient({
+			ros: _ROS,
+			tfClient: _TF,
+			camera: _VIEWER.camera,
+			rootObject: _VIEWER.selectableObjects,
+			topic : '/constrained_positioning',
+		});
 </script>
 
 <?php
@@ -378,8 +385,8 @@ foreach ($environment['Urdf'] as $urdf) {
 	});
 	var graspClient = new ROSLIB.ActionClient({
 		ros: _ROS,
-		serverName: '/nimbus_navidget/execute_grasp',
-		actionName: 'nimbus_interactive_manipulation/SpecifiedGraspAction'
+		serverName: '/constrained_positioning/execute_grasp',
+		actionName: 'remote_manipulation_markers/SpecifiedGraspAction'
 	});
 	var pointCloudClickClient = new ROSLIB.ActionClient({
 		ros: _ROS,
@@ -395,12 +402,12 @@ foreach ($environment['Urdf'] as $urdf) {
 	});
 	var clearGraspClient = new ROSLIB.Service({
 		ros : _ROS,
-		name : '/nimbus_navidget/clear_gripper_marker',
+		name : '/constrained_positioning/clear_gripper_marker',
 		serviceType : 'std_srvs/Empty'
 	});
 	var clearAllClient = new ROSLIB.Service({
 		ros : _ROS,
-		name : '/nimbus_navidget/clear_full_marker',
+		name : '/constrained_positioning/clear_full_marker',
 		serviceType : 'std_srvs/Empty'
 	});
 	var changePointCloudPCC = new ROSLIB.Service({
@@ -502,6 +509,20 @@ foreach ($environment['Urdf'] as $urdf) {
 	$('#mjpegcanvas_select').change(function(e){
 		e.preventDefault();
 		mjpegcanvas.changeStream(this.value);
+	});
+
+	$('#moveArm').click(function (e) {
+		e.preventDefault();
+		executeGrasp();
+	});
+
+	$('#clearGrasp').click(function (e) {
+		e.preventDefault();
+		clearGrasp();
+	});
+	$('#clearAll').click(function (e) {
+		e.preventDefault();
+		clearAll();
 	});
 
 	
@@ -772,7 +793,6 @@ foreach ($environment['Urdf'] as $urdf) {
 
 	function switchCamera() {
 		//TODO: Change stream
-		console.log('CAMERA SWITCHING')
 		current_stream_id=(current_stream_id+1) % streams.length;
 		var request = new ROSLIB.ServiceRequest({
 			cloudTopic: cloudTopics[current_stream_id]
@@ -944,10 +964,10 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 
 		// Setup the marker client.
-		var imClient = new ROS3D.InteractiveMarkerClient({
+		new ROS3D.InteractiveMarkerClient({
 			ros : _ROS,
 			tfClient : _TF,
-			topic : '/nimbus_navidget',
+			topic : '/constrained_positioning',
 			camera : viewer.camera,
 			rootObject : viewer.selectableObjects
 		});
@@ -969,20 +989,20 @@ foreach ($environment['Urdf'] as $urdf) {
 		viewer.addCamera(camera2);
 
 		//new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://rail-engine.cc.gatech.edu/urdf/",param:"robot_description"});
-
 		//focal length done by hand tuning
 		function register_depth_cloud(){
 			var depthCloud = new ROS3D.DepthCloud({
+				f:750,
       			url : streams[0],
-      			f:1000.0,
       			width: 640,
   				height:480,
-  				pointSize:5,
+  				pointSize:3,
   				clickable:true,
   				viewer:_VIEWER
     		});
 		    depthCloud.startStream();
 			depthCloud.click=function(event3d){
+				console.log(event3d.intersection.point);
 				RMS.logString('manipulation-request', 'create-navidget-sphere');
 				var goal = new ROSLIB.Goal({
 					actionClient: pointCloudClickClient,
@@ -1010,7 +1030,7 @@ foreach ($environment['Urdf'] as $urdf) {
 				frameID : '/camera_depth_optical_frame',
 				tfClient : _TF,
 				object : depthCloud,
-				pose : {position:{x:0,y:0,z:0},orientation:{x:0,y:0,z:-0.02}},
+				pose : {position:{x:0.0,y:0.0,z:0},orientation:{x:0,y:0.0,z:0.0}},
 				visible : false
 		    });
 
@@ -1018,12 +1038,13 @@ foreach ($environment['Urdf'] as $urdf) {
 			var depthCloud2 = new ROS3D.DepthCloud({
 			//side camera
       			url : streams[1],
-      			f:1000.0,
+      			f:800,
       			width: 640,
   				height:480,
-  				pointSize:5,
+  				pointSize:3,
   				clickable:true,
   				viewer:_VIEWER,
+  				pose : {position:{x:0.07,y:-0.025,z:0},orientation:{x:0,y:0.0,z:0.0}}
     		});
 			depthCloud2.click=function(event3d){
 				RMS.logString('manipulation-request', 'create-navidget-sphere');
@@ -1054,10 +1075,11 @@ foreach ($environment['Urdf'] as $urdf) {
 			var kinectNode2 = new ROS3D.SceneNode({
 		      frameID : '/camera_side_depth_optical_frame',
 		      tfClient : _TF,
-		      object : depthCloud2,
-		      pose : {position:{x:0.0,y:0.0,z:0.0},orientation:{x:0,y:0,z:0}}
+		      object : depthCloud2, 
+		      pose : {position:{x:0.07,y:-0.025,z:0},orientation:{x:0,y:0.0,z:0.0}}
 		    });
 
+			
 		    pointClouds.push(depthCloud2.video);
 
 			depthCloud.frame=kinectNode;
@@ -1068,8 +1090,16 @@ foreach ($environment['Urdf'] as $urdf) {
  
 			_VIEWER.addObject(kinectNode2,true);
 			_VIEWER.addObject(kinectNode,true);
+			
+			function update_depth_pose(){
+				// console.log(kinectNode2.pose);
+				// depthCloud2.pickingScene.updatePose(kinectNode2.pose);	
+				// console.log(depthCloud2.pickingScene.pose);
+			}
+			setTimeout(function(){update_depth_pose();},10000);
+			
 		}
-		setInterval(register_depth_cloud(),5000);
+		setTimeout(function(){register_depth_cloud();},3000);
 		clickingDisabled = false;
 
 	}

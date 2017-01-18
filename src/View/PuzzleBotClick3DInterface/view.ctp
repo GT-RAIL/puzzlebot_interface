@@ -1022,16 +1022,17 @@ foreach ($environment['Urdf'] as $urdf) {
 		function register_depth_cloud(){
 			var depthCloud = new ROS3D.DepthCloud({
       			url : streams[0],
-      			f:1000.0,
       			width: 640,
   				height:480,
-  				pointSize:5,
+  				pointSize:3,
   				clickable:true,
   				viewer:_VIEWER
     		});
 		    depthCloud.startStream();
     		depthCloud.click=function(event3d){
 				RMS.logString('manipulation-request', 'calculate-grasps');
+				console.log(event3d.intersection.point.x);
+				console.log(event3d.intersection.point.y);
 				var goal = new ROSLIB.Goal({
 					actionClient: pointCloudClickClient,
 					goalMessage: {
@@ -1064,15 +1065,17 @@ foreach ($environment['Urdf'] as $urdf) {
 			var depthCloud2 = new ROS3D.DepthCloud({
 			//side camera
       			url : streams[1],
-      			f:1000.0,
       			width: 640,
   				height:480,
-  				pointSize:5,
+  				pointSize:3,
   				clickable:true,
   				viewer:_VIEWER,
     		});
 			depthCloud2.click=function(event3d){
 				RMS.logString('manipulation-request', 'calculate-grasps');
+				console.log(event3d.intersection.point.x);
+				console.log(event3d.intersection.point.y);
+
 				var goal = new ROSLIB.Goal({
 					actionClient: pointCloudClickClient,
 					goalMessage: {

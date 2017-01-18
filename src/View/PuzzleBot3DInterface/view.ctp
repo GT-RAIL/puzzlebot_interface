@@ -316,7 +316,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 			tfClient: _TF,
 			frameID: '/table_base_link'
 		})
-	);
+	); 
 
 	
 
