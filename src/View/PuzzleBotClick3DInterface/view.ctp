@@ -1022,17 +1022,17 @@ foreach ($environment['Urdf'] as $urdf) {
 		function register_depth_cloud(){
 			var depthCloud = new ROS3D.DepthCloud({
       			url : streams[0],
+				f:750,
       			width: 640,
   				height:480,
   				pointSize:3,
   				clickable:true,
-  				viewer:_VIEWER
+  				viewer:_VIEWER,
+				pose : {position:{x:0.0,y:-0.04,z:0},orientation:{x:0,y:0.0,z:0.0}},
     		});
 		    depthCloud.startStream();
     		depthCloud.click=function(event3d){
 				RMS.logString('manipulation-request', 'calculate-grasps');
-				console.log(event3d.intersection.point.x);
-				console.log(event3d.intersection.point.y);
 				var goal = new ROSLIB.Goal({
 					actionClient: pointCloudClickClient,
 					goalMessage: {
@@ -1057,7 +1057,7 @@ foreach ($environment['Urdf'] as $urdf) {
 				frameID : '/camera_depth_optical_frame',
 				tfClient : _TF,
 				object : depthCloud,
-				pose : {position:{x:0,y:0,z:0},orientation:{x:0,y:0,z:-0.00}},
+				pose : {position:{x:0.0,y:-0.04,z:0},orientation:{x:0,y:0.0,z:0.0}},
 				visible : false
 		    });
 
@@ -1065,17 +1065,16 @@ foreach ($environment['Urdf'] as $urdf) {
 			var depthCloud2 = new ROS3D.DepthCloud({
 			//side camera
       			url : streams[1],
+				f:850,
       			width: 640,
   				height:480,
   				pointSize:3,
   				clickable:true,
   				viewer:_VIEWER,
+  				pose : {position:{x:0.06,y:-0.025,z:0},orientation:{x:0,y:0.0,z:0.0}}
     		});
 			depthCloud2.click=function(event3d){
 				RMS.logString('manipulation-request', 'calculate-grasps');
-				console.log(event3d.intersection.point.x);
-				console.log(event3d.intersection.point.y);
-
 				var goal = new ROSLIB.Goal({
 					actionClient: pointCloudClickClient,
 					goalMessage: {
@@ -1102,7 +1101,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		      frameID : '/camera_side_depth_optical_frame',
 		      tfClient : _TF,
 		      object : depthCloud2,
-		      pose : {position:{x:0.0,y:0.0,z:0.0},orientation:{x:0,y:0,z:0}}
+  				pose : {position:{x:0.06,y:-0.025,z:0},orientation:{x:0,y:0.0,z:0.0}}
 		    });
 
 		    pointClouds.push(depthCloud2.video);
@@ -1116,7 +1115,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			_VIEWER.addObject(kinectNode2,true);
 			_VIEWER.addObject(kinectNode,true);
 		}
-		setInterval(register_depth_cloud(),5000);
+		setTimeout(register_depth_cloud(),5000);
 		clickingDisabled = false;
 
 	}
