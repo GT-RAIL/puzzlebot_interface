@@ -998,7 +998,8 @@ foreach ($environment['Urdf'] as $urdf) {
   				height:480,
   				pointSize:3,
   				clickable:true,
-  				viewer:_VIEWER
+  				viewer:_VIEWER,
+  				pose : {position:{x:0.0,y:-0.04,z:0},orientation:{x:0,y:0.0,z:0.0}}
     		});
 		    depthCloud.startStream();
 			depthCloud.click=function(event3d){
@@ -1030,7 +1031,7 @@ foreach ($environment['Urdf'] as $urdf) {
 				frameID : '/camera_depth_optical_frame',
 				tfClient : _TF,
 				object : depthCloud,
-				pose : {position:{x:0.0,y:0.0,z:0},orientation:{x:0,y:0.0,z:0.0}},
+				pose : {position:{x:0.0,y:-0.04,z:0},orientation:{x:0,y:0.0,z:0.0}},
 				visible : false
 		    });
 
@@ -1038,13 +1039,13 @@ foreach ($environment['Urdf'] as $urdf) {
 			var depthCloud2 = new ROS3D.DepthCloud({
 			//side camera
       			url : streams[1],
-      			f:800,
+      			f:850,
       			width: 640,
   				height:480,
   				pointSize:3,
   				clickable:true,
   				viewer:_VIEWER,
-  				pose : {position:{x:0.07,y:-0.025,z:0},orientation:{x:0,y:0.0,z:0.0}}
+  				pose : {position:{x:0.06,y:-0.025,z:0},orientation:{x:0,y:0.0,z:0.0}}
     		});
 			depthCloud2.click=function(event3d){
 				RMS.logString('manipulation-request', 'create-navidget-sphere');
@@ -1076,7 +1077,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		      frameID : '/camera_side_depth_optical_frame',
 		      tfClient : _TF,
 		      object : depthCloud2, 
-		      pose : {position:{x:0.07,y:-0.025,z:0},orientation:{x:0,y:0.0,z:0.0}}
+		      pose : {position:{x:0.06,y:-0.025,z:0},orientation:{x:0,y:0.0,z:0.0}}
 		    });
 
 			
@@ -1099,7 +1100,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			setTimeout(function(){update_depth_pose();},10000);
 			
 		}
-		setTimeout(function(){register_depth_cloud();},3000);
+		setTimeout(function(){register_depth_cloud();},2000);
 		clickingDisabled = false;
 
 	}

@@ -761,7 +761,7 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
           var object = this;
           var geometry = this.geometry;
           var matrixWorld = this.matrixWorld;
-          var size=2;
+          var size=1;
           var test= new Uint8Array(4*size*size);
           var pixelBuffer= new Uint8Array(4);
           var min_z_index=-1;
@@ -772,9 +772,9 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
             that.renderer.clear(true, true, true);
             that.renderer.render( that.pickingScene, that.viewer.camera, that.renderTarget );
             that.renderer.readRenderTargetPixels(that.renderTarget, that.viewer.mouseHandler.deviceX, that.viewer.height-that.viewer.mouseHandler.deviceY, size,size, test);      
-            var t2= new Uint8Array(4*500*375);
-            that.renderer.readRenderTargetPixels(that.renderTarget, 0,0, 500,375, t2);
-            console.log(t2); 
+            // var t2= new Uint8Array(4*500*375);
+            // that.renderer.readRenderTargetPixels(that.renderTarget, 0,0, 500,375, t2);
+            // console.log(t2); 
             for (var i=0;i<size*size;i++){
               if(test[(i*4)+3]!==0){
                 if ( min_z>test[(i*4)+3]){
