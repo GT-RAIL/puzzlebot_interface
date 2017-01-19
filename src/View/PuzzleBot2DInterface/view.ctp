@@ -295,14 +295,14 @@ echo $this->Html->css('PuzzleBot2DInterface');
 	});
 	var graspClient = new ROSLIB.ActionClient({
 		ros: _ROS,
-		serverName: '/nimbus_6dof_planning/execute_grasp',
-		actionName: 'nimbus_interactive_manipulation/SpecifiedGraspAction'
+		serverName: '/free_positioning/execute_grasp',
+		actionName: 'remote_manipulation_markers/SpecifiedGraspAction'
 	});
 
 	//Setup ROS service clients
 	var resetMarkerClient = new ROSLIB.Service({
 		ros : _ROS,
-		name : '/nimbus_6dof_planning/reset_marker_position',
+		name : '/free_positioning/reset_marker_pose',
 		serviceType : 'std_srvs/Empty'
 	});
 
@@ -784,7 +784,7 @@ echo $this->Html->css('PuzzleBot2DInterface');
 		intensity: 0.660000,
 		cameraPose : {x:-0.107,y:-1.227,z:0.329}, //hand-tuned
 		//cameraPose : {x:-0.107,y:-1.177,z:0.329}, //original
-		center: {x:0.005608, y:0.042784, z:0.262058}, //hand-tuned
+		center: {x:-0.005608, y:-0.052784, z:0.242058}, //hand-tuned
 		//center: {x:0.015608, y:0.042784, z:0.247058}, //original
 		fov: 45,
 		alpha: 0.1,
@@ -799,7 +799,6 @@ echo $this->Html->css('PuzzleBot2DInterface');
 		far:50,
 		fov:45,
 		aspect:size/(size*0.75),
-		rootObjectPose : {position:{x:0.025,y:0.118,z:1.287},rotation:{x:0,y:0,z:0}}, //hand-tuned
 		//rootObjectPose : {position:{x:0.025,y:0.118,z:1.197},rotation:{x:0,y:0,z:0}}, //original
 		cameraPosition : {x:0.025,y:0.118,z:1.287}, //hand-tuned
 		//cameraPosition : {x:0.025,y:0.118,z:1.197}, //original
@@ -815,7 +814,7 @@ echo $this->Html->css('PuzzleBot2DInterface');
 	var imClient = new ROS3D.InteractiveMarkerClient({
 		ros : _ROS,
 		tfClient : _TF,
-		topic : '/nimbus_6dof_planning',
+		topic : '/free_positioning',
 		camera : viewer.camera,
 		rootObject : viewer.selectableObjects
 	});

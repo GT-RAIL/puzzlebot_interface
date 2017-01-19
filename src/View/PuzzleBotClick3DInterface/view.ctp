@@ -817,8 +817,6 @@ foreach ($environment['Urdf'] as $urdf) {
 	});
 
 	function switchCamera() {
-		//TODO: Change stream
-		console.log('CAMERA SWITCHING')
 		current_stream_id=(current_stream_id+1) % streams.length;
 		var request = new ROSLIB.ServiceRequest({
 			cloudTopic: cloudTopics[current_stream_id]
@@ -979,16 +977,16 @@ foreach ($environment['Urdf'] as $urdf) {
 			height: size*0.75,
 			antialias: true,
 			intensity: 0.660000,
-			cameraPose : {x:-0.107,y:-1.227,z:0.329}, //hand-tuned
+			cameraPose : {x:-0.057,y:-1.227,z:0.339}, //hand-tuned
 			//cameraPose : {x:-0.107,y:-1.177,z:0.329}, //original
-			center: {x:0.005608, y:0.042784, z:0.262058}, //hand-tuned
+			center: {x:-0.005608, y:-0.052784, z:0.242058}, //hand-tuned
 			//center: {x:0.015608, y:0.042784, z:0.247058}, //original
 			fov: 45,
 			alpha: 0.1,
 			near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
 			far: 50,
 			interactive:false,
-			tfClient: _TF
+			tfClient: _TF // for asus side camera
 		});
 
 		// Setup the marker client.
@@ -1115,7 +1113,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			_VIEWER.addObject(kinectNode2,true);
 			_VIEWER.addObject(kinectNode,true);
 		}
-		setTimeout(register_depth_cloud(),5000);
+		setTimeout(function(){register_depth_cloud();},2000);
 		clickingDisabled = false;
 
 	}
