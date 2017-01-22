@@ -76,12 +76,9 @@ echo $this->Html->css('PuzzleBot3DInterface');
 									<!--<li>Move the lemon onto the white plate</li>
 									<li>Reset the arm when you're finished</li>-->
 									
-									<li>Open the middle plastic drawer</li>
-									<li>Slide open the wooden box</li>
-									<li>Remove the black cap from  the white bottle</li>
-									<li>Pour out the red mug into the wooden bowl</li>
-									<li>Remove a marker from the blue cup</li>
-									<li>Pull the yellow cart onto the green line</li>
+									<li>Move the lemon onto the white plate</li>
+									<li>Reset the arm when you're finished</li>
+
 								</ul>
 							</div>
 						</td>
@@ -122,59 +119,45 @@ echo $this->Html->css('PuzzleBot3DInterface');
 				</table>
 			</td>
 			<td style="width: 22%; vertical-align:top;">
-				<div id="instructions" style="height=500px; text-align: left; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
-					<b>Instructions:</b>
-					<ol type="1" style="list-style-type:decimal; margin-left:15px; margin-bottom:0px;">
-						<li><b>Set a position</b> for the gripper by <b>clicking on the camera feed</b> on the left.</li>
-						<li>
-							<b>Cycle through suggestions</b> to choose a good grasp.
-							<br><table style="margin-left:auto; margin-right:auto">
-								<tr>
-									<td>
-										<map name="prev-map">
-											<area shape="rect" coords="0,0,75,50" href="javascript:prevGrasp()">
-										</map>
-										<img id="img-prev" src="/img/Nimbus/nimbus-prev.png" height="50" width="75" style="vertical-align:middle" usemap="prev-map">
-									</td>
-									<td>
-										<map name="next-map">
-											<area shape="rect" coords="0,0,75,50" href="javascript:nextGrasp()">
-										</map>
-										<img id="img-next" src="/img/Nimbus/nimbus-next.png" height="50" width="75" style="vertical-align:middle" usemap="next-map">
-									</td>
-								</tr>
-							</table>
-						</li>
-						<li>
-							Select <b>Shallow</b> or <b>Deep Grasp</b> and the robot will automatically move to your selected position.
-							<br /><table style="margin-left:auto; margin-right:auto;">
-								<tr>
-									<td style="vertical-align:middle;">
-										<map name="shallow-grasp-map">
-											<area shape="rect" coords="0,0,75,50" href="javascript:executeShallowGrasp()">
-										</map>
-										<img id="img-shallow" src="/img/Nimbus/nimbus-shallow-grasp.png" height="50" width="75" style="vertical-align:middle" usemap="shallow-grasp-map">
-									</td>
-									<td style="text-align:center" width="200px">
-										<button id='shallowGrasp' class='button special' style="width:190px">shallow grasp</button>
-									</td>
-								</tr>
-								<tr>
-									<td style="vertical-align:middle;">
-										<map name="deep-grasp-map">
-											<area shape="rect" coords="0,0,75,50" href="javascript:executeShallowGrasp()">
-										</map>
-										<img id="img-deep" src="/img/Nimbus/nimbus-deep-grasp.png" height="50" width="75" style="vertical-align:middle" usemap="deep-grasp-map">
-									</td>
-									<td style="text-align:center" width="200px">
-										<button id='deepGrasp' class='button special' style="width:190px">deep grasp</button>
-									</td>
-								</tr>
-							</table>
-						</li>
-						<li>Use the <b>Arm Controls</b> below to grasp and manipulate an object.</li>
-					</ol>
-				</div>
+			<div id="instructions" style="height=500px; text-align: left; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
+				<b>Instructions:</b>
+				<ol type="1" style="list-style-type:decimal; margin-left:15px;">
+					<li><b>Click the image</b> on the left to set a <b>grasping area</b>.</li>
+					<li><b>Click on the sphere</b> to set a <b>grasp angle</b>.</li>
+					<li><b>Adjust your grasp</b> by <b>clicking and dragging</b> the <b>ring and arrow</b> marker around the purple gripper.</li>
+					<li>
+						Use the <b>clear buttons</b> to <b>start a new grasp</b>.
+						<br /><table style="margin-left:auto; margin-right:auto;">
+							<tr>
+								<td style="text-align:center; vertical-align:middle;" width="150px">
+									<button id='clearGrasp' class='button special' style="width:150px">clear grasp</button>
+								</td>
+								<td style="vertical-align:middle;">
+									<button id='clearAll' class='button special' style="width:150px">clear all</button>
+								</td>
+							</tr>
+						</table>
+					</li>
+					<li>
+						<b>Click the move button</b> below to automatically move the arm to your set position.
+						<br /><table style="margin-left:auto; margin-right:auto;">
+							<tr>
+								<td style="text-align:center; vertical-align:middle;" width="150px">
+									<button id='moveArm' class='button special' style="width:150px">move arm</button>
+								</td>
+								<td style="vertical-align:middle;">
+									<map name="plan-map">
+										<area shape="rect" coords="0,0,150,100" href="javascript:executeGrasp()">
+									</map>
+									<img id="img-plan" src="/img/Nimbus/nimbus-plan.png" height="100" width="150" style="vertical-align:middle" usemap="plan-map">
+								</td>
+
+							</tr>
+						</table>
+					</li>
+					<li>Use the <b>Arm Controls</b> below to manipulate objects.</li>
+				</ol>
+			</div>
 			</td>
 		</tr>
 	</table>
@@ -316,7 +299,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 	/****************************************************************************
 	 *                           Initial Logging                                *
 	 ****************************************************************************/
-	RMS.logString('new-session', 'click-3d-im')
+	RMS.logString('new-session', 'navidget-3d-training')
 
 	//var size = Math.min(((window.innerWidth / 2) - 120), window.innerHeight * 0.60);
 	var size=500;
@@ -346,7 +329,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 
 	//add IMs
 	<?php foreach ($environment['Im'] as $im): ?>
-		if ('<?php echo h($im['topic']); ?>' ==  '/grasp_selector') {
+		if ('<?php echo h($im['topic']); ?>' ==  '/constrained_positioning') {
 			new ROS3D.InteractiveMarkerClient({
 				ros: _ROS,
 				tfClient: _TF,
@@ -358,6 +341,13 @@ echo $this->Html->css('PuzzleBot3DInterface');
 			});
 		}
 	<?php endforeach; ?>
+		new ROS3D.InteractiveMarkerClient({
+			ros: _ROS,
+			tfClient: _TF,
+			camera: _VIEWER.camera,
+			rootObject: _VIEWER.selectableObjects,
+			topic : '/constrained_positioning',
+		});
 </script>
 
 <?php
@@ -373,6 +363,7 @@ foreach ($environment['Urdf'] as $urdf) {
 ?>
 
 <script>
+	//Setup ROS action clients
 	//Setup ROS action clients
 	var armClient = new ROSLIB.ActionClient({
 		ros: _ROS,
@@ -391,56 +382,49 @@ foreach ($environment['Urdf'] as $urdf) {
 	});
 	var graspClient = new ROSLIB.ActionClient({
 		ros: _ROS,
-		serverName: '/grasp_selector/execute_grasp',
-		actionName: 'rail_agile_grasp_msgs/SelectedGraspAction'
+		serverName: '/constrained_positioning/execute_grasp',
+		actionName: 'remote_manipulation_markers/SpecifiedGraspAction'
 	});
 	var pointCloudClickClient = new ROSLIB.ActionClient({
 		ros: _ROS,
-		serverName: '/point_cloud_clicker/click_image_point',
+		serverName: '/point_cloud_clicker/click_image_point_navidget',
 		actionName: 'rail_agile_grasp_msgs/ClickImagePointAction'
 	});
 
 	//Setup ROS service clients
-	var cycleGraspsClient = new ROSLIB.Service({
+	var resetMarkerClient = new ROSLIB.Service({
 		ros : _ROS,
-		name : '/grasp_selector/cycle_grasps',
-		serviceType : 'rail_agile_grasp_msgs/CycleGrasps'
+		name : '/nimbus_6dof_planning/reset_marker_position',
+		serviceType : 'std_srvs/Empty'
 	});
-	var changePointCloudGS = new ROSLIB.Service({
+	var clearGraspClient = new ROSLIB.Service({
 		ros : _ROS,
-		name : '/grasp_sampler/change_point_cloud_topic',
-		serviceType : 'rail_agile_grasp_msgs/ChangePointCloud'
+		name : '/constrained_positioning/clear_gripper_marker',
+		serviceType : 'std_srvs/Empty'
+	});
+	var clearAllClient = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/constrained_positioning/clear_full_marker',
+		serviceType : 'std_srvs/Empty'
 	});
 	var changePointCloudPCC = new ROSLIB.Service({
 		ros : _ROS,
 		name : '/point_cloud_clicker/change_point_cloud_topic',
 		serviceType : 'rail_agile_grasp_msgs/ChangePointCloud'
 	});
-	var changePointCloudRAG = new ROSLIB.Service({
-		ros : _ROS,
-		name : '/rail_agile_grasp/change_point_cloud_topic',
-		serviceType : 'rail_agile_grasp_msgs/ChangePointCloud'
-	});
+
 
 </script>
 
 <script type="text/javascript">
-
 	/****************************************************************************
 	 *                          Global Variables                                *
 	 ****************************************************************************/
-	//TODO populate from ROS
+	
 	 var streams=['http://rail-engine.cc.gatech.edu'+ ':8080/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100','http://rail-engine.cc.gatech.edu'+ ':8080/stream?topic=/depthcloud_encoded_side&type=vp8&bitrate=50000&quality=100'];
-	 var cloudTopics=[ '/camera/depth_registered/points','/camera_side/depth_registered/points'];
-	/*var streams=[]
-	 <?php foreach($environment['Pointcloud'] as $pointClouds){
-	 	echo 'streams.push("'.$pointClouds['stream'].'");';
-
-	 }
-	 ?>*/
-	 var pointClouds=[];
-	 //points to the current stream being played
-	 var current_stream_id=1;
+	 var cloudTopics=['/camera_side/depth_registered/points', '/camera/depth_registered/points'];
+	 var pointClouds=[];  //points to the current stream being played
+	 var current_stream_id=0;
 	 var canvas=document.getElementById('mjpegcanvas');
 	 canvas.width=size;
 	 canvas.height=size*0.75;
@@ -517,47 +501,35 @@ foreach ($environment['Urdf'] as $urdf) {
 		mjpegcanvas.changeStream(this.value);
 	});
 
+	$('#moveArm').click(function (e) {
+		e.preventDefault();
+		executeGrasp();
+	});
+
+	$('#clearGrasp').click(function (e) {
+		e.preventDefault();
+		clearGrasp();
+	});
+	$('#clearAll').click(function (e) {
+		e.preventDefault();
+		clearAll();
+	});
+
 	
 	/****************************************************************************
 	 *                           Grasp Actions                                  *
 	 ****************************************************************************/
-	function prevGrasp() {
+	function executeGrasp() {
 		disableInput();
-		RMS.logString('manipulation-request', 'prev-grasp');
-		var request = new ROSLIB.ServiceRequest({
-			forward: false
-		});
-		cycleGraspsClient.callService(request, function(result) {
-			RMS.logString('manipulation-result', JSON.stringify(result));
-			displayFeedback('Displaying grasp ' + (result.index + 1));
-		});
-		enableInput();
-	}
-
-	function nextGrasp() {
-		disableInput();
-		RMS.logString('manipulation-request', 'next-grasp');
-		var request = new ROSLIB.ServiceRequest({
-			forward: true
-		});
-		cycleGraspsClient.callService(request, function(result) {
-			RMS.logString('manipulation-result', JSON.stringify(result));
-			displayFeedback('Displaying grasp ' + (result.index + 1));
-		});
-		enableInput();
-	}
-
-	function executeShallowGrasp() {
-		disableInput();
-		RMS.logString('manipulation-request', 'shallow-grasp');
+		RMS.logString('manipulation-request', 'move-arm');
 		var goal = new ROSLIB.Goal({
 			actionClient: graspClient,
 			goalMessage: {
-				shallow: true
+
 			}
 		});
 		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.feedback);
+			displayFeedback(feedback.message);
 		});
 		goal.on('result', function(result) {
 			RMS.logString('manipulation-result', JSON.stringify(result));
@@ -566,25 +538,17 @@ foreach ($environment['Urdf'] as $urdf) {
 		goal.send();
 	}
 
-	function executeDeepGrasp() {
-		disableInput();
-		RMS.logString('manipulation-request', 'deep-grasp');
-		var goal = new ROSLIB.Goal({
-			actionClient: graspClient,
-			goalMessage: {
-				shallow: false
-			}
-		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.feedback);
-		});
-		goal.on('result', function(result) {
-			RMS.logString('manipulation-result', JSON.stringify(result));
-			enableInput();
-		});
-		goal.send();
+	function clearGrasp() {
+		RMS.logString('manipulation-request', 'clear-grasp');
+		var request = new ROSLIB.ServiceRequest ({});
+		clearGraspClient.callService(request, function(result){RMS.logString('manipulation-result', 'grasps cleared')});
 	}
 
+	function clearAll() {
+		RMS.logString('manipulation-request', 'clear-all');
+		var request = new ROSLIB.ServiceRequest ({});
+		clearAllClient.callService(request, function(result){clickingDisabled = false; RMS.logString('manipulation-result', 'navidget marker reset');});
+	}
 	/****************************************************************************
 	 *                         Primitive Actions                                *
 	 ****************************************************************************/
@@ -817,8 +781,8 @@ foreach ($environment['Urdf'] as $urdf) {
 	});
 
 	function switchCamera() {
+		//TODO: Change stream
 		current_stream_id=(current_stream_id+1) % streams.length;
-		console.log(current_stream_id);
 		var request = new ROSLIB.ServiceRequest({
 			cloudTopic: cloudTopics[current_stream_id]
 		});
@@ -831,9 +795,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			}
 		}
 		viewer.changeCamera(current_stream_id);
-		changePointCloudGS.callService(request, function(result) {});
 		changePointCloudPCC.callService(request, function(result) {});
-		changePointCloudRAG.callService(request, function(result) {});
 
 		RMS.logString('change-view', 'camera ' + current_stream_id);
 	}
@@ -948,7 +910,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			$streamNames .= ']';
 		?>
 
-		var streams2=['/camera/rgb/image_rect_color','/camera_side/rgb/image_rect_color'];
+		var streams2=<?php echo  $streamTopics ?>;
 
 		var videos=[];
 
@@ -978,23 +940,23 @@ foreach ($environment['Urdf'] as $urdf) {
 			height: size*0.75,
 			antialias: true,
 			intensity: 0.660000,
-			cameraPose : {x:-0.057,y:-1.227,z:0.339}, //hand-tuned
+			cameraPose : {x:-0.107,y:-1.227,z:0.329}, //hand-tuned
 			//cameraPose : {x:-0.107,y:-1.177,z:0.329}, //original
-			center: {x:-0.005608, y:-0.052784, z:0.242058}, //hand-tuned
+			center: {x:0.005608, y:0.042784, z:0.262058}, //hand-tuned
 			//center: {x:0.015608, y:0.042784, z:0.247058}, //original
 			fov: 45,
 			alpha: 0.1,
 			near: 0.1, //from P. Grice's code  https://github.com/gt-ros-pkg/hrl-assistive/blob/indigo-devel/assistive_teleop/vci-www/js/video/viewer.js
 			far: 50,
 			interactive:false,
-			tfClient: _TF // for asus side camera
+			tfClient: _TF
 		});
 
 		// Setup the marker client.
-		var imClient = new ROS3D.InteractiveMarkerClient({
+		new ROS3D.InteractiveMarkerClient({
 			ros : _ROS,
 			tfClient : _TF,
-			topic : '/grasp_selector',
+			topic : '/constrained_positioning',
 			camera : viewer.camera,
 			rootObject : viewer.selectableObjects
 		});
@@ -1014,24 +976,24 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 
 		viewer.addCamera(camera2);
-		viewer.changeCamera(0);
-		//new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://rail-engine.cc.gatech.edu/urdf/",param:"robot_description"});
 
+		//new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://rail-engine.cc.gatech.edu/urdf/",param:"robot_description"});
 		//focal length done by hand tuning
 		function register_depth_cloud(){
 			var depthCloud = new ROS3D.DepthCloud({
+				f:750,
       			url : streams[0],
-				f:850,
       			width: 640,
   				height:480,
   				pointSize:3,
   				clickable:true,
   				viewer:_VIEWER,
-				pose : {position:{x:0.0,y:-0.04,z:0},orientation:{x:0,y:0.0,z:0.0}},
+  				pose : {position:{x:0.0,y:-0.04,z:0},orientation:{x:0,y:0.0,z:0.0}}
     		});
 		    depthCloud.startStream();
-    		depthCloud.click=function(event3d){
-				RMS.logString('manipulation-request', 'calculate-grasps');
+			depthCloud.click=function(event3d){
+				console.log(event3d.intersection.point);
+				RMS.logString('manipulation-request', 'create-navidget-sphere');
 				var goal = new ROSLIB.Goal({
 					actionClient: pointCloudClickClient,
 					goalMessage: {
@@ -1041,12 +1003,14 @@ foreach ($environment['Urdf'] as $urdf) {
 						imageHeight:480
 					}
 				});
-				displayFeedback('Searching for grasps at clicked point');
+				displayFeedback('New Sphere Created');
+				disableInput();
 				goal.on('feedback', function (feedback) {
-					displayFeedback(feedback.message);
+					displayFeedback(feedback.message)
 				});
 				goal.on('result', function (result) {
 					RMS.logString('manipulation-result', JSON.stringify(result));
+					enableInput();
 				});
 				goal.send();
 			} 			
@@ -1064,7 +1028,7 @@ foreach ($environment['Urdf'] as $urdf) {
 			var depthCloud2 = new ROS3D.DepthCloud({
 			//side camera
       			url : streams[1],
-				f:850,
+      			f:850,
       			width: 640,
   				height:480,
   				pointSize:3,
@@ -1073,7 +1037,7 @@ foreach ($environment['Urdf'] as $urdf) {
   				pose : {position:{x:0.06,y:-0.025,z:0},orientation:{x:0,y:0.0,z:0.0}}
     		});
 			depthCloud2.click=function(event3d){
-				RMS.logString('manipulation-request', 'calculate-grasps');
+				RMS.logString('manipulation-request', 'create-navidget-sphere');
 				var goal = new ROSLIB.Goal({
 					actionClient: pointCloudClickClient,
 					goalMessage: {
@@ -1083,12 +1047,14 @@ foreach ($environment['Urdf'] as $urdf) {
 						imageHeight:480
 					}
 				});
-				displayFeedback('Searching for grasps at clicked point');
+				displayFeedback('New Sphere Created');
+				disableInput();
 				goal.on('feedback', function (feedback) {
-					displayFeedback(feedback.message);
+					displayFeedback(feedback.message)
 				});
 				goal.on('result', function (result) {
 					RMS.logString('manipulation-result', JSON.stringify(result));
+					enableInput();
 				});
 				goal.send();
 	    	};
@@ -1099,21 +1065,29 @@ foreach ($environment['Urdf'] as $urdf) {
 			var kinectNode2 = new ROS3D.SceneNode({
 		      frameID : '/camera_side_depth_optical_frame',
 		      tfClient : _TF,
-		      object : depthCloud2,
-  				pose : {position:{x:0.06,y:-0.025,z:0},orientation:{x:0,y:0.0,z:0.0}}
+		      object : depthCloud2, 
+		      pose : {position:{x:0.06,y:-0.025,z:0},orientation:{x:0,y:0.0,z:0.0}}
 		    });
 
+			
 		    pointClouds.push(depthCloud2.video);
 
 			depthCloud.frame=kinectNode;
 			depthCloud2.frame=kinectNode2;
 
-			
+			kinectNodes.push(kinectNode2);
 			kinectNodes.push(kinectNode);
- 			kinectNodes.push(kinectNode2);
-
+ 
 			_VIEWER.addObject(kinectNode2,true);
 			_VIEWER.addObject(kinectNode,true);
+			
+			function update_depth_pose(){
+				// console.log(kinectNode2.pose);
+				// depthCloud2.pickingScene.updatePose(kinectNode2.pose);	
+				// console.log(depthCloud2.pickingScene.pose);
+			}
+			setTimeout(function(){update_depth_pose();},10000);
+			
 		}
 		setTimeout(function(){register_depth_cloud();},2000);
 		clickingDisabled = false;

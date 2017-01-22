@@ -75,13 +75,8 @@ echo $this->Html->css('PuzzleBot3DInterface');
 								<ul style="margin:0">
 									<!--<li>Move the lemon onto the white plate</li>
 									<li>Reset the arm when you're finished</li>-->
-									
-									<li>Open the middle plastic drawer</li>
-									<li>Slide open the wooden box</li>
-									<li>Remove the black cap from  the white bottle</li>
-									<li>Pour out the red mug into the wooden bowl</li>
-									<li>Remove a marker from the blue cup</li>
-									<li>Pull the yellow cart onto the green line</li>
+									<li>Move the lemon onto the white plate</li>
+									<li>Reset the arm when you're finished</li>
 								</ul>
 							</div>
 						</td>
@@ -316,7 +311,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 	/****************************************************************************
 	 *                           Initial Logging                                *
 	 ****************************************************************************/
-	RMS.logString('new-session', 'click-3d-im')
+	RMS.logString('new-session', 'click-3d-im-training')
 
 	//var size = Math.min(((window.innerWidth / 2) - 120), window.innerHeight * 0.60);
 	var size=500;
