@@ -818,7 +818,6 @@ foreach ($environment['Urdf'] as $urdf) {
 
 	function switchCamera() {
 		current_stream_id=(current_stream_id+1) % streams.length;
-		console.log(current_stream_id);
 		var request = new ROSLIB.ServiceRequest({
 			cloudTopic: cloudTopics[current_stream_id]
 		});
@@ -830,7 +829,7 @@ foreach ($environment['Urdf'] as $urdf) {
 				kinectNodes[current_stream_id].visible=true;
 			}
 		}
-		viewer.changeCamera(current_stream_id);
+		viewer.changeCamera((current_stream_id+1) % streams.length);
 		changePointCloudGS.callService(request, function(result) {});
 		changePointCloudPCC.callService(request, function(result) {});
 		changePointCloudRAG.callService(request, function(result) {});
@@ -1027,7 +1026,7 @@ foreach ($environment['Urdf'] as $urdf) {
   				pointSize:3,
   				clickable:true,
   				viewer:_VIEWER,
-				pose : {position:{x:0.0,y:-0.04,z:0},orientation:{x:0,y:0.0,z:0.0}},
+  				pose : {position:{x:0.0,y:-0.01,z:0},orientation:{x:0,y:0.0,z:0.0}}
     		});
 		    depthCloud.startStream();
     		depthCloud.click=function(event3d){
@@ -1056,7 +1055,7 @@ foreach ($environment['Urdf'] as $urdf) {
 				frameID : '/camera_depth_optical_frame',
 				tfClient : _TF,
 				object : depthCloud,
-				pose : {position:{x:0.0,y:-0.04,z:0},orientation:{x:0,y:0.0,z:0.0}},
+  				pose : {position:{x:0.0,y:-0.01,z:0},orientation:{x:0,y:0.0,z:0.0}},
 				visible : false
 		    });
 
@@ -1070,7 +1069,7 @@ foreach ($environment['Urdf'] as $urdf) {
   				pointSize:3,
   				clickable:true,
   				viewer:_VIEWER,
-  				pose : {position:{x:0.06,y:-0.025,z:0},orientation:{x:0,y:0.0,z:0.0}}
+  				pose : {position:{x:0.08,y:-0.050,z:0},orientation:{x:0,y:0.0,z:0.0}}
     		});
 			depthCloud2.click=function(event3d){
 				RMS.logString('manipulation-request', 'calculate-grasps');
@@ -1100,7 +1099,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		      frameID : '/camera_side_depth_optical_frame',
 		      tfClient : _TF,
 		      object : depthCloud2,
-  				pose : {position:{x:0.06,y:-0.025,z:0},orientation:{x:0,y:0.0,z:0.0}}
+  				pose : {position:{x:0.08,y:-0.050,z:0},orientation:{x:0,y:0.0,z:0.0}}
 		    });
 
 		    pointClouds.push(depthCloud2.video);
