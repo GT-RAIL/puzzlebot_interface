@@ -88,17 +88,6 @@ echo $this->Html->css('PuzzleBotClickInterface');
 						</td>
 					</tr>
 				</table>
-					<!--
-					<hr>
-					<b>Switch Cameras:</b>
-					<ul style="margin:0">
-						<select id='mjpegcanvas_select'>
-							<?php foreach ($environment['Stream'] as $stream):?>
-							<option value='<?php echo $stream['topic']?>'><?php echo $stream['name']?></option>
-							<?php endforeach;?>
-						</select>
-					</ul>
-					-->
 			</td>
 			<td>
 				<table>
@@ -117,59 +106,46 @@ echo $this->Html->css('PuzzleBotClickInterface');
 				</table>
 			</td>
 			<td style="width: 30%; vertical-align:top;">
-				<div id="instructions" style="height=500px; text-align: left; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
-					<b>Instructions:</b>
-					<ol type="1" style="list-style-type:decimal; margin-left:15px; margin-bottom:0px;">
-					<li><b>Set a position</b> for the gripper by <b>clicking on the camera feed</b> on the left.</li>
+			<div id="instructions" style="height=500px; text-align: left; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
+				<b>Instructions:</b>
+				<ol type="1" style="list-style-type:decimal; margin-left:15px;">
+					<li><b>Click the image</b> on the left to set a <b>grasping area</b>.</li>
+					<li><b>Click on the sphere</b> to set a <b>grasp angle</b>.</li>
+					<li><b>Adjust your grasp</b> by <b>clicking and dragging</b> the <b>ring and arrow</b> marker around the purple gripper.</li>
 					<li>
-						<b>Cycle through suggestions</b> to choose a good grasp.
-						<br><table style="margin-left:auto; margin-right:auto">
-							<tr>
-								<td>
-									<map name="prev-map">
-										<area shape="rect" coords="0,0,75,50" href="javascript:prevGrasp()">
-									</map>
-									<img id="img-prev" src="/img/Nimbus/nimbus-prev.png" height="50" width="75" style="vertical-align:middle" usemap="prev-map">
-								</td>
-								<td>
-									<map name="next-map">
-										<area shape="rect" coords="0,0,75,50" href="javascript:nextGrasp()">
-									</map>
-									<img id="img-next" src="/img/Nimbus/nimbus-next.png" height="50" width="75" style="vertical-align:middle" usemap="next-map">
-								</td>
-							</tr>
-						</table>
-					</li>
-					<li>
-						Select <b>Shallow</b> or <b>Deep Grasp</b> and the robot will automatically move to your selected position.
+						Use the <b>clear buttons</b> to <b>start a new grasp</b>.
 						<br /><table style="margin-left:auto; margin-right:auto;">
 							<tr>
+								<td style="text-align:center; vertical-align:middle;" width="150px">
+									<button id='clearGrasp' class='button special' style="width:150px">clear grasp</button>
+								</td>
 								<td style="vertical-align:middle;">
-									<map name="shallow-grasp-map">
-										<area shape="rect" coords="0,0,75,50" href="javascript:executeShallowGrasp()">
-									</map>
-									<img id="img-shallow" src="/img/Nimbus/nimbus-shallow-grasp.png" height="50" width="75" style="vertical-align:middle" usemap="shallow-grasp-map">
-								</td>
-								<td style="text-align:center" width="200px">
-									<button id='shallowGrasp' class='button special' style="width:190px">shallow grasp</button>
-								</td>
-							</tr>
-							<tr>
-								<td style="vertical-align:middle;">
-									<map name="deep-grasp-map">
-										<area shape="rect" coords="0,0,75,50" href="javascript:executeShallowGrasp()">
-									</map>
-									<img id="img-deep" src="/img/Nimbus/nimbus-deep-grasp.png" height="50" width="75" style="vertical-align:middle" usemap="deep-grasp-map">
-								</td>
-								<td style="text-align:center" width="200px">
-									<button id='deepGrasp' class='button special' style="width:190px">deep grasp</button>
+									<button id='clearAll' class='button special' style="width:150px">clear all</button>
 								</td>
 							</tr>
 						</table>
 					</li>
-					<li>Use the <b>Arm Controls</b> below to grasp and manipulate an object.</li>
-					</ol>
-				</div>
+					<li>
+						<b>Click the move button</b> below to automatically move the arm to your set position.
+						<br /><table style="margin-left:auto; margin-right:auto;">
+							<tr>
+								<td style="text-align:center; vertical-align:middle;" width="150px">
+									<button id='moveArm' class='button special' style="width:150px">move arm</button>
+								</td>
+								<td style="vertical-align:middle;">
+									<map name="plan-map">
+										<area shape="rect" coords="0,0,150,100" href="javascript:executeGrasp()">
+									</map>
+									<img id="img-plan" src="/img/Nimbus/nimbus-plan.png" height="100" width="150" style="vertical-align:middle" usemap="plan-map">
+								</td>
+
+							</tr>
+						</table>
+					</li>
+					<li>Use the <b>Arm Controls</b> below to manipulate objects.</li>
+				</ol>
+			</div>
+
 			</td>
 		</tr>
 	</table>

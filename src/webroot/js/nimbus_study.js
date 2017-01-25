@@ -26,7 +26,7 @@
 			}
 		});
 		goal.send();
-	}
+	} 
 
 	function executeOpenGripper() {
 		var goal = new ROSLIB.Goal({

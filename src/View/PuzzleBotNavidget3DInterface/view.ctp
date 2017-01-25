@@ -34,6 +34,8 @@ echo $this->Html->css('PuzzleBot3DInterface');
 
 <html>
 <head>
+	<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js'></script>
+	<?php echo $this->Html->script('ColladaLoader.js');?>
 
 	<?php
 		echo $this->Html->script('bootstrap.min');
@@ -120,16 +122,31 @@ echo $this->Html->css('PuzzleBot3DInterface');
 				</table>
 			</td>
 			<td style="width: 22%; vertical-align:top;">
-				<div id="instructions" style="height=500px; text-align: left; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
-					<b>Instructions:</b>
-					<ol type="1" style="list-style-type:decimal; margin-left:15px;">
-					<li><b>Set a position</b> for the gripper by <b>clicking and dragging</b> the <b>ring and arrow marker</b> on the left.</li>
+			<div id="instructions" style="height=500px; text-align: left; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
+				<b>Instructions:</b>
+				<ol type="1" style="list-style-type:decimal; margin-left:15px;">
+					<li><b>Click the image</b> on the left to set a <b>grasping area</b>.</li>
+					<li><b>Click on the sphere</b> to set a <b>grasp angle</b>.</li>
+					<li><b>Adjust your grasp</b> by <b>clicking and dragging</b> the <b>ring and arrow</b> marker around the purple gripper.</li>
+					<li>
+						Use the <b>clear buttons</b> to <b>start a new grasp</b>.
+						<br /><table style="margin-left:auto; margin-right:auto;">
+							<tr>
+								<td style="text-align:center; vertical-align:middle;" width="150px">
+									<button id='clearGrasp' class='button special' style="width:150px">clear grasp</button>
+								</td>
+								<td style="vertical-align:middle;">
+									<button id='clearAll' class='button special' style="width:150px">clear all</button>
+								</td>
+							</tr>
+						</table>
+					</li>
 					<li>
 						<b>Click the move button</b> below to automatically move the arm to your set position.
 						<br /><table style="margin-left:auto; margin-right:auto;">
 							<tr>
 								<td style="text-align:center; vertical-align:middle;" width="150px">
-									<button id='moveArm' class='button special' style="width:140px">move arm</button>
+									<button id='moveArm' class='button special' style="width:150px">move arm</button>
 								</td>
 								<td style="vertical-align:middle;">
 									<map name="plan-map">
@@ -141,9 +158,9 @@ echo $this->Html->css('PuzzleBot3DInterface');
 							</tr>
 						</table>
 					</li>
-					<li>Use the <b>Arm Controls</b> below to grasp and manipulate an object.</li>
-					</ol>
-				</div>
+					<li>Use the <b>Arm Controls</b> below to manipulate objects.</li>
+				</ol>
+			</div>
 			</td>
 		</tr>
 	</table>
@@ -285,7 +302,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 	/****************************************************************************
 	 *                           Initial Logging                                *
 	 ****************************************************************************/
-	RMS.logString('new-session', 'eef-im-3d')
+	RMS.logString('new-session', 'navidget-3d')
 
 	//var size = Math.min(((window.innerWidth / 2) - 120), window.innerHeight * 0.60);
 	var size=500;
@@ -312,11 +329,10 @@ echo $this->Html->css('PuzzleBot3DInterface');
 		})
 	);
 
-	
 
 	//add IMs
 	<?php foreach ($environment['Im'] as $im): ?>
-		if ('<?php echo h($im['topic']); ?>' == '/nimbus_6dof_planning') {
+		if ('<?php echo h($im['topic']); ?>' ==  '/constrained_positioning') {
 			new ROS3D.InteractiveMarkerClient({
 				ros: _ROS,
 				tfClient: _TF,
@@ -326,9 +342,15 @@ echo $this->Html->css('PuzzleBot3DInterface');
 				<?php echo isset($im['Resource']['url']) ? __('path:"%s",', h($im['Resource']['url'])) : ''; ?>
 				topic: '<?php echo h($im['topic']); ?>'
 			});
-			console.log('<?php echo h($im['topic']); ?>');
 		}
 	<?php endforeach; ?>
+		new ROS3D.InteractiveMarkerClient({
+			ros: _ROS,
+			tfClient: _TF,
+			camera: _VIEWER.camera,
+			rootObject: _VIEWER.selectableObjects,
+			topic : '/constrained_positioning',
+		});
 </script>
 
 <?php
@@ -344,6 +366,7 @@ foreach ($environment['Urdf'] as $urdf) {
 ?>
 
 <script>
+	//Setup ROS action clients
 	//Setup ROS action clients
 	var armClient = new ROSLIB.ActionClient({
 		ros: _ROS,
@@ -362,16 +385,37 @@ foreach ($environment['Urdf'] as $urdf) {
 	});
 	var graspClient = new ROSLIB.ActionClient({
 		ros: _ROS,
-		serverName: '/nimbus_6dof_planning/execute_grasp',
-		actionName: 'nimbus_interactive_manipulation/SpecifiedGraspAction'
+		serverName: '/constrained_positioning/execute_grasp',
+		actionName: 'remote_manipulation_markers/SpecifiedGraspAction'
 	});
-	
+	var pointCloudClickClient = new ROSLIB.ActionClient({
+		ros: _ROS,
+		serverName: '/point_cloud_clicker/click_image_point_navidget',
+		actionName: 'rail_agile_grasp_msgs/ClickImagePointAction'
+	});
+
 	//Setup ROS service clients
 	var resetMarkerClient = new ROSLIB.Service({
 		ros : _ROS,
 		name : '/nimbus_6dof_planning/reset_marker_position',
 		serviceType : 'std_srvs/Empty'
 	});
+	var clearGraspClient = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/constrained_positioning/clear_gripper_marker',
+		serviceType : 'std_srvs/Empty'
+	});
+	var clearAllClient = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/constrained_positioning/clear_full_marker',
+		serviceType : 'std_srvs/Empty'
+	});
+	var changePointCloudPCC = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/point_cloud_clicker/change_point_cloud_topic',
+		serviceType : 'rail_agile_grasp_msgs/ChangePointCloud'
+	});
+
 
 </script>
 
@@ -381,7 +425,8 @@ foreach ($environment['Urdf'] as $urdf) {
 	 ****************************************************************************/
 	//TODO populate from ROS
 	 var streams=['http://rail-engine.cc.gatech.edu'+ ':8080/stream?topic=/depthcloud_encoded&type=vp8&bitrate=50000&quality=100','http://rail-engine.cc.gatech.edu'+ ':8080/stream?topic=/depthcloud_encoded_side&type=vp8&bitrate=50000&quality=100'];
-	 /*var streams=[]
+	 var cloudTopics=['/camera_side/depth_registered/points', '/camera/depth_registered/points'];
+	/*var streams=[]
 	 <?php foreach($environment['Pointcloud'] as $pointClouds){
 	 	echo 'streams.push("'.$pointClouds['stream'].'");';
 
@@ -396,7 +441,8 @@ foreach ($environment['Urdf'] as $urdf) {
 	 var depthCloud;
 	 var viewer;
 	 //what a lie this is an asus node	 
-	 var kinectNode;
+	var kinectNodes=[];
+
 
 	/****************************************************************************
 	 *                          Button Callbacks                                *
@@ -451,19 +497,38 @@ foreach ($environment['Urdf'] as $urdf) {
 		executeRotateCCW();
 	});
 
+	$('#shallowGrasp').click(function (e) {
+		e.preventDefault();
+		executeShallowGrasp();
+	});
+	$('#deepGrasp').click(function (e) {
+		e.preventDefault();
+		executeDeepGrasp();
+	});
+
+	$('#mjpegcanvas_select').change(function(e){
+		e.preventDefault();
+		mjpegcanvas.changeStream(this.value);
+	});
+
 	$('#moveArm').click(function (e) {
 		e.preventDefault();
 		executeGrasp();
 	});
 
-	$('#changeView').click(function(e) {
+	$('#clearGrasp').click(function (e) {
 		e.preventDefault();
-		changeView();
-	})
+		clearGrasp();
+	});
+	$('#clearAll').click(function (e) {
+		e.preventDefault();
+		clearAll();
+	});
 
 	
 	/****************************************************************************
 	 *                           Grasp Actions                                  *
+
 	 ****************************************************************************/
 	function executeGrasp() {
 		disableInput();
@@ -484,12 +549,17 @@ foreach ($environment['Urdf'] as $urdf) {
 		goal.send();
 	}
 
-	function resetMarkerPose() {
+	function clearGrasp() {
+		RMS.logString('manipulation-request', 'clear-grasp');
 		var request = new ROSLIB.ServiceRequest ({});
-		resetMarkerClient.callService(request, function(result){});
+		clearGraspClient.callService(request, function(result){RMS.logString('manipulation-result', 'grasps cleared')});
 	}
 
-
+	function clearAll() {
+		RMS.logString('manipulation-request', 'clear-all');
+		var request = new ROSLIB.ServiceRequest ({});
+		clearAllClient.callService(request, function(result){clickingDisabled = false; RMS.logString('manipulation-result', 'navidget marker reset');});
+	}
 	/****************************************************************************
 	 *                         Primitive Actions                                *
 	 ****************************************************************************/
@@ -507,7 +577,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 		goal.on('result', function(result) {
 			RMS.logString('primitive-result', JSON.stringify(result));
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -566,7 +635,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 		goal.on('result', function(result) {
 			RMS.logString('primitive-result', JSON.stringify(result));
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -587,7 +655,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 		goal.on('result', function(result) {
 			RMS.logString('primitive-result', JSON.stringify(result));
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -609,7 +676,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 		goal.on('result', function(result) {
 			RMS.logString('primitive-result', JSON.stringify(result));
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -630,7 +696,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 		goal.on('result', function(result) {
 			RMS.logString('primitive-result', JSON.stringify(result));
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -652,7 +717,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 		goal.on('result', function(result) {
 			RMS.logString('primitive-result', JSON.stringify(result));
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -673,7 +737,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 		goal.on('result', function(result) {
 			RMS.logString('primitive-result', JSON.stringify(result));
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -695,7 +758,6 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 		goal.on('result', function(result) {
 			RMS.logString('primitive-result', JSON.stringify(result));
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
@@ -716,19 +778,37 @@ foreach ($environment['Urdf'] as $urdf) {
 		});
 		goal.on('result', function(result) {
 			RMS.logString('primitive-result', JSON.stringify(result));
-			resetMarkerPose();
 			enableInput();
 		});
 		goal.send();
 	}
 
-	//changes the stream and the video
-	function changeView(){
-		current_stream_id=(current_stream_id+1) % streams.length;
-		console.log(viewer.camera.projectionMatrix);
-		viewer.changeCamera(current_stream_id);
-		RMS.logString('change-view', 'camera ' + current_stream_id);
+	/****************************************************************************
+	 *                           View Actions                                   *
+	 ****************************************************************************/
+	$('#changeView').click(function (e) {
+		e.preventDefault();
+		switchCamera();
+	});
 
+	function switchCamera() {
+		//TODO: Change stream
+		current_stream_id=(current_stream_id+1) % streams.length;
+		var request = new ROSLIB.ServiceRequest({
+			cloudTopic: cloudTopics[current_stream_id]
+		});
+		for (var i=0;i<streams.length;i++){
+			if(i!=current_stream_id){
+				kinectNodes[i].visible=false;
+			}
+			else{
+				kinectNodes[current_stream_id].visible=true;
+			}
+		}
+		viewer.changeCamera(current_stream_id);
+		changePointCloudPCC.callService(request, function(result) {});
+
+		RMS.logString('change-view', 'camera ' + current_stream_id);
 	}
 
 	/****************************************************************************
@@ -736,7 +816,10 @@ foreach ($environment['Urdf'] as $urdf) {
 	 ****************************************************************************/
 
 	function disableInput() {
-		$('#img-plan').css("pointerEvents", "none");
+		$('#img-prev').css("pointerEvents", "none");
+		$('#img-next').css("pointerEvents", "none");
+		$('#img-shallow').css("pointerEvents", "none");
+		$('#img-deep').css("pointerEvents", "none");
 		$('#img-gripper').css("pointerEvents", "none");
 		$('#img-reset').css("pointerEvents", "none");
 		$('#img-fb').css("pointerEvents", "none");
@@ -744,7 +827,8 @@ foreach ($environment['Urdf'] as $urdf) {
 		$('#img-ud').css("pointerEvents", "none");
 		$('#img-rotate').css("pointerEvents", "none");
 
-		$('#moveArm').css("pointerEvents", "none");
+		$('#shallowGrasp').css("pointerEvents", "none");
+		$('#deepGrasp').css("pointerEvents", "none");
 		$('#openGripper').css("pointerEvents", "none");
 		$('#closeGripper').css("pointerEvents", "none");
 		$('#resetArm').css("pointerEvents", "none");
@@ -757,7 +841,8 @@ foreach ($environment['Urdf'] as $urdf) {
 		$('#rotateCW').css("pointerEvents", "none");
 		$('#rotateCCW').css("pointerEvents", "none");
 
-		$('#moveArm').prop("disabled", true);
+		$('#shallowGrasp').prop("disabled", true);
+		$('#deepGrasp').prop("disabled", true);
 		$('#openGripper').prop("disabled", true);
 		$('#closeGripper').prop("disabled", true);
 		$('#resetArm').prop("disabled", true);
@@ -769,10 +854,15 @@ foreach ($environment['Urdf'] as $urdf) {
 		$('#moveDown').prop("disabled", true);
 		$('#rotateCW').prop("disabled", true);
 		$('#rotateCCW').prop("disabled", true);
+
+		clickingDisabled = true;
 	}
 
 	function enableInput() {
-		$('#img-plan').css("pointerEvents", "");
+		$('#img-prev').css("pointerEvents", "");
+		$('#img-next').css("pointerEvents", "");
+		$('#img-shallow').css("pointerEvents", "");
+		$('#img-deep').css("pointerEvents", "");
 		$('#img-gripper').css("pointerEvents", "");
 		$('#img-reset').css("pointerEvents", "");
 		$('#img-fb').css("pointerEvents", "");
@@ -780,7 +870,8 @@ foreach ($environment['Urdf'] as $urdf) {
 		$('#img-ud').css("pointerEvents", "");
 		$('#img-rotate').css("pointerEvents", "");
 
-		$('#moveArm').css("pointerEvents", "");
+		$('#shallowGrasp').css("pointerEvents", "");
+		$('#deepGrasp').css("pointerEvents", "");
 		$('#openGripper').css("pointerEvents", "");
 		$('#closeGripper').css("pointerEvents", "");
 		$('#resetArm').css("pointerEvents", "");
@@ -793,7 +884,8 @@ foreach ($environment['Urdf'] as $urdf) {
 		$('#rotateCW').css("pointerEvents", "");
 		$('#rotateCCW').css("pointerEvents", "");
 
-		$('#moveArm').prop("disabled", false);
+		$('#shallowGrasp').prop("disabled", false);
+		$('#deepGrasp').prop("disabled", false);
 		$('#openGripper').prop("disabled", false);
 		$('#closeGripper').prop("disabled", false);
 		$('#resetArm').prop("disabled", false);
@@ -805,11 +897,15 @@ foreach ($environment['Urdf'] as $urdf) {
 		$('#moveDown').prop("disabled", false);
 		$('#rotateCW').prop("disabled", false);
 		$('#rotateCCW').prop("disabled", false);
+
+		clickingDisabled = false;
 	}
 
 	function displayFeedback(message) {
 		document.getElementById("feedback-text").innerHTML = message;
 	}
+
+
 	function init() {
 		<?php
 			$streamTopics = '[';
@@ -866,14 +962,14 @@ foreach ($environment['Urdf'] as $urdf) {
 			interactive:false,
 			tfClient: _TF
 		});
+
 		// Setup the marker client.
-		var imClient = new ROS3D.InteractiveMarkerClient({
+		new ROS3D.InteractiveMarkerClient({
 			ros : _ROS,
 			tfClient : _TF,
 			topic : '/nimbus_6dof_vis',
-			rootObject:viewer.rootObject,
-			camera : viewer.camera
-			// rootObject : viewer.selectableObjects
+			camera : viewer.camera,
+			rootObject : viewer.selectableObjects
 		});
 
 		var camera2=new ROS3D.ViewerCamera({
@@ -893,70 +989,122 @@ foreach ($environment['Urdf'] as $urdf) {
 		viewer.addCamera(camera2);
 
 		//new ROS3D.UrdfClient({ros:_ROS,tfClient:_TF,rootObject:viewer.rootObject,loader:1,path:"http://rail-engine.cc.gatech.edu/urdf/",param:"robot_description"});
-
 		//focal length done by hand tuning
 		function register_depth_cloud(){
-			depthCloud = new ROS3D.DepthCloud({
+			var depthCloud = new ROS3D.DepthCloud({
+				f:850,
       			url : streams[0],
-      			f:1000.0,
       			width: 640,
-  				height:480
+  				height:480,
+  				pointSize:3,
+  				clickable:true,
+  				viewer:_VIEWER,
+  				pose : {position:{x:0.0,y:-0.01,z:0},orientation:{x:0,y:0.0,z:0.0}}
     		});
 		    depthCloud.startStream();
+			depthCloud.click=function(event3d){
+				console.log(event3d.intersection.point);
+				RMS.logString('manipulation-request', 'create-navidget-sphere');
+				var goal = new ROSLIB.Goal({
+					actionClient: pointCloudClickClient,
+					goalMessage: {
+						x: event3d.intersection.point.x,
+						y:  event3d.intersection.point.y,
+						imageWidth: 640,
+						imageHeight:480
+					}
+				});
+				displayFeedback('New Sphere Created');
+				disableInput();
+				goal.on('feedback', function (feedback) {
+					displayFeedback(feedback.message)
+				});
+				goal.on('result', function (result) {
+					RMS.logString('manipulation-result', JSON.stringify(result));
+					enableInput();
+				});
+				goal.send();
+			} 			
+
 			// Create Kinect scene node
 			var kinectNode = new ROS3D.SceneNode({
-		      frameID : '/camera_depth_optical_frame',
-		      tfClient : _TF,
-		      object : depthCloud,
-		      pose : {position:{x:0,y:0,z:0},orientation:{x:0,y:0,z:0}}
+				frameID : '/camera_depth_optical_frame',
+				tfClient : _TF,
+				object : depthCloud,
+				pose : {position:{x:0.0,y:-0.01,z:0},orientation:{x:0,y:0.0,z:0.0}},
+				visible : false
 		    });
-			
-//			//duplicate the scene onto a canvas
-//			depthCloud.video.addEventListener('play',function()	{
-//				//TODO fix this width
-//		        draw(canvas.getContext("2d"),size,size*0.75);
-//    		},false);
-//
-//    		depthCloud.addEventListener("mousedown",function(e){
-//    			console.log(e);
-//    		})
 
 			pointClouds.push(depthCloud.video);
-			depthCloud2 = new ROS3D.DepthCloud({
+			var depthCloud2 = new ROS3D.DepthCloud({
+			//side camera
       			url : streams[1],
-      			f:1000.0,
+      			f:850,
       			width: 640,
-  				height:480
+  				height:480,
+  				pointSize:3,
+  				clickable:true,
+  				viewer:_VIEWER,
+  				pose : {position:{x:0.08,y:-0.050,z:0},orientation:{x:0,y:0.0,z:0.0}}
     		});
+			depthCloud2.click=function(event3d){
+				RMS.logString('manipulation-request', 'create-navidget-sphere');
+				var goal = new ROSLIB.Goal({
+					actionClient: pointCloudClickClient,
+					goalMessage: {
+						x: event3d.intersection.point.x,
+						y:  event3d.intersection.point.y,
+						imageWidth: 640,
+						imageHeight:480
+					}
+				});
+				displayFeedback('New Sphere Created');
+				disableInput();
+				goal.on('feedback', function (feedback) {
+					displayFeedback(feedback.message)
+				});
+				goal.on('result', function (result) {
+					RMS.logString('manipulation-result', JSON.stringify(result));
+					enableInput();
+				});
+				goal.send();
+	    	};
+	    	 
 		    depthCloud2.startStream();
-		    pointClouds.push(depthCloud2.video)
+
 			// Create Kinect scene node
 			var kinectNode2 = new ROS3D.SceneNode({
 		      frameID : '/camera_side_depth_optical_frame',
 		      tfClient : _TF,
-		      object : depthCloud2,
-		      pose : {position:{x:0.07,y:-0.02,z:0.0},orientation:{x:0,y:0,z:0}}
+		      object : depthCloud2, 
+  				pose : {position:{x:0.08,y:-0.050,z:0},orientation:{x:0,y:0.0,z:0.0}}
 		    });
 
+			
+		    pointClouds.push(depthCloud2.video);
 
-//    		function draw(c,w,h) {
-//    			//sx and sy are the points on the original stream RGB is in the bottom right
-//    			c.drawImage(pointClouds[current_stream_id],sx=520,sy=520,swidth=size,sheight=size*.75,x=0,y=0,width=w,height=h);
-//    			setTimeout(draw,200,c,w,h);
-//			}
+			depthCloud.frame=kinectNode;
+			depthCloud2.frame=kinectNode2;
 
-			_VIEWER.addObject(kinectNode,true);
+			kinectNodes.push(kinectNode2);
+			kinectNodes.push(kinectNode);
+ 
 			_VIEWER.addObject(kinectNode2,true);
+			_VIEWER.addObject(kinectNode,true);
+			
+			function update_depth_pose(){
+				// console.log(kinectNode2.pose);
+				// depthCloud2.pickingScene.updatePose(kinectNode2.pose);	
+				// console.log(depthCloud2.pickingScene.pose);
+			}
+			setTimeout(function(){update_depth_pose();},10000);
 			
 		}
-		//temporary measure to prevent depth cloud mapping from taking all the packets and throttling connection
-
-		setInterval(register_depth_cloud(),5000);
-
+		setTimeout(function(){register_depth_cloud();},2000);
+		clickingDisabled = false;
 
 	}
 	$(document).ready(function(){init();});
-
 	$('#viewer').on('click','canvas',function(event){
 			RMS.logString('manipulation-request', 'canvas-click');
 	})
@@ -966,7 +1114,6 @@ foreach ($environment['Urdf'] as $urdf) {
 	$('#viewer').on('mouseup','canvas',function(event){
 		RMS.logString('manipulation-request', 'canvas-mouseup');
 	})
-
 </script>
 
 </html>

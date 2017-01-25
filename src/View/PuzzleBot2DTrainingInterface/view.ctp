@@ -68,12 +68,8 @@ echo $this->Html->css('PuzzleBot2DInterface');
 						<div id="tasks" style="height=500px; text-align: right; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
 							<b>Your Tasks:</b>
 							<ul style="margin:0">
-								<li>Open the middle plastic drawer</li>
-								<li>Pull the cart across the green line</li>
-								<li>Remove a marker from the blue cup</li>
-								<li>Open the wooden box</li>
-								<li>Remove the cap from  the bottle</li>
-								<li>Pour the mug into the bowl</li>
+								<li>Move the lemon onto the white plate</li>
+								<li>Reset the arm when you're finished</li>
 							</ul>
 						</div>
 					</td>
@@ -271,7 +267,7 @@ echo $this->Html->css('PuzzleBot2DInterface');
 	/****************************************************************************
 	 *                           Initial Logging                                *
 	 ****************************************************************************/
-	RMS.logString('new-session', 'eef-im-2d')
+	RMS.logString('new-session', 'eef-im-2d-training')
 
 	var size = Math.min(((window.innerWidth / 2) - 120), window.innerHeight * 0.60);
 </script>

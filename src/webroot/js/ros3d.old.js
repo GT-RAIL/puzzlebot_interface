@@ -47,6 +47,7 @@ ROS3D.INTERACTIVE_MARKER_VIEW_FACING = 2;
 ROS3D.COLLADA_LOADER = 1;
 ROS3D.COLLADA_LOADER_2 = 2;
 
+
 /**
  * Create a THREE material based on the given RGBA values.
  *
@@ -170,13 +171,13 @@ ROS3D.findClosestPoint = function(targetRay, mouseRay) {
  * @returns the closest axis point
  */
 ROS3D.closestAxisPoint = function(axisRay, camera, mousePos) {
-  // var projector = new THREE.Projector();
+  var projector = new THREE.Projector();
 
   // project axis onto screen
   var o = axisRay.origin.clone();
-  o.project(camera);
+  projector.projectVector(o, camera);
   var o2 = axisRay.direction.clone().add(axisRay.origin);
-  o2.project(camera);
+  projector.projectVector(o2, camera);
 
   // d is the axis vector in screen space (d = o2-o)
   var d = o2.clone().sub(o);
@@ -192,7 +193,7 @@ ROS3D.closestAxisPoint = function(axisRay, camera, mousePos) {
 
   // go back to 3d by shooting a ray
   var vector = new THREE.Vector3(mp.x, mp.y, 0.5);
-  vector.unproject(camera);
+  projector.unprojectVector(vector, camera);
   var mpRay = new THREE.Ray(camera.position, vector.sub(camera.position).normalize());
 
   return ROS3D.findClosestPoint(axisRay, mpRay);
@@ -228,18 +229,8 @@ ROS3D.DepthCloud = function(options) {
   this.width = options.width || 1024;
   this.height = options.height || 1024;
   this.whiteness = options.whiteness || 0;
-  this.clickable = options.clickable || false;
   this.varianceThreshold = options.varianceThreshold || 0.000016667;
-  this.viewer = options.viewer;
-  this.frame = options.frame || '';
-  this.tfClient = options.tfClient;
-  if(!options.pose){
-    this.pose = {position:{x:0.0,y:0.0,z:0},orientation:{x:0,y:0.0,z:0.0}};
-  }
-  else{
-    this.pose= options.pose;  
-  }
-  
+
   var metaLoaded = false;
 
   this.isMjpeg = this.streamType.toLowerCase() === 'mjpeg';
@@ -250,10 +241,6 @@ ROS3D.DepthCloud = function(options) {
   if (!this.isMjpeg) {
     this.video.loop = true;
   }
-
-  this.click=function(event3d){
-
-  };
 
   this.video.src = this.url;
   this.video.crossOrigin = 'Anonymous';
@@ -390,168 +377,6 @@ ROS3D.DepthCloud = function(options) {
     '}'
   ].join('\n');
 
-  this.picking_vertex_shader = [
-    'uniform sampler2D map;',
-    '',
-    'uniform float width;',
-    'uniform float height;',
-    'uniform float nearClipping, farClipping;',
-    '',
-    'uniform float pointSize;',
-    'uniform float zOffset;',
-    '',
-    'uniform float focallength;',
-    '',
-    'varying vec2 vUvP;',
-    'varying vec2 colorP;',
-    'varying vec4 P;',
-    '',
-    'varying float depthVariance;',
-    'varying float maskVal;',
-    '',
-    'float sampleDepth(vec2 pos)',
-    '  {',
-    '    float depth;',
-    '    ',
-    '    vec2 vUv = vec2( pos.x / (width*2.0), pos.y / (height*2.0)+0.5 );',
-    '    vec2 vUv2 = vec2( pos.x / (width*2.0)+0.5, pos.y / (height*2.0)+0.5 );',
-    '    ',
-    '    vec4 depthColor = texture2D( map, vUv );',
-    '    ',
-    '    depth = ( depthColor.r + depthColor.g + depthColor.b ) / 3.0 ;',
-    '    ',
-    '    if (depth>0.99)',
-    '    {',
-    '      vec4 depthColor2 = texture2D( map, vUv2 );',
-    '      float depth2 = ( depthColor2.r + depthColor2.g + depthColor2.b ) / 3.0 ;',
-    '      depth = 0.99+depth2;',
-    '    }',
-    '    ',
-    '    return depth;',
-    '  }',
-    '',
-    'float median(float a, float b, float c)',
-    '  {',
-    '    float r=a;',
-    '    ',
-    '    if ( (a<b) && (b<c) )',
-    '    {',
-    '      r = b;',
-    '    }',
-    '    if ( (a<c) && (c<b) )',
-    '    {',
-    '      r = c;',
-    '    }',
-    '    return r;',
-    '  }',
-    '',
-    'float variance(float d1, float d2, float d3, float d4, float d5, float d6, float d7, float d8, float d9)',
-    '  {',
-    '    float mean = (d1 + d2 + d3 + d4 + d5 + d6 + d7 + d8 + d9) / 9.0;',
-    '    float t1 = (d1-mean);',
-    '    float t2 = (d2-mean);',
-    '    float t3 = (d3-mean);',
-    '    float t4 = (d4-mean);',
-    '    float t5 = (d5-mean);',
-    '    float t6 = (d6-mean);',
-    '    float t7 = (d7-mean);',
-    '    float t8 = (d8-mean);',
-    '    float t9 = (d9-mean);',
-    '    float v = (t1*t1+t2*t2+t3*t3+t4*t4+t5*t5+t6*t6+t7*t7+t8*t8+t9*t9)/9.0;',
-    '    return v;',
-    '  }',
-    '',
-    'vec2 decodeDepth(vec2 pos)',
-    '  {',
-    '    vec2 ret;',
-    '    ',
-    '    ',
-    '    float depth1 = sampleDepth(vec2(position.x-1.0, position.y-1.0));',
-    '    float depth2 = sampleDepth(vec2(position.x, position.y-1.0));',
-    '    float depth3 = sampleDepth(vec2(position.x+1.0, position.y-1.0));',
-    '    float depth4 = sampleDepth(vec2(position.x-1.0, position.y));',
-    '    float depth5 = sampleDepth(vec2(position.x, position.y));',
-    '    float depth6 = sampleDepth(vec2(position.x+1.0, position.y));',
-    '    float depth7 = sampleDepth(vec2(position.x-1.0, position.y+1.0));',
-    '    float depth8 = sampleDepth(vec2(position.x, position.y+1.0));',
-    '    float depth9 = sampleDepth(vec2(position.x+1.0, position.y+1.0));',
-    '    ',
-    '    float median1 = median(depth1, depth2, depth3);',
-    '    float median2 = median(depth4, depth5, depth6);',
-    '    float median3 = median(depth7, depth8, depth9);',
-    '    ',
-    '    ret.x = median(median1, median2, median3);',
-    '    ret.y = variance(depth1, depth2, depth3, depth4, depth5, depth6, depth7, depth8, depth9);',
-    '    ',
-    '    return ret;',
-    '    ',
-    '  }',
-    '',
-    '',
-    'void main() {',
-    '  ',
-    '  vUvP = vec2( position.x / (width*2.0), position.y / (height*2.0)+0.5 );',
-    '  colorP = vec2( position.x / (width*2.0)+0.5 , position.y / (height*2.0)  );',
-    '  vec4 pos = vec4(0.0,0.0,0.0,0.0);',
-    '  depthVariance = 0.0;',
-    '  P = vec4(0.0,0.0,0.0,0.0);' ,
-    '  ',
-    '  if ( (vUvP.x<0.0)|| (vUvP.x>0.5) || (vUvP.y<0.5) || (vUvP.y>0.0))',
-    '  {',
-    '    vec2 smp = decodeDepth(vec2(position.x, position.y));',
-    '    float depth = smp.x;',
-    '    depthVariance = smp.y;',
-    '    ',
-    '    float z = -depth;',
-    '    ',
-    '    pos = vec4(',
-    '      ( position.x / width - 0.5 ) * z * (1000.0/focallength) * -1.0,',
-    '      ( position.y / height - 0.5 ) * z * (1000.0/focallength),',
-    '      (- z + zOffset / 1000.0) ,',
-    '      1.0);',
-    '    ',
-    '    vec2 maskP = vec2( position.x / (width*2.0), position.y / (height*2.0)  );',
-    '    vec4 maskColor = texture2D( map, maskP );',
-    '    maskVal = ( maskColor.r + maskColor.g + maskColor.b ) / 3.0 ;',
-    '    if (position.x< (width/4.0)){',
-    '       P.g=(position.x)/(width/4.0);',
-    '    }',
-    '    else if (position.x< (width/2.0)){',
-    '       P.g=(position.x- (width/4.0))/(width/4.0);',
-    '       P.r+=0.015625;',
-    '    }',
-    '    else if (position.x< (3.0*width/4.0)){',
-    '       P.g=(position.x- (width/2.0))/(width/4.0);',
-    '       P.r+=0.03125;',
-    '    }',
-    '    else{',
-    '       P.g=(position.x- (3.0*width/4.0))/(width/4.0);',
-    '       P.r+=0.046875;',
-    '    }',
-    '    if ((height -position.y)< (height/4.0)){',
-    '       P.b=((height -position.y)/(height/4.0));',
-    '    }',
-    '    else if ((height -position.y)< (height/2.0)){',
-    '       P.b=((height -position.y)- (height/4.0))/(height/4.0);',
-    '       P.r+=0.00390625;',
-    '    }',
-    '    else if ((height -position.y)< (3.0*height/4.0)){',
-    '       P.b=((height -position.y)- (height/2.0))/(height/4.0);',
-    '       P.r+=0.0078125;',
-    '    }',
-    '    else{',
-    '       P.b=((height -position.y)- (3.0*height/4.0))/(height/4.0);',
-    '       P.r+=0.01171875;',
-    '    }',
-    '    P.a= ((- z + zOffset / 1000.0)) /5.0;',
-    '  }',
-    '  ',
-    '  gl_PointSize = pointSize;',
-    '  gl_Position = projectionMatrix * modelViewMatrix * pos;',
-    '  ',
-    '}'
-  ].join('\n');
-
   this.fragment_shader = [
     'uniform sampler2D map;',
     'uniform float varianceThreshold;',
@@ -591,44 +416,6 @@ ROS3D.DepthCloud = function(options) {
     '  ',
     '}'
   ].join('\n');
-
-  this.picking_shader = [
-    'uniform sampler2D map;',
-    'uniform float varianceThreshold;',
-    'uniform float whiteness;',
-    '',
-    'varying vec4 P;',
-    'varying vec2 vUvP;',
-    'varying vec2 colorP;',
-    '',
-    'varying float depthVariance;',
-    'varying float maskVal;',
-    '',
-    '',
-    'void main() {',
-    '  ',
-    '  vec4 color;',
-    '    ',
-    '  if ( (depthVariance>varianceThreshold) || (maskVal>0.5) ||(vUvP.x<0.0)|| (vUvP.x>0.5) || (vUvP.y<0.5) || (vUvP.y>1.0))',
-    '  {  ',
-    '    discard;',
-    '  }',
-    '  else ',
-    '  {',
-    '    color.r = P.x;',
-    '    ',
-    '    color.g = P.y;',
-    '    ',
-    '    color.b = P.z;',
-    '    ',
-    '    color.a =P.a;',
-    '  }',
-    '  ',
-    '  gl_FragColor = vec4( color.r, color.g, color.b, color.a );',
-    '  ',
-    '}'
-  ].join('\n');
-
 };
 ROS3D.DepthCloud.prototype.__proto__ = THREE.Object3D.prototype;
 
@@ -647,27 +434,21 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
 
   if (this.metaLoaded) {
     this.texture = new THREE.Texture(this.video);
-    this.texture.minFilter = THREE.LinearFilter;
-    this.geometry = new THREE.BufferGeometry();
-    this.vertices=[];
+    this.geometry = new THREE.Geometry();
+
     for (var i = 0, l = this.width * this.height; i < l; i++) {
 
-      // var vertex = new THREE.Vector3();
-      // vertex.x = (i % this.width);
-      // vertex.y = Math.floor(i / this.width);
+      var vertex = new THREE.Vector3();
+      vertex.x = (i % this.width);
+      vertex.y = Math.floor(i / this.width);
+      this.geometry.vertices.push(vertex);
 
-      this.vertices.push((i % this.width)); 
-      this.vertices.push(parseInt(Math.floor(i / this.width)));
-      this.vertices.push(-1);
-      
       //this.geometry.computeVertexNormals();
       //this.geometry.computeBoundingSphere();
     }
 
-    var vertices = new Float32Array(this.vertices);
-    this.geometry.addAttribute('position',new THREE.BufferAttribute(vertices,3));
 
-
+    this.geometry.computeFaceNormals();
 
     this.material = new THREE.ShaderMaterial({
       uniforms : {
@@ -705,161 +486,24 @@ ROS3D.DepthCloud.prototype.initStreamer = function() {
         }
       },
       vertexShader : this.vertex_shader,
-      fragmentShader : this.fragment_shader,
-      vertexColors: THREE.VertexColors,
-      side : THREE.DoubleSide
+      fragmentShader : this.fragment_shader
     });
-  
 
-    this.picking_material = new THREE.ShaderMaterial({
-      uniforms : {
-        'map' : {
-          type : 't',
-          value : this.texture
-        },
-        'width' : {
-          type : 'f',
-          value : this.width
-        },
-        'height' : {
-          type : 'f',
-          value : this.height
-        },
-        'focallength' : {
-          type : 'f',
-          value : this.f
-        },
-        'pointSize' : {
-          type : 'f',
-          value : this.pointSize
-        },
-        'zOffset' : {
-          type : 'f',
-          value : 0
-        },
-        'whiteness' : {
-          type : 'f',
-          value : this.whiteness
-        },
-        'varianceThreshold' : {
-          type : 'f',
-          value : this.varianceThreshold
-        }
-      },
-      vertexShader : this.picking_vertex_shader,
-      fragmentShader : this.picking_shader,
-      vertexColors: THREE.VertexColors
-    });
-    var size=this.viewer.renderer.getSize();
-
-    this.mesh = new THREE.Points(this.geometry, this.material);
-    this.mesh.raycast= (function () {
-        var inverseMatrix = new THREE.Matrix4();
-        var ray = new THREE.Ray();
-        var sphere = new THREE.Sphere();
-        return function raycast( raycaster, intersects ) {
-          var object = this;
-          var geometry = this.geometry;
-          var matrixWorld = this.matrixWorld;
-          var size=1;
-          var test= new Uint8Array(4*size*size);
-          var pixelBuffer= new Uint8Array(4);
-          var min_z_index=-1;
-          var min_z=1000;
-
-          that.viewer.cameraControls.update();
-          if (that.viewer.mouseHandler.deviceX>0 && that.viewer.mouseHandler.deviceY>0){
-            that.renderer.clear(true, true, true);
-            that.renderer.render( that.pickingScene, that.viewer.camera, that.renderTarget );
-            that.renderer.readRenderTargetPixels(that.renderTarget, that.viewer.mouseHandler.deviceX, that.viewer.height-that.viewer.mouseHandler.deviceY, size,size, test);      
-            // var t2= new Uint8Array(4*500*375);
-            // that.renderer.readRenderTargetPixels(that.renderTarget, 0,0, 500,375, t2);
-            // console.log(t2); 
-            for (var i=0;i<size*size;i++){
-              if(test[(i*4)+3]!==0){
-                if ( min_z>test[(i*4)+3]){
-                  min_z=test[(i*4)+3];
-                  min_z_index=i;
-                }            
-              }
-            }
-            if(min_z_index!==-1){
-              pixelBuffer[0]=test[min_z_index*4];
-              pixelBuffer[1]=test[(min_z_index*4)+1];
-              pixelBuffer[2]=test[(min_z_index*4)+2];
-              pixelBuffer[3]=test[(min_z_index*4)+3];
-
-              if(pixelBuffer[3]!==0 && pixelBuffer[3]!==255){
-                  var x_position=pixelBuffer[1]*(that.width/4)/255;
-                  // x_position+=((pixelBuffer[0]===64 || pixelBuffer[0]===191 )?(that.width/4):0);
-                  if(pixelBuffer[0]>=8){
-                    x_position+=(that.width/2);
-                    pixelBuffer[0]-=8;
-                  }
-                  if(pixelBuffer[0]>=4){
-                    x_position+=(that.width/4);
-                    pixelBuffer[0]-=4;
-                  }
-                  // x_position+=(pixelBuffer[0]>8)?(that.width/2):0;
-                  var y_position=pixelBuffer[2]*(that.height/4)/255;
-                  y_position+=pixelBuffer[0]*(that.height/4);
-                  // y_position+=((pixelBuffer[0]===191 || pixelBuffer[0]===127)?(that.height/2):0); 
-                  // console.log(that.viewer.mouseHandler.deviceX+' X '+that.viewer.mouseHandler.deviceY+' Y');
-                  // console.log(y_position);
-                  // console.log(pixelBuffer);
-                  var z_position = (pixelBuffer[3]/255)*1000;
-                  var world_position=that.mesh.localToWorld(new THREE.Vector3( x_position, y_position, z_position ));
-                  intersects.push({
-                          distance: z_position,
-                          distanceToRay:Math.sqrt(ray.distanceSqToPoint(world_position)),
-                          point: new THREE.Vector3(x_position,y_position,z_position),
-                          index: 0,
-                          face: null,
-                          object: object
-                  });
-              }
-            }
-        }
-        return intersects;
-      };
-  }());
+    this.mesh = new THREE.ParticleSystem(this.geometry, this.material);
     this.mesh.position.x = 0;
     this.mesh.position.y = 0;
-
-    // this.texture.onUpdate=function(){
-    //    that.geometry.computeBoundingSphere();
-    // };
-    //this.geocomputeFaceNormals
-    if (this.clickable){
-        this.mesh.addEventListener('click',this.click.bind(this));
-        this.mesh.addEventListener('dblclick',this.click.bind(this));
-    }
-
-    this.pickingScene =new ROS3D.SceneNode({
-          frameID : this.frame.frameID,
-          tfClient : this.frame.tfClient,
-          object : new THREE.Points(this.geometry, this.picking_material),
-          pose : this.pose
-        });    
-    this.renderTarget = new THREE.WebGLRenderTarget(this.viewer.width , this.viewer.height );
-
-    this.renderer = new THREE.WebGLRenderer( { antialias: true,alpha:true} );
-    this.renderer.setClearColor( 0xffffff );
-    this.renderer.setSize(this.viewer.width,this.viewer.height);
-    this.renderer.sortObjects = false;
-    this.renderer.shadowMap.enabled = false;
-    this.renderer.autoClear = false;
-
     this.add(this.mesh);
-    //this.add(new THREE.Points(this.geometry, this.picking_material));
+    //this.geocomputeFaceNormals
     var that = this;
 
     setInterval(function() {
       if (that.isMjpeg || that.video.readyState === that.video.HAVE_ENOUGH_DATA) {
         that.texture.needsUpdate = true;
+        // that.geometry.verticesNeedUpdate = true; 
+        // that.geometry.normalsNeedUpdate = true; 
 
       }
-    }, 1000 / 10);
+    }, 1000 / 30);
   }
 };
 
@@ -900,6 +544,7 @@ ROS3D.DepthCloud.prototype.stopStream = function() {
 ROS3D.InteractiveMarker = function(options) {
   THREE.Object3D.call(this);
   THREE.EventDispatcher.call(this);
+
   var that = this;
   options = options || {};
   var handle = options.handle;
@@ -914,8 +559,6 @@ ROS3D.InteractiveMarker = function(options) {
     pose : handle.pose
   });
 
-
-
   // information on where the drag started
   this.dragStart = {
     position : new THREE.Vector3(),
@@ -924,6 +567,7 @@ ROS3D.InteractiveMarker = function(options) {
     orientationWorld : new THREE.Quaternion(),
     event3d : {}
   };
+
   // add each control message
   handle.controls.forEach(function(controlMessage) {
     that.add(new ROS3D.InteractiveMarkerControl({
@@ -948,8 +592,6 @@ ROS3D.InteractiveMarker = function(options) {
       that.dispatchEvent(event);
     });
   }
-
-  
 };
 ROS3D.InteractiveMarker.prototype.__proto__ = THREE.Object3D.prototype;
 
@@ -973,7 +615,6 @@ ROS3D.InteractiveMarker.prototype.showMenu = function(control, event) {
  * @param event3d - the event that caused this
  */
 ROS3D.InteractiveMarker.prototype.moveAxis = function(control, origAxis, event3d) {
-
   if (this.dragging) {
     var currentControlOri = control.currentControlOri;
     var axis = origAxis.clone().applyQuaternion(currentControlOri);
@@ -1036,7 +677,7 @@ ROS3D.InteractiveMarker.prototype.rotateAxis = function(control, origOrientation
 
     var currentControlOri = control.currentControlOri;
     var orientation = currentControlOri.clone().multiply(origOrientation.clone());
-    
+    //console.log(orientation);
     var normal = (new THREE.Vector3(1, 0, 0)).applyQuaternion(orientation);
 
     // get plane params in world coords
@@ -1166,8 +807,7 @@ ROS3D.InteractiveMarker.prototype.buttonClick = function(control, event3d) {
  * @param event3d - the event that caused this
  */
 ROS3D.InteractiveMarker.prototype.setPosition = function(control, position) {
-  // thee js r74 changes
-  this.position.set(position.x,position.y,position.z);
+  this.position = position;
   this.feedbackEvent('user-pose-change', control);
 };
 
@@ -1178,9 +818,8 @@ ROS3D.InteractiveMarker.prototype.setPosition = function(control, position) {
  * @param event3d - the event that caused this
  */
 ROS3D.InteractiveMarker.prototype.setOrientation = function(control, orientation) {
-  // thee js r74 changes
   orientation.normalize();
-  this.quaternion.set(orientation.x,orientation.y,orientation.z,orientation.w);
+  this.quaternion = orientation;
   this.feedbackEvent('user-pose-change', control);
 };
 
@@ -1197,9 +836,11 @@ ROS3D.InteractiveMarker.prototype.onServerSetPose = function(event) {
     } else {
       var pose = event.pose;
 
-      this.position.set(pose.position.x,pose.position.y,pose.position.z);
+      this.position.x = pose.position.x;
+      this.position.y = pose.position.y;
+      this.position.z = pose.position.z;
 
-      this.quaternion.set(pose.orientation.x, pose.orientation.y,
+      this.quaternion = new THREE.Quaternion(pose.orientation.x, pose.orientation.y,
           pose.orientation.z, pose.orientation.w);
 
       this.updateMatrixWorld(true);
@@ -1463,7 +1104,6 @@ ROS3D.InteractiveMarkerControl = function(options) {
   this.dragging = false;
   this.startMousePos = new THREE.Vector2();
 
-
   // orientation for the control
   var controlOri = new THREE.Quaternion(message.orientation.x, message.orientation.y,
       message.orientation.z, message.orientation.w);
@@ -1474,6 +1114,7 @@ ROS3D.InteractiveMarkerControl = function(options) {
   controlAxis.applyQuaternion(controlOri);
 
   this.currentControlOri = new THREE.Quaternion();
+
   // determine mouse interaction
   switch (message.interaction_mode) {
     case ROS3D.INTERACTIVE_MARKER_MOVE_AXIS:
@@ -1546,7 +1187,8 @@ ROS3D.InteractiveMarkerControl = function(options) {
         that.dispatchEvent(event3d);
       }
     });
-  } 
+  }
+
   // rotation behavior
   var rotInv = new THREE.Quaternion();
   var posInv = this.parent.position.clone().multiplyScalar(-1);
@@ -1608,16 +1250,16 @@ ROS3D.InteractiveMarkerControl = function(options) {
     fixedFrame : handle.message.header.frame_id,
     serverName : handle.tfClient.serverName
   });
+
   // create visuals (markers)
   message.markers.forEach(function(markerMsg) {
     var addMarker = function(transformMsg) {
-      
-
       var markerHelper = new ROS3D.Marker({
         message : markerMsg,
         path : that.path,
         loader : that.loader
       });
+
       // if transformMsg isn't null, this was called by TFClient
       if (transformMsg !== null) {
         // get the current pose as a ROSLIB.Pose...
@@ -1644,14 +1286,15 @@ ROS3D.InteractiveMarkerControl = function(options) {
           translation : translation,
           orientation : transformMarker.quaternion
         });
+
         // apply that transform too
         newPose.applyTransform(transform);
         markerHelper.setPose(newPose);
+
         markerHelper.updateMatrixWorld();
         // we only need to set the pose once - at least, this is what RViz seems to be doing, might change in the future
         localTfClient.unsubscribe(markerMsg.header.frame_id);
       }
-
 
       // add the marker
       that.add(markerHelper);
@@ -1895,7 +1538,7 @@ ROS3D.InteractiveMarkerMenu = function(options) {
   allMenus[0] = {
     children : []
   };
- 
+
   THREE.EventDispatcher.call(this);
 
   // create the CSS for this marker if it has not been created
@@ -2089,8 +1732,8 @@ ROS3D.Marker = function(options) {
   this.setPose(message.pose);
   var colorMaterial = ROS3D.makeColorMaterial(this.msgColor.r,
       this.msgColor.g, this.msgColor.b, this.msgColor.a);
-  // create the object based on the type 
-  
+
+  // create the object based on the type
   switch (message.type) {
     case ROS3D.MARKER_ARROW:
       // get the sizes for the arrow
@@ -2277,7 +1920,7 @@ ROS3D.Marker = function(options) {
     case ROS3D.MARKER_POINTS:
       // for now, use a particle system for the lists
       var geometry = new THREE.Geometry();
-      var material = new THREE.PointsMaterial({
+      var material = new THREE.ParticleBasicMaterial({
         size : message.scale.x
       });
 
@@ -2304,7 +1947,7 @@ ROS3D.Marker = function(options) {
       }
 
       // add the particle system
-      this.add(new THREE.Points(geometry, material));
+      this.add(new THREE.ParticleSystem(geometry, material));
       break;
     case ROS3D.MARKER_TEXT_VIEW_FACING:
       // only work on non-empty text
@@ -2352,7 +1995,6 @@ ROS3D.Marker = function(options) {
       break;
     case ROS3D.MARKER_MESH_RESOURCE:
       // load and add the mesh
-
       var meshColorMaterial = null;
       if(message.color.r !== 0 || message.color.g !== 0 ||
           message.color.b !== 0 || message.color.a !== 0) {
@@ -2374,9 +2016,8 @@ ROS3D.Marker = function(options) {
         vertices : message.points,
         colors : message.colors
       });
-      
-      tri.scale.set(message.scale.x, message.scale.y, message.scale.z);
-      this.add(tri); 
+      tri.scale = new THREE.Vector3(message.scale.x, message.scale.y, message.scale.z);
+      this.add(tri);
       break;
     default:
       console.error('Currently unsupported marker type: ' + message.type);
@@ -2395,13 +2036,12 @@ ROS3D.Marker.prototype.setPose = function(pose) {
   this.position.x = pose.position.x;
   this.position.y = pose.position.y;
   this.position.z = pose.position.z;
-  //three js r74
+
   // set the rotation
-  this.quaternion.set(pose.orientation.x, pose.orientation.y,
+  this.quaternion = new THREE.Quaternion(pose.orientation.x, pose.orientation.y,
       pose.orientation.z, pose.orientation.w);
-  // this.quaternion.normalize();
-  // this.rotation=new THREE.Euler().setFromQuaternion(this.quaternion);
-  // this.rotateX(this.quaternion[0]);
+  this.quaternion.normalize();
+
   // update the world
   this.updateMatrixWorld();
 };
@@ -2735,6 +2375,7 @@ ROS3D.Arrow = function(options) {
   var shaftDiameter = options.shaftDiameter || 0.05;
   var headDiameter = options.headDiameter || 0.1;
   var material = options.material || new THREE.MeshBasicMaterial();
+
   var shaftLength = length - headLength;
 
   // create and merge geometry
@@ -2750,11 +2391,11 @@ ROS3D.Arrow = function(options) {
   coneGeometry.applyMatrix(m);
 
   // put the arrow together
-  geometry.merge( coneGeometry);
+  THREE.GeometryUtils.merge(geometry, coneGeometry);
 
   THREE.Mesh.call(this, geometry, material);
 
-  this.position.set(origin.x,origin.y,origin.z);
+  this.position = origin;
   this.setDirection(direction);
 };
 ROS3D.Arrow.prototype.__proto__ = THREE.Mesh.prototype;
@@ -2952,7 +2593,7 @@ ROS3D.MeshResource = function(options) {
     if (loaderType ===  ROS3D.COLLADA_LOADER) {
       loader = new THREE.ColladaLoader();
     } else {
-      loader = new THREE.ColladaLoader();
+      loader = new ColladaLoader2();
     }
     loader.log = function(message) {
       if (that.warnings) {
@@ -2961,11 +2602,10 @@ ROS3D.MeshResource = function(options) {
     };
     loader.load(uri, function colladaReady(collada) {
       // check for a scale factor in ColladaLoader2
-      // console.log(collada);
-      // if(loaderType === ROS3D.COLLADA_LOADER_2 && collada.dae.asset.unit) {
-      //   var scale = collada.dae.asset.unit;
-      //   collada.scene.scale = new THREE.Vector3(scale, scale, scale);
-      // }
+      if(loaderType === ROS3D.COLLADA_LOADER_2 && collada.dae.asset.unit) {
+        var scale = collada.dae.asset.unit;
+        collada.scene.scale = new THREE.Vector3(scale, scale, scale);
+      }
 
       // add a texture to anything that is missing one
       if(material !== null) {
@@ -3011,7 +2651,7 @@ ROS3D.MeshResource.prototype.__proto__ = THREE.Object3D.prototype;
  * @constructor
  * @param options - object with following keys:
  *
- *   * material (optional) - the material to use for the object;
+ *   * material (optional) - the material to use for the object
  *   * vertices - the array of vertices to use
  *   * colors - the associated array of colors to use
  */
@@ -3025,6 +2665,7 @@ ROS3D.TriangleList = function(options) {
 
   // set the material to be double sided
   material.side = THREE.DoubleSide;
+
   // construct the geometry
   var geometry = new THREE.Geometry();
   for (i = 0; i < vertices.length; i++) {
@@ -3063,7 +2704,7 @@ ROS3D.TriangleList = function(options) {
 
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
-  //geometry.computeCentroids();
+  geometry.computeCentroids();
   geometry.computeFaceNormals();
 
   this.add(new THREE.Mesh(geometry, material));
@@ -4128,17 +3769,6 @@ ROS3D.SceneNode = function(options) {
   this.frameID = options.frameID;
   var object = options.object;
   this.pose = options.pose || new ROSLIB.Pose();
-  if(!options.mouseSubscription){
-    this.mouseSubscription= false;
-  }
-  else{
-    this.mouseSubscription= true;
-  }
-
-  if(options.visible===undefined){
-    options.visible=true;
-  }
-
   THREE.Object3D.call(this);
 
   // Do not render this object until we receive a TF update
@@ -4160,9 +3790,8 @@ ROS3D.SceneNode = function(options) {
 
     // update the world
     that.updatePose(poseTransformed);
-    that.visible = options.visible;
+    that.visible = true;
   };
-
 
   // listen for TF updates
   this.tfClient.subscribe(this.frameID, this.tfUpdate);
@@ -4179,7 +3808,6 @@ ROS3D.SceneNode.prototype.updatePose = function(pose) {
   this.quaternion.set(pose.orientation.x, pose.orientation.y,
       pose.orientation.z, pose.orientation.w);
   this.updateMatrixWorld(true);
-
 };
 
 ROS3D.SceneNode.prototype.unsubscribeTf = function() {
@@ -4230,19 +3858,13 @@ ROS3D.Viewer = function(options) {
   var interactive = options.interactive;
   var tfClient = options.tfClient;
   var frame = options.frame;
-
-  this.pick=options.pick; 
-  if (this.pick===undefined){
-    this.pick=false;
-  }
   if (interactive===undefined){
     interactive=true;
   }
   var center = options.center || {
         x : 0,
         y : 0,
-        z : 0
-  };
+        z : 0};
 
   var cameraRotation = options.cameraRotation || {
         x : 0,
@@ -4258,20 +3880,18 @@ ROS3D.Viewer = function(options) {
   var cameraZoomSpeed = options.cameraZoomSpeed || 0.5;
 
   this.cameras = [];
-  this.width=width;
-  this.height=height;
+
   // create the canvas to render to
   this.renderer = new THREE.WebGLRenderer({
     antialias : antialias,
-    alpha : true,
+    alpha : true
   });
   this.renderer.setClearColor(parseInt(background.replace('#', '0x'), 16), alpha);
-  this.renderer.setPixelRatio(window.devicePixelRatio);
   this.renderer.sortObjects = false;
   this.renderer.setSize(width, height);
-  this.renderer.shadowMap.enabled = false;
+  this.renderer.shadowMapEnabled = false;
   this.renderer.autoClear = false;
- 
+
   // create the global scene
   this.scene = new THREE.Scene();
   //a parent object in case we need to change the origin of the scene
@@ -4304,8 +3924,8 @@ ROS3D.Viewer = function(options) {
 
   this.camera= this.cameras[0].camera;
 
-  // this.scene.add(this.camera);
-  this.pixelBuffer= new Uint8Array(4*25);  
+  this.scene.add(this.camera);
+
   // add controls to the camera
 
   this.cameraControls = new ROS3D.OrbitControls({
@@ -4328,7 +3948,6 @@ ROS3D.Viewer = function(options) {
     fallbackObject=this.cameraControls;
   }
   this.rootObject.add(this.selectableObjects);
-  this.selectedPoint=[0,0,0,0];
   this.mouseHandler = new ROS3D.MouseHandler({
     renderer : this.renderer,
     camera : this.camera,
@@ -4347,16 +3966,13 @@ ROS3D.Viewer = function(options) {
   function draw() {
     // update the controls
     that.cameraControls.update();
+
     // put light to the top-left of the camera
     that.directionalLight.position = that.camera.localToWorld(new THREE.Vector3(-1, 1, 0));
     that.directionalLight.position.normalize();
-    that.renderer.clear(true, true, true);
-    if (that.pick){
-        pick();
-    }
-    
+
     // set the scene
-    // that.renderer.clear(true, true, true);
+    that.renderer.clear(true, true, true);
     that.renderer.render(that.scene, that.camera);
 
     // render any mouseovers
@@ -4364,15 +3980,6 @@ ROS3D.Viewer = function(options) {
 
     // draw the frame
     requestAnimationFrame(draw);
-  }
-
- this.renderTarget = new THREE.WebGLRenderTarget(this.width , this.height );
- this.renderTarget.texture.minFilter = THREE.LinearFilter;
- this.count=0;
-
-  function pick(){
-    // console.log(tha.camera);
-
   }
 
   // add the renderer to the page
@@ -4401,6 +4008,23 @@ ROS3D.Viewer.prototype.addObject = function(object, selectable) {
  *
  * @param cameraID The ID of the camera from cameras
  */
+/*
+ROS3D.Viewer.prototype.changeCamera = function(cameraID) {
+  if (cameraID<this.cameras.length && cameraID>=0){
+    this.camera = this.cameras[cameraID].camera;
+    var position = this.cameras[cameraID].rootObjectPose.position;
+    var rotation = this.cameras[cameraID].rootObjectPose.rotation;
+    //move root object rotation to 0,0,0
+
+    this.rootObject.position.set(0,0,0);
+    this.rootObject.rotation.set(0,0,0);
+    this.rootObject.position.set(position.x,position.y,position.z);
+    this.rootObject.rotation.set(rotation.x,rotation.y,rotation.z);
+    this.cameraControls.camera =this.camera;
+    this.mouseHandler.camera=this.camera;
+  }
+};
+*/
 ROS3D.Viewer.prototype.changeCamera = function(cameraID) {
   if (cameraID<this.cameras.length && cameraID>=0){
     this.camera = this.cameras[cameraID].camera;
@@ -4581,6 +4205,8 @@ ROS3D.ViewerHandle.prototype.unsubscribeTf = function() {
  */
 ROS3D.ViewerHandle.prototype.emitServerPoseUpdate = function() {
   var inv = this.tfTransform.clone();
+  //console.log(inv);
+  //console.log(this.frame);
   inv.rotation.invert();
   inv.translation.multiplyQuaternion(inv.rotation);
   inv.translation.x *= -1;
@@ -4681,8 +4307,8 @@ ROS3D.Highlighter.prototype.getWebglObjects = function(scene, objects, renderLis
 ROS3D.Highlighter.prototype.renderHighlight = function(renderer, scene, camera) {
   // get webgl objects
   var renderList = [];
-  //this.getWebglObjects(scene, this.hoverObjs, renderList);
-  
+  this.getWebglObjects(scene, this.hoverObjs, renderList);
+
   // define highlight material
   scene.overrideMaterial = new THREE.MeshBasicMaterial({
     fog : false,
@@ -4698,10 +4324,7 @@ ROS3D.Highlighter.prototype.renderHighlight = function(renderer, scene, camera) 
   var oldWebglObjects = scene.__webglObjects;
   scene.__webglObjects = renderList;
 
-  for(var i=0;i<this.hoverObjs.length;i++){
-    renderer.render(this.hoverObjs[i], camera);  
-  }
-  
+  renderer.render(scene, camera);
 
   scene.__webglObjects = oldWebglObjects;
   scene.overrideMaterial = null;
@@ -4730,7 +4353,7 @@ ROS3D.MouseHandler = function(options) {
   this.fallbackTarget = options.fallbackTarget;
   this.lastTarget = this.fallbackTarget;
   this.dragging = false;
-  //t his.projector = new THREE.Projector();
+  this.projector = new THREE.Projector();
 
   // listen to DOM events
   var eventNames = [ 'contextmenu', 'click', 'dblclick', 'mouseout', 'mousedown', 'mouseup',
@@ -4776,15 +4399,12 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
   var top = pos_y - rect.top - target.clientTop + target.scrollTop;
   var deviceX = left / target.clientWidth * 2 - 1;
   var deviceY = -top / target.clientHeight * 2 + 1;
-
-  this.deviceX=left;
-  this.deviceY=top;
   var vector = new THREE.Vector3(deviceX, deviceY, 0.5);
+  this.projector.unprojectVector(vector, this.camera);
   // use the THREE raycaster
-  var mouseRaycaster = new THREE.Raycaster(); 
+  var mouseRaycaster = new THREE.Raycaster(this.camera.position.clone(), vector.sub(
+      this.camera.position).normalize());
   mouseRaycaster.linePrecision = 0.001;
-  mouseRaycaster.params.Points.threshold = 0.6;
-  mouseRaycaster.setFromCamera(new THREE.Vector2(deviceX,deviceY),this.camera);
   var mouseRay = mouseRaycaster.ray;
 
   // make our 3d mouse event
@@ -4824,26 +4444,18 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
     // for check for right or left mouse button
     if ((domEvent.type === 'mouseup' && domEvent.button === 2) || domEvent.type === 'click' || domEvent.type === 'touchend') {
       this.dragging = false;
-    } 
+    }
     return;
   }
 
-  // in the normal case, we need to check what is under the mouse 
+  // in the normal case, we need to check what is under the mouse
   target = this.lastTarget;
   var intersections = [];
   intersections = mouseRaycaster.intersectObject(this.rootObject, true);
-  
+  //console.log(intersections.length);
   if (intersections.length > 0) {
-
+    //console.log(target);
     target = intersections[0].object;
-    //Temp code to do todo
-
-    for (var q=0;q<intersections.length;q++){
-      if (intersections[q].object instanceof THREE.Points){
-        // console.log(intersections[q].point); 
-        
-      }      
-    }
     event3D.intersection = this.lastIntersection = intersections[0];
   } else {
     target = this.fallbackTarget;
@@ -4901,7 +4513,7 @@ ROS3D.MouseHandler.prototype.processDomEvent = function(domEvent) {
 ROS3D.MouseHandler.prototype.notify = function(target, type, event3D) {
   // ensure the type is set
   event3D.type = type;
-  
+
   // make the event cancelable
   event3D.cancelBubble = false;
   event3D.stopPropagation = function() {
