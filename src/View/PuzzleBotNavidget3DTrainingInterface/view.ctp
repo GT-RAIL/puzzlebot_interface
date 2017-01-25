@@ -1080,7 +1080,7 @@ foreach ($environment['Urdf'] as $urdf) {
  
 			_VIEWER.addObject(kinectNode2,true);
 			_VIEWER.addObject(kinectNode,true);
-			
+			 
 			function update_depth_pose(){
 				// console.log(kinectNode2.pose);
 				// depthCloud2.pickingScene.updatePose(kinectNode2.pose);	
@@ -1094,7 +1094,15 @@ foreach ($environment['Urdf'] as $urdf) {
 
 	}
 	$(document).ready(function(){init();});
-
+	$('#viewer').on('click','canvas',function(event){
+			RMS.logString('manipulation-request', 'canvas-click');
+	})
+	$('#viewer').on('mousedown','canvas',function(event){
+		RMS.logString('manipulation-request', 'canvas-mousedown');
+	})
+	$('#viewer').on('mouseup','canvas',function(event){
+		RMS.logString('manipulation-request', 'canvas-mouseup');
+	})
 </script>
 
 </html>

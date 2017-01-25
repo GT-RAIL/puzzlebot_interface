@@ -1119,7 +1119,15 @@ foreach ($environment['Urdf'] as $urdf) {
 
 	}
 	$(document).ready(function(){init();});
-
+	$('#viewer').on('click','canvas',function(event){
+			RMS.logString('manipulation-request', 'canvas-click');
+	})
+	$('#viewer').on('mousedown','canvas',function(event){
+		RMS.logString('manipulation-request', 'canvas-mousedown');
+	})
+	$('#viewer').on('mouseup','canvas',function(event){
+		RMS.logString('manipulation-request', 'canvas-mouseup');
+	})
 </script>
 
 </html>

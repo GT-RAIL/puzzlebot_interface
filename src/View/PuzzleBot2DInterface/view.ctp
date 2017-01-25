@@ -70,10 +70,10 @@ echo $this->Html->css('PuzzleBot2DInterface');
 							<ul style="margin:0">
 								<li>Open the middle plastic drawer</li>
 								<li>Pull the cart across the green line</li>
+								<li>Remove a marker from the blue cup</li>
 								<li>Open the wooden box</li>
 								<li>Remove the cap from  the bottle</li>
 								<li>Pour the mug into the bowl</li>
-								<li>Turn on the lamp</li>
 							</ul>
 						</div>
 					</td>
@@ -818,7 +818,15 @@ echo $this->Html->css('PuzzleBot2DInterface');
 		camera : viewer.camera,
 		rootObject : viewer.selectableObjects
 	});
-
+	$('#mjpeg').on('click','canvas',function(event){
+			RMS.logString('manipulation-request', 'canvas-click');
+	})
+	$('#mjpeg').on('mousedown','canvas',function(event){
+		RMS.logString('manipulation-request', 'canvas-mousedown');
+	})
+	$('#mjpeg').on('mouseup','canvas',function(event){
+		RMS.logString('manipulation-request', 'canvas-mouseup');
+	})
 </script>
 
 </html>

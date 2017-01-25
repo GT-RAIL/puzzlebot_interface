@@ -814,7 +814,15 @@ echo $this->Html->css('PuzzleBot2DInterface');
 		camera : viewer.camera,
 		rootObject : viewer.selectableObjects
 	});
-
+	$('#mjpeg').on('click','canvas',function(event){
+			RMS.logString('manipulation-request', 'canvas-click');
+	})
+	$('#mjpeg').on('mousedown','canvas',function(event){
+		RMS.logString('manipulation-request', 'canvas-mousedown');
+	})
+	$('#mjpeg').on('mouseup','canvas',function(event){
+		RMS.logString('manipulation-request', 'canvas-mouseup');
+	})
 </script>
 
 </html>
