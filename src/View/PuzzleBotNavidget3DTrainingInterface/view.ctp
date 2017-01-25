@@ -956,7 +956,7 @@ foreach ($environment['Urdf'] as $urdf) {
 		new ROS3D.InteractiveMarkerClient({
 			ros : _ROS,
 			tfClient : _TF,
-			topic : '/constrained_positioning',
+			topic : '/nimbus_6dof_vis',
 			camera : viewer.camera,
 			rootObject : viewer.selectableObjects
 		});
