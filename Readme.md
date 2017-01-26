@@ -10,6 +10,10 @@ This repository includes the interfaces used in A Comparison of Remote Robot Tel
 
 To install RMS, follow instructions on its' [Github](https://github.com/gt-rail/rms).
 
+###How to Run 
+
+To run you require, [Openni](https://structure.io/openni), [remote_manipulation_markers](http://wiki.ros.org/remote_manipulation_markers), and [nimbus_bot](https://github.com/GT-RAIL/nimbus_bot). There are instructions on which nodes to run under which conditions in [How to Run file](How to Run.md)
+
 ###Developing 
 
 In the utils folder run `grunt build_and_watch:path/to/rms/app`. There is more information on installing Grunt and it's dependencies in [utils/README.md](utils/README.md).

@@ -19,4 +19,4 @@
     roslaunch nimbus_web_interfaces web_services1.launch
 
 ##On Computer With Second Asus Camera
-roslaunch openni_launch openni.launch camera:=camera_side depth_registration:=true publish_tfs:=true
+    roslaunch openni_launch openni.launch camera:=camera_side depth_registration:=true publish_tfs:=true
