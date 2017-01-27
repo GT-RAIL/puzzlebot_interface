@@ -125,7 +125,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 			<div id="instructions" style="height=500px; text-align: left; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
 				<b>Instructions:</b>
 				<ol type="1" style="list-style-type:decimal; margin-left:15px;">
-					<li><b>Click the image</b> on the left to set a <b>grasping area</b>.</li>
+					<li><b>Double Click the point cloud</b> on the left to set a <b>grasping area</b>.</li>
 					<li><b>Click on the sphere</b> to set a <b>grasp angle</b>.</li>
 					<li><b>Adjust your grasp</b> by <b>clicking and dragging</b> the <b>ring and arrow</b> marker around the purple gripper.</li>
 					<li>

@@ -120,7 +120,7 @@ echo $this->Html->css('PuzzleBot3DInterface');
 				<div id="instructions" style="height=500px; text-align: left; background-color:rgba(232, 238, 244, 1.0); border-radius:20px; margin:5px; padding:20px">
 					<b>Instructions:</b>
 					<ol type="1" style="list-style-type:decimal; margin-left:15px; margin-bottom:0px;">
-						<li><b>Set a position</b> for the gripper by <b>clicking on the camera feed</b> on the left.</li>
+						<li><b>Set a position</b> for the gripper by <b>clicking on the point cloud</b> on the left.</li>
 						<li>
 							<b>Cycle through suggestions</b> to choose a good grasp.
 							<br><table style="margin-left:auto; margin-right:auto">
