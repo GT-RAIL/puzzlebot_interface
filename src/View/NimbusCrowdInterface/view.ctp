@@ -594,56 +594,6 @@ echo $this->Html->css('NimbusCrowdInterface');
 		executeCloseGripper();
 	});
 
-	$('#moveForward').click(function (e) {
-		e.preventDefault();
-		executeMoveForward();
-	});
-	$('#moveBack').click(function (e) {
-		e.preventDefault();
-		executeMoveBack();
-	});
-
-	$('#moveLeft').click(function (e) {
-		e.preventDefault();
-		executeMoveLeft();
-	});
-	$('#moveRight').click(function (e) {
-		e.preventDefault();
-		executeMoveRight();
-	});
-
-	$('#moveUp').click(function (e) {
-		e.preventDefault();
-		executeMoveUp();
-	});
-	$('#moveDown').click(function (e) {
-		e.preventDefault();
-		executeMoveDown();
-	});
-
-	$('#rotateCW').click(function (e) {
-		e.preventDefault();
-		executeRotateCW();
-	});
-	$('#rotateCCW').click(function (e) {
-		e.preventDefault();
-		executeRotateCCW();
-	});
-
-	$('#shallowGrasp').click(function (e) {
-		e.preventDefault();
-		executeShallowGrasp();
-	});
-	$('#deepGrasp').click(function (e) {
-		e.preventDefault();
-		executeDeepGrasp();
-	});
-
-	$('#mjpegcanvas_select').change(function(e){
-		e.preventDefault();
-		mjpegcanvas.changeStream(this.value);
-	});
-
 	/****************************************************************************
 	 *                           Grasp Actions                                  *
 	 ****************************************************************************/
@@ -671,44 +621,6 @@ echo $this->Html->css('NimbusCrowdInterface');
 			displayFeedback('Displaying grasp ' + (result.index + 1));
 		});
 		enableInput();
-	}
-
-	function executeShallowGrasp() {
-		disableInput();
-		RMS.logString('manipulation-request', 'shallow-grasp');
-		var goal = new ROSLIB.Goal({
-			actionClient: graspClient,
-			goalMessage: {
-				shallow: true
-			}
-		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.feedback);
-		});
-		goal.on('result', function(result) {
-			RMS.logString('manipulation-result', JSON.stringify(result));
-			enableInput();
-		});
-		goal.send();
-	}
-
-	function executeDeepGrasp() {
-		disableInput();
-		RMS.logString('manipulation-request', 'deep-grasp');
-		var goal = new ROSLIB.Goal({
-			actionClient: graspClient,
-			goalMessage: {
-				shallow: false
-			}
-		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.feedback);
-		});
-		goal.on('result', function(result) {
-			RMS.logString('manipulation-result', JSON.stringify(result));
-			enableInput();
-		});
-		goal.send();
 	}
 
 	/****************************************************************************
@@ -762,170 +674,6 @@ echo $this->Html->css('NimbusCrowdInterface');
 		});
 		goal.on('feedback', function(feedback) {
 			displayFeedback(feedback.message);
-		});
-		goal.on('result', function(result) {
-			RMS.logString('primitive-result', JSON.stringify(result));
-			enableInput();
-		});
-		goal.send();
-	}
-
-	function executeMoveForward() {
-		disableInput();
-		RMS.logString('primitive-request', 'move-forward');
-		var goal = new ROSLIB.Goal({
-			actionClient: primitiveClient,
-			goalMessage: {
-				primitive_type: 0,
-				axis: 1,
-				distance: 0.1
-			}
-		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.feedback);
-		});
-		goal.on('result', function(result) {
-			RMS.logString('primitive-result', JSON.stringify(result));
-			enableInput();
-		});
-		goal.send();
-	}
-	function executeMoveBack() {
-		disableInput();
-		RMS.logString('primitive-request', 'move-back');
-		var goal = new ROSLIB.Goal({
-			actionClient: primitiveClient,
-			goalMessage: {
-				primitive_type: 0,
-				axis: 1,
-				distance: -0.1
-			}
-		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.feedback);
-		});
-		goal.on('result', function(result) {
-			RMS.logString('primitive-result', JSON.stringify(result));
-			enableInput();
-		});
-		goal.send();
-	}
-
-	function executeMoveLeft() {
-		disableInput();
-		RMS.logString('primitive-request', 'move-left');
-		var goal = new ROSLIB.Goal({
-			actionClient: primitiveClient,
-			goalMessage: {
-				primitive_type: 0,
-				axis: 0,
-				distance: -0.1
-			}
-		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.feedback);
-		});
-		goal.on('result', function(result) {
-			RMS.logString('primitive-result', JSON.stringify(result));
-			enableInput();
-		});
-		goal.send();
-	}
-	function executeMoveRight() {
-		disableInput();
-		RMS.logString('primitive-request', 'move-right');
-		var goal = new ROSLIB.Goal({
-			actionClient: primitiveClient,
-			goalMessage: {
-				primitive_type: 0,
-				axis: 0,
-				distance: 0.1
-			}
-		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.feedback);
-		});
-		goal.on('result', function(result) {
-			RMS.logString('primitive-result', JSON.stringify(result));
-			enableInput();
-		});
-		goal.send();
-	}
-
-	function executeMoveUp() {
-		disableInput();
-		RMS.logString('primitive-request', 'move-up');
-		var goal = new ROSLIB.Goal({
-			actionClient: primitiveClient,
-			goalMessage: {
-				primitive_type: 0,
-				axis: 2,
-				distance: 0.1
-			}
-		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.feedback);
-		});
-		goal.on('result', function(result) {
-			RMS.logString('primitive-result', JSON.stringify(result));
-			enableInput();
-		});
-		goal.send();
-	}
-	function executeMoveDown() {
-		disableInput();
-		RMS.logString('primitive-request', 'move-down');
-		var goal = new ROSLIB.Goal({
-			actionClient: primitiveClient,
-			goalMessage: {
-				primitive_type: 0,
-				axis: 2,
-				distance: -0.1
-			}
-		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.feedback);
-		});
-		goal.on('result', function(result) {
-			RMS.logString('primitive-result', JSON.stringify(result));
-			enableInput();
-		});
-		goal.send();
-	}
-
-	function executeRotateCW() {
-		disableInput();
-		RMS.logString('primitive-request', 'rotate-cw');
-		var goal = new ROSLIB.Goal({
-			actionClient: primitiveClient,
-			goalMessage: {
-				primitive_type: 1,
-				axis: 0,
-				distance: -1.5708
-			}
-		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.feedback);
-		});
-		goal.on('result', function(result) {
-			RMS.logString('primitive-result', JSON.stringify(result));
-			enableInput();
-		});
-		goal.send();
-	}
-	function executeRotateCCW() {
-		disableInput();
-		RMS.logString('primitive-request', 'rotate-ccw');
-		var goal = new ROSLIB.Goal({
-			actionClient: primitiveClient,
-			goalMessage: {
-				primitive_type: 1,
-				axis: 0,
-				distance: 1.5708
-			}
-		});
-		goal.on('feedback', function(feedback) {
-			displayFeedback(feedback.feedback);
 		});
 		goal.on('result', function(result) {
 			RMS.logString('primitive-result', JSON.stringify(result));
@@ -1144,30 +892,60 @@ echo $this->Html->css('NimbusCrowdInterface');
 	 *                      Manipulation Planning                               *
 	 ****************************************************************************/
 	$('#mjpeg').on('click','canvas',function(event){
-		if (!clickingDisabled) {
-			console.log("click");
-			disableInput();
-			RMS.logString('manipulation-request', 'calculate-grasps');
-			var rect = $(this)[0].getBoundingClientRect();
-			var goal = new ROSLIB.Goal({
-				actionClient: imageClickClient,
-				goalMessage: {
-					x: event.clientX - rect.left,
-					y: event.clientY - rect.top,
-					imageWidth: size,
-					imageHeight: size * 0.75,
-					action: 0
+		//TODO: change this based on action and refine mode
+		if (actionMode === "Grasp")
+		{
+			if (refineMode === 0) {
+				if (!clickingDisabled) {
+					console.log("click");
+					disableInput();
+					RMS.logString('manipulation-request', 'calculate-grasps');
+					var rect = $(this)[0].getBoundingClientRect();
+					var goal = new ROSLIB.Goal({
+						actionClient: imageClickClient,
+						goalMessage: {
+							x: event.clientX - rect.left,
+							y: event.clientY - rect.top,
+							imageWidth: size,
+							imageHeight: size * 0.75,
+							action: 0
+						}
+					});
+					goal.on('feedback', function (feedback) {
+						displayFeedback(feedback.message);
+					});
+					goal.on('result', function (result) {
+						RMS.logString('manipulation-result', JSON.stringify(result));
+						enableInput();
+					});
+					goal.send();
 				}
-			});
-			goal.on('feedback', function (feedback) {
-				displayFeedback(feedback.message);
-			});
-			goal.on('result', function (result) {
-				RMS.logString('manipulation-result', JSON.stringify(result));
-				enableInput();
-			});
-			goal.send();
+			}
+			else
+			{
+
+			}
 		}
+		else if (actionMode === "Place")
+		{
+			if (refineMode === 0)
+			{
+
+			}
+			else
+			{
+
+			}
+		}
+		else if (actionMode === "Move")
+		{
+
+		}
+		else if (actionMode === "Common")
+		{
+
+		}
+
 	})
 
 </script>
