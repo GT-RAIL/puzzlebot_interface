@@ -466,6 +466,7 @@ echo $this->Html->css('NimbusCrowdInterface');
 		hideRefine();
 		hideActions();
 		$('#mode-grasp').css("display", "inline");
+		actionMode = "Grasp";
 	});
 
 	$('#placeMode').click(function (e) {
@@ -474,6 +475,7 @@ echo $this->Html->css('NimbusCrowdInterface');
 		hideRefine();
 		hideActions();
 		$('#mode-place').css("display", "inline");
+		actionMode = "Place";
 	});
 
 	$('#moveMode').click(function (e) {
@@ -482,6 +484,7 @@ echo $this->Html->css('NimbusCrowdInterface');
 		hideRefine();
 		hideActions();
 		$('#mode-move').css("display", "inline");
+		actionMode = "Move";
 	});
 
 	$('#commonMode').click(function (e) {
@@ -490,6 +493,7 @@ echo $this->Html->css('NimbusCrowdInterface');
 		hideRefine();
 		hideActions();
 		$('#mode-common').css("display", "inline");
+		actionMode = "Common";
 	});
 
 	function hideActions() {
@@ -497,6 +501,7 @@ echo $this->Html->css('NimbusCrowdInterface');
 		$('#mode-place').css("display", "none");
 		$('#mode-move').css("display", "none");
 		$('#mode-common').css("display", "none");
+		actionMode = "";
 	}
 
 
@@ -930,6 +935,7 @@ echo $this->Html->css('NimbusCrowdInterface');
 	 ****************************************************************************/
 	$('#mjpeg').on('click','canvas',function(event){
 		//TODO: change this based on action and refine mode
+		console.log("canvas click, in mode: ", actionMode);
 		if (actionMode === "Grasp")
 		{
 			if (refineMode === 0) {
@@ -944,7 +950,7 @@ echo $this->Html->css('NimbusCrowdInterface');
 							x: event.clientX - rect.left,
 							y: event.clientY - rect.top,
 							imageWidth: size,
-							imageHeight: size * 0.75,
+							imageHeight: Math.round(size * 0.75),
 							action: 0
 						}
 					});
@@ -976,9 +982,12 @@ echo $this->Html->css('NimbusCrowdInterface');
 		}
 		else if (actionMode === "Move")
 		{
+			console.log("Move callback");
 			if (!clickingDisabled) {
+				console.log("Sending click goal...");
 				var rect = $(this)[0].getBoundingClientRect();
-				executeMove(event.clientX - rect.left, event.clientY - rect.top, size, size*0.75);
+				executeMove(event.clientX - rect.left, event.clientY - rect.top, size, Math.round(size*0.75));
+				console.log("Click goal sent.");
 			}
 		}
 		else if (actionMode === "Common")
