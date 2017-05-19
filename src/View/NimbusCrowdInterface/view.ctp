@@ -419,6 +419,7 @@ echo $this->Html->css('NimbusCrowdInterface');
 		actionName: 'point_and_click/ClickImageAction'
 	});
 
+
 	//Setup ROS service clients
 	var cycleGraspsClient = new ROSLIB.Service({
 		ros : _ROS,
@@ -624,7 +625,37 @@ echo $this->Html->css('NimbusCrowdInterface');
 	}
 
 	/****************************************************************************
-	 *                         Primitive Actions                                *
+	 *                            Move Actions                                  *
+	 ****************************************************************************/
+	function executeMove(x, y, w, h) {
+		disableButtonInput();
+		disableClickInput();
+
+		var goal = new ROSLIB.Goal({
+			actionClient: imageClickClient,
+			goalMessage: {
+				x: x,
+				y: y,
+				imageWidth: w,
+				imageHeight: h,
+				action: 2
+			}
+		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.message);
+		});
+		goal.on('result', function(result) {
+			//RMS.logString('primitive-result', JSON.stringify(result));
+			console.log("Move action completed with completion amount:");
+			console.log(result.completion);
+			enableButtonInput();
+			enableClickInput();
+		});
+		goal.send();
+	}
+
+	/****************************************************************************
+	 *                           Common Actions                                 *
 	 ****************************************************************************/
 	function executeResetArm() {
 		disableInput();
@@ -939,7 +970,10 @@ echo $this->Html->css('NimbusCrowdInterface');
 		}
 		else if (actionMode === "Move")
 		{
-
+			if (!clickingDisabled) {
+				var rect = $(this)[0].getBoundingClientRect();
+				executeMove(event.clientX - rect.left, event.clientY - rect.top, size, size*0.75);
+			}
 		}
 		else if (actionMode === "Common")
 		{
