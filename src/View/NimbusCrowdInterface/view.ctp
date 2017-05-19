@@ -441,6 +441,11 @@ echo $this->Html->css('NimbusCrowdInterface');
 		name : '/rail_agile_grasp/change_point_cloud_topic',
 		serviceType : 'rail_agile_grasp_msgs/ChangePointCloud'
 	});
+	var changePointCloudCH = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/click_handler/change_point_cloud_topic',
+		serviceType : 'rail_agile_grasp_msgs/ChangePointCloud'
+	});
 
 </script>
 
@@ -736,6 +741,7 @@ echo $this->Html->css('NimbusCrowdInterface');
 		changePointCloudGS.callService(request, function(result) {});
 		changePointCloudPCC.callService(request, function(result) {});
 		changePointCloudRAG.callService(request, function(result) {});
+		changePointCloudCH.callService(request, function(result) {});
 
 		RMS.logString('change-view', 'camera ' + current_stream_id);
 	}
