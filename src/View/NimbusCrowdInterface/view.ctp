@@ -627,8 +627,9 @@ echo $this->Html->css('NimbusCrowdInterface');
 	 *                         Primitive Actions                                *
 	 ****************************************************************************/
 	function executeResetArm() {
-		disableInput();
-		RMS.logString('primitive-request', 'reset-arm');
+		disableButtonInput();
+		disableClickInput();
+		//RMS.logString('primitive-request', 'reset-arm');
 		var goal = new ROSLIB.Goal({
 			actionClient: armClient,
 			goalMessage: {
@@ -639,15 +640,17 @@ echo $this->Html->css('NimbusCrowdInterface');
 			displayFeedback(feedback.message);
 		});
 		goal.on('result', function(result) {
-			RMS.logString('primitive-result', JSON.stringify(result));
-			enableInput();
+			//RMS.logString('primitive-result', JSON.stringify(result));
+			enableButtonInput();
+			enableClickInput();
 		});
 		goal.send();
 	}
 
 	function executeOpenGripper() {
-		disableInput();
-		RMS.logString('primitive-request', 'open-gripper');
+		disableButtonInput();
+		disableClickInput();
+		//RMS.logString('primitive-request', 'open-gripper');
 		var goal = new ROSLIB.Goal({
 			actionClient: gripperClient,
 			goalMessage: {
@@ -658,14 +661,16 @@ echo $this->Html->css('NimbusCrowdInterface');
 			displayFeedback(feedback.message);
 		});
 		goal.on('result', function(result) {
-			RMS.logString('primitive-result', JSON.stringify(result));
-			enableInput();
+			//RMS.logString('primitive-result', JSON.stringify(result));
+			enableButtonInput();
+			enableClickInput();
 		});
 		goal.send();
 	}
 	function executeCloseGripper() {
-		disableInput();
-		RMS.logString('primitive-request', 'close-gripper');
+		disableButtonInput();
+		disableClickInput();
+		//RMS.logString('primitive-request', 'close-gripper');
 		var goal = new ROSLIB.Goal({
 			actionClient: gripperClient,
 			goalMessage: {				
@@ -676,8 +681,9 @@ echo $this->Html->css('NimbusCrowdInterface');
 			displayFeedback(feedback.message);
 		});
 		goal.on('result', function(result) {
-			RMS.logString('primitive-result', JSON.stringify(result));
-			enableInput();
+			//RMS.logString('primitive-result', JSON.stringify(result));
+			enableButtonInput();
+			enableClickInput();
 		});
 		goal.send();
 	}
