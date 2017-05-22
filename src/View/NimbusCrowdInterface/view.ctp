@@ -129,13 +129,13 @@ echo $this->Html->css('NimbusCrowdInterface');
 												<tr>
 													<td style="text-align:right">
 														<map name="prev-map">
-															<area shape="rect" coords="0,0,75,50" href="javascript:prevGrasp()">
+															<area shape="rect" coords="0,0,75,50" href="javascript:prevPose()">
 														</map>
 														<img id="img-prev-grasp" src="/img/Nimbus/nimbus-prev.png" height="50" width="75" style="vertical-align:middle" usemap="prev-map">
 													</td>
 													<td style="text-align:left">
 														<map name="next-map">
-															<area shape="rect" coords="0,0,75,50" href="javascript:nextGrasp()">
+															<area shape="rect" coords="0,0,75,50" href="javascript:nextPose()">
 														</map>
 														<img id="img-next-grasp" src="/img/Nimbus/nimbus-next.png" height="50" width="75" style="vertical-align:middle" usemap="next-map">
 													</td>
@@ -155,7 +155,7 @@ echo $this->Html->css('NimbusCrowdInterface');
 													</td>
 													<td>
 														<map name="plan-map">
-															<area shape="rect" coords="0,0,150,100" href="javascript:executeGrasp()">
+															<area shape="rect" coords="0,0,150,100" href="javascript:executePose(0)">
 														</map>
 														<img id="img-plan-grasp" src="/img/Nimbus/nimbus-plan.png" height="100" width="150" style="vertical-align:middle" usemap="plan-map">
 													</td>
@@ -187,13 +187,13 @@ echo $this->Html->css('NimbusCrowdInterface');
 												<tr>
 													<td style="text-align:right">
 														<map name="prev-place-map">
-															<area shape="rect" coords="0,0,75,50" href="javascript:prevPlace()">
+															<area shape="rect" coords="0,0,75,50" href="javascript:prevPose()">
 														</map>
 														<img id="img-prev-place" src="/img/Nimbus/nimbus-prev.png" height="50" width="75" style="vertical-align:middle" usemap="prev-place-map">
 													</td>
 													<td style="text-align:left">
 														<map name="next-place-map">
-															<area shape="rect" coords="0,0,75,50" href="javascript:nextPlace()">
+															<area shape="rect" coords="0,0,75,50" href="javascript:nextPose()">
 														</map>
 														<img id="img-next-place" src="/img/Nimbus/nimbus-next.png" height="50" width="75" style="vertical-align:middle" usemap="next-place-map">
 													</td>
@@ -213,7 +213,7 @@ echo $this->Html->css('NimbusCrowdInterface');
 													</td>
 													<td>
 														<map name="plan-place-map">
-															<area shape="rect" coords="0,0,150,100" href="javascript:executeGrasp()">
+															<area shape="rect" coords="0,0,150,100" href="javascript:executePose(1)">
 														</map>
 														<img id="img-plan-place" src="/img/Nimbus/nimbus-move-to-place.png" height="100" width="150" style="vertical-align:middle" usemap="plan-place-map">
 													</td>
@@ -408,10 +408,10 @@ echo $this->Html->css('NimbusCrowdInterface');
 		serverName: '/nimbus_moveit/primitive_action',
 		actionName: 'rail_manipulation_msgs/PrimitiveAction'
 	});
-	var graspClient = new ROSLIB.ActionClient({
+	var executePoseClient = new ROSLIB.ActionClient({
 		ros: _ROS,
-		serverName: '/grasp_selector/execute_grasp',
-		actionName: 'rail_agile_grasp_msgs/SelectedGraspAction'
+		serverName: '/click_and_refine/execute',
+		actionName: 'remote_manipulation_markers/SpecifiedPoseAction'
 	});
 	var imageClickClient = new ROSLIB.ActionClient({
 		ros: _ROS,
@@ -423,8 +423,8 @@ echo $this->Html->css('NimbusCrowdInterface');
 	//Setup ROS service clients
 	var cycleGraspsClient = new ROSLIB.Service({
 		ros : _ROS,
-		name : '/grasp_selector/cycle_grasps',
-		serviceType : 'rail_agile_grasp_msgs/CycleGrasps'
+		name : '/click_and_refine/cycle_grasps',
+		serviceType : 'remote_manipulation_markers/CycleGrasps'
 	});
 	var changePointCloudGS = new ROSLIB.Service({
 		ros : _ROS,
@@ -445,6 +445,16 @@ echo $this->Html->css('NimbusCrowdInterface');
 		ros : _ROS,
 		name : '/click_handler/change_point_cloud_topic',
 		serviceType : 'rail_agile_grasp_msgs/ChangePointCloud'
+	});
+	var changeRefineModeClient = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/click_and_refine/switch_mode',
+		serviceType : 'remote_manipulation_markers/ModeSwitch'
+	});
+	var clearPosesClient = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/click_and_refine/clear',
+		serviceType : 'std_srvs/Empty'
 	});
 
 </script>
@@ -472,6 +482,11 @@ echo $this->Html->css('NimbusCrowdInterface');
 		hideActions();
 		$('#mode-grasp').css("display", "inline");
 		actionMode = "Grasp";
+
+		var request = new ROSLIB.ServiceRequest({});
+		clearPosesClient.callService(request, function(result) {
+			displayFeedback('Grasp mode active.');
+		});
 	});
 
 	$('#placeMode').click(function (e) {
@@ -481,6 +496,11 @@ echo $this->Html->css('NimbusCrowdInterface');
 		hideActions();
 		$('#mode-place').css("display", "inline");
 		actionMode = "Place";
+
+		var request = new ROSLIB.ServiceRequest({});
+		clearPosesClient.callService(request, function(result) {
+			displayFeedback('Place mode active.');
+		});
 	});
 
 	$('#moveMode').click(function (e) {
@@ -490,6 +510,11 @@ echo $this->Html->css('NimbusCrowdInterface');
 		hideActions();
 		$('#mode-move').css("display", "inline");
 		actionMode = "Move";
+
+		var request = new ROSLIB.ServiceRequest({});
+		clearPosesClient.callService(request, function(result) {
+			displayFeedback('Move mode active.');
+		});
 	});
 
 	$('#commonMode').click(function (e) {
@@ -499,6 +524,11 @@ echo $this->Html->css('NimbusCrowdInterface');
 		hideActions();
 		$('#mode-common').css("display", "inline");
 		actionMode = "Common";
+
+		var request = new ROSLIB.ServiceRequest({});
+		clearPosesClient.callService(request, function(result) {
+			displayFeedback('Common mode active.');
+		});
 	});
 
 	function hideActions() {
@@ -536,6 +566,12 @@ echo $this->Html->css('NimbusCrowdInterface');
 	$('#refineDone').click(function (e) {
 		e.preventDefault();
 		hideRefine();
+		var request = new ROSLIB.ServiceRequest({
+			mode: 0
+		});
+		changeRefineModeClient.callService(request, function(result) {
+			displayFeedback('Refine mode finished.');
+		});
 		enableButtonInput();
 	});
 
@@ -556,6 +592,12 @@ echo $this->Html->css('NimbusCrowdInterface');
 			$('#refineNext').css("pointerEvents", "");
 			$('#refineNext').prop("disabled", false);
 
+			var request = new ROSLIB.ServiceRequest({
+				mode: 1
+			});
+			changeRefineModeClient.callService(request, function(result) {
+				displayFeedback('Point refine mode active.');
+			});
 		}
 		else if (newRefineMode === 2)
 		{
@@ -564,6 +606,13 @@ echo $this->Html->css('NimbusCrowdInterface');
 			$('#refinePrev').prop("disabled", false);
 			$('#refineNext').css("pointerEvents", "");
 			$('#refineNext').prop("disabled", false);
+
+			var request = new ROSLIB.ServiceRequest({
+				mode: 2
+			});
+			changeRefineModeClient.callService(request, function(result) {
+				displayFeedback('Angle refine mode active.');
+			});
 		}
 		else if (newRefineMode === 3)
 		{
@@ -572,6 +621,13 @@ echo $this->Html->css('NimbusCrowdInterface');
 			$('#refinePrev').prop("disabled", false);
 			$('#refineNext').css("pointerEvents", "none");
 			$('#refineNext').prop("disabled", true);
+
+			var request = new ROSLIB.ServiceRequest({
+				mode: 3
+			});
+			changeRefineModeClient.callService(request, function(result) {
+				displayFeedback('Wrist refine mode active.');
+			});
 		}
 		refineMode = newRefineMode;
 	}
@@ -608,30 +664,70 @@ echo $this->Html->css('NimbusCrowdInterface');
 	/****************************************************************************
 	 *                           Grasp Actions                                  *
 	 ****************************************************************************/
-	function prevGrasp() {
-		disableInput();
-		RMS.logString('manipulation-request', 'prev-grasp');
+	$('#executeGrasp').click(function (e) {
+		e.preventDefault();
+		executePose(0);
+	});
+
+	/****************************************************************************
+	 *                           Place Actions                                  *
+	 ****************************************************************************/
+	$('#executePlace').click(function (e) {
+		e.preventDefault();
+		executePose(1);
+	});
+
+	/****************************************************************************
+	 *                    Pose Planning Common Actions                          *
+	 ****************************************************************************/
+	function executePose(actionId) {
+		disableButtonInput();
+		disableClickInput();
+
+		var goal = new ROSLIB.Goal({
+			actionClient: executePoseClient,
+			goalMessage: {
+				action: actionId
+			}
+		});
+		goal.on('feedback', function(feedback) {
+			displayFeedback(feedback.message);
+		});
+		goal.on('result', function(result) {
+			enableButtonInput();
+			enableClickInput();
+		});
+		goal.send();
+	}
+
+	function prevPose() {
+		disableButtonInput();
+		disableClickInput();
+		//RMS.logString('manipulation-request', 'prev-grasp');
 		var request = new ROSLIB.ServiceRequest({
 			forward: false
 		});
 		cycleGraspsClient.callService(request, function(result) {
-			RMS.logString('manipulation-result', JSON.stringify(result));
-			displayFeedback('Displaying grasp ' + (result.index + 1));
+			//RMS.logString('manipulation-result', JSON.stringify(result));
+			displayFeedback('Displaying pose ' + (result.index + 1));
 		});
-		enableInput();
+		enableButtonInput();
+		enableClickInput();
 	}
 
-	function nextGrasp() {
-		disableInput();
-		RMS.logString('manipulation-request', 'next-grasp');
+	function nextPose() {
+		disableButtonInput();
+		disableClickInput();
+		//RMS.logString('manipulation-request', 'next-grasp');
 		var request = new ROSLIB.ServiceRequest({
 			forward: true
 		});
 		cycleGraspsClient.callService(request, function(result) {
-			RMS.logString('manipulation-result', JSON.stringify(result));
-			displayFeedback('Displaying grasp ' + (result.index + 1));
+			//RMS.logString('manipulation-result', JSON.stringify(result));
+			displayFeedback('Displaying pose ' + (result.index + 1));
 		});
-		enableInput();
+		enableButtonInput();
+		enableClickInput();
 	}
 
 	/****************************************************************************
@@ -947,8 +1043,9 @@ echo $this->Html->css('NimbusCrowdInterface');
 			if (refineMode === 0) {
 				if (!clickingDisabled) {
 					console.log("click");
-					disableInput();
-					RMS.logString('manipulation-request', 'calculate-grasps');
+					disableButtonInput();
+					disableClickInput();
+					//RMS.logString('manipulation-request', 'calculate-grasps');
 					var rect = $(this)[0].getBoundingClientRect();
 					var goal = new ROSLIB.Goal({
 						actionClient: imageClickClient,
@@ -964,24 +1061,17 @@ echo $this->Html->css('NimbusCrowdInterface');
 						displayFeedback(feedback.message);
 					});
 					goal.on('result', function (result) {
-						RMS.logString('manipulation-result', JSON.stringify(result));
-						enableInput();
+						//RMS.logString('manipulation-result', JSON.stringify(result));
+						enableButtonInput();
+						enableClickInput();
 					});
 					goal.send();
 				}
-			}
-			else
-			{
-
 			}
 		}
 		else if (actionMode === "Place")
 		{
 			if (refineMode === 0)
-			{
-
-			}
-			else
 			{
 
 			}
