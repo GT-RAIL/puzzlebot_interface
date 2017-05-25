@@ -457,6 +457,20 @@ echo $this->Html->css('NimbusCrowdInterface');
 		serviceType : 'std_srvs/Empty'
 	});
 
+
+	//Setup ROS subscribers
+	var graspPosesSubscriber = new ROSLIB.Topic({
+		ros : _ROS,
+		name : '/grasp_sampler/sampled_grasps',
+		messageType : 'geometry_msgs::PoseArray'
+	});
+	graspPosesSubscriber.subscribe(function(message) {
+		if (message.poses.empty())
+		{
+			displayFeedback('Could not find any grasps at the clicked point. Try clicking a different point.');
+		}
+	});
+
 </script>
 
 <script type="text/javascript">
@@ -1025,7 +1039,7 @@ echo $this->Html->css('NimbusCrowdInterface');
 	var imClient = new ROS3D.InteractiveMarkerClient({
 		ros : _ROS,
 		tfClient : _TF,
-		topic : '/grasp_selector',
+		topic : '/click_and_refine',
 		camera : viewer.camera,
 		rootObject : viewer.selectableObjects
 	});
@@ -1062,6 +1076,7 @@ echo $this->Html->css('NimbusCrowdInterface');
 					});
 					goal.on('result', function (result) {
 						//RMS.logString('manipulation-result', JSON.stringify(result));
+
 						enableButtonInput();
 						enableClickInput();
 					});
