@@ -1025,7 +1025,7 @@ echo $this->Html->css('NimbusCrowdInterface');
 	var imClient = new ROS3D.InteractiveMarkerClient({
 		ros : _ROS,
 		tfClient : _TF,
-		topic : '/grasp_selector',
+		topic : '/click_and_refine',
 		camera : viewer.camera,
 		rootObject : viewer.selectableObjects
 	});
