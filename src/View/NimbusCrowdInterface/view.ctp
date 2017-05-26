@@ -462,13 +462,21 @@ echo $this->Html->css('NimbusCrowdInterface');
 	var graspPosesSubscriber = new ROSLIB.Topic({
 		ros : _ROS,
 		name : '/grasp_sampler/sampled_grasps',
-		messageType : 'geometry_msgs::PoseArray'
+		messageType : 'geometry_msgs/PoseArray'
 	});
 	graspPosesSubscriber.subscribe(function(message) {
-		if (message.poses.empty())
+		if (message.poses.length === 0)
 		{
 			displayFeedback('Could not find any grasps at the clicked point. Try clicking a different point.');
 		}
+	});
+	var agileSubscriber = new ROSLIB.Topic({
+		ros : _ROS,
+		name : '/point_cloud_clicker/click_image_point/feedback',
+		messageType : 'rail_agile_grasp_msgs/ClickImagePointActionFeedback'
+	});
+	agileSubscriber.subscribe(function(message) {
+		displayFeedback(message.feedback.message);
 	});
 
 </script>
