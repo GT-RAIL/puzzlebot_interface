@@ -1096,7 +1096,33 @@ echo $this->Html->css('NimbusCrowdInterface');
 		{
 			if (refineMode === 0)
 			{
+				if (!clickingDisabled) {
+					console.log("click");
+					disableButtonInput();
+					disableClickInput();
+					//RMS.logString('manipulation-request', 'calculate-grasps');
+					var rect = $(this)[0].getBoundingClientRect();
+					var goal = new ROSLIB.Goal({
+						actionClient: imageClickClient,
+						goalMessage: {
+							x: event.clientX - rect.left,
+							y: event.clientY - rect.top,
+							imageWidth: size,
+							imageHeight: Math.round(size * 0.75),
+							action: 1
+						}
+					});
+					goal.on('feedback', function (feedback) {
+						displayFeedback(feedback.message);
+					});
+					goal.on('result', function (result) {
+						//RMS.logString('manipulation-result', JSON.stringify(result));
 
+						//enableButtonInput();
+						//enableClickInput();
+					});
+					goal.send();
+				}
 			}
 		}
 		else if (actionMode === "Move")
