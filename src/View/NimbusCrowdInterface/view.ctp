@@ -470,6 +470,23 @@ echo $this->Html->css('NimbusCrowdInterface');
 			displayFeedback('Could not find any grasps at the clicked point. Try clicking a different point.');
 		}
 	});
+	var placePosesSubscriber = new ROSLIB.Topic({
+		ros : _ROS,
+		name : '/place_sampler/sampled_poses',
+		messageType : 'geometry_msgs/PoseArray'
+	});
+	placePosesSubscriber.subscribe(function(message) {
+		if (message.poses.length === 0)
+		{
+			displayFeedback('Could not find any grasps at the clicked point. Try clicking a different point.');
+		}
+		else
+		{
+			displayFeedback('Successfully calculated place poses at the clicked point.');
+		}
+		enableButtonInput();
+		enableClickInput();
+	});
 	var agileSubscriber = new ROSLIB.Topic({
 		ros : _ROS,
 		name : '/point_cloud_clicker/click_image_point/feedback',
