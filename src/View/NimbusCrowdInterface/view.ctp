@@ -446,6 +446,11 @@ echo $this->Html->css('NimbusCrowdInterface');
 		name : '/click_handler/change_point_cloud_topic',
 		serviceType : 'rail_agile_grasp_msgs/ChangePointCloud'
 	});
+	var changePointCloudPS = new ROSLIB.Service({
+		ros : _ROS,
+		name : '/place_sampler/change_point_cloud_topic',
+		serviceType : 'rail_agile_grasp_msgs/ChangePointCloud'
+	});
 	var changeRefineModeClient = new ROSLIB.Service({
 		ros : _ROS,
 		name : '/click_and_refine/switch_mode',
@@ -882,6 +887,7 @@ echo $this->Html->css('NimbusCrowdInterface');
 		changePointCloudPCC.callService(request, function(result) {});
 		changePointCloudRAG.callService(request, function(result) {});
 		changePointCloudCH.callService(request, function(result) {});
+		changePointCloudPS.callService(request, function(result) {});
 
 		RMS.logString('change-view', 'camera ' + current_stream_id);
 	}
@@ -1135,8 +1141,12 @@ echo $this->Html->css('NimbusCrowdInterface');
 					goal.on('result', function (result) {
 						//RMS.logString('manipulation-result', JSON.stringify(result));
 
-						//enableButtonInput();
-						//enableClickInput();
+						console.log(result);
+						if (result.completion === 0) {
+							console.log("re-enable!!");
+							enableButtonInput();
+							enableClickInput();
+						}
 					});
 					goal.send();
 				}
